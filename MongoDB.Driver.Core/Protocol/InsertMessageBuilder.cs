@@ -43,6 +43,7 @@ namespace MongoDB.Driver.Core.Protocol
             : base(OpCode.Insert)
         {
             _namespace = @namespace;
+            _flags = flags;
             _checkElementNames = checkElementNames;
             _writerSettings = writerSettings;
         }
