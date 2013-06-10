@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A channel.</returns>
         public static IServerChannel GetChannel(this IServer @this)
         {
-            return @this.GetChannel(Timeout.Infinite, new CancellationToken());
+            return @this.GetChannel(Timeout.Infinite, CancellationToken.None);
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A channel.</returns>
         public static IServerChannel GetChannel(this IServer @this, int millisecondsTimeout)
         {
-            return @this.GetChannel(millisecondsTimeout, new CancellationToken());
+            return @this.GetChannel(millisecondsTimeout, CancellationToken.None);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace MongoDB.Driver.Core.Connections
                 throw new ArgumentOutOfRangeException("timeout");
             }
 
-            return @this.GetChannel((int)millisecondsTimeout, new CancellationToken());
+            return @this.GetChannel((int)millisecondsTimeout, CancellationToken.None);
         }
 
         /// <summary>

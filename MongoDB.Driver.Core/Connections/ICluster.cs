@@ -54,7 +54,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A server.</returns>
         public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector)
         {
-            return @this.SelectServer(serverSelector, Timeout.Infinite, new CancellationToken());
+            return @this.SelectServer(serverSelector, Timeout.Infinite, CancellationToken.None);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A server.</returns>
         public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector, int millisecondsTimeout)
         {
-            return @this.SelectServer(serverSelector, millisecondsTimeout, new CancellationToken());
+            return @this.SelectServer(serverSelector, millisecondsTimeout, CancellationToken.None);
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace MongoDB.Driver.Core.Connections
                 throw new ArgumentOutOfRangeException("timeout");
             }
 
-            return @this.SelectServer(serverSelector, (int)millisecondsTimeout, new CancellationToken());
+            return @this.SelectServer(serverSelector, (int)millisecondsTimeout, CancellationToken.None);
         }
 
         /// <summary>
