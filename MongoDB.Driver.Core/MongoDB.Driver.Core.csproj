@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{190C9EEE-2412-434F-9EC5-D7DE86AA9E53}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MongoDB.Driver.Core</RootNamespace>
+    <AssemblyName>MongoDB.Driver.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Connections\ConnectionBase.cs" />
+    <Compile Include="Connections\IConnection.cs" />
+    <Compile Include="Connections\PipelinedChannelProvider.cs" />
+    <Compile Include="Connections\PipelinedChannelProviderFactory.cs" />
+    <Compile Include="Connections\ReceiveMessageParameters.cs" />
+    <Compile Include="Connections\MongoSocketWriteTimeoutException.cs" />
+    <Compile Include="Connections\MongoSocketReadTimeoutException.cs" />
+    <Compile Include="Connections\IClusterableServer.cs" />
+    <Compile Include="Connections\IServerChannel.cs" />
+    <Compile Include="Connections\MultiServerClusterDescription.cs" />
+    <Compile Include="Connections\Socks5ProxyStreamFactory.cs" />
+    <Compile Include="Connections\IConnectionPool.cs" />
+    <Compile Include="Connections\IStreamFactory.cs" />
+    <Compile Include="Connections\DefaultStreamFactory.cs" />
+    <Compile Include="MongoOperationException.cs" />
+    <Compile Include="Diagnostics\TraceManager.cs" />
+    <Compile Include="Events\ConnectionAuthenticatedEvent.cs" />
+    <Compile Include="Events\ConnectionOpenedEvent.cs" />
+    <Compile Include="Events\NodeDescriptionUpdatedEvent.cs" />
+    <Compile Include="MongoDriverException.cs" />
+    <Compile Include="Connections\MongoSocketException.cs" />
+    <Compile Include="Connections\IRequestMessage.cs" />
+    <Compile Include="Protocol\BsonBufferedRequestMessage.cs" />
+    <Compile Include="Protocol\InsertMessageBuilder.cs" />
+    <Compile Include="Protocol\OpCode.cs" />
+    <Compile Include="Protocol\UpdateMessage.cs" />
+    <Compile Include="Protocol\QueryMessageBuilder.cs" />
+    <Compile Include="Protocol\KillCursorsMessageBuilder.cs" />
+    <Compile Include="Protocol\DeleteMessageBuilder.cs" />
+    <Compile Include="Protocol\GetMoreMessageBuilder.cs" />
+    <Compile Include="Protocol\MongoCursorNotFoundException.cs" />
+    <Compile Include="Protocol\ReplyMessage.cs" />
+    <Compile Include="Protocol\BsonBufferedRequestMessageBuilder.cs" />
+    <Compile Include="Security\AuthenticatedConnection.cs" />
+    <Compile Include="Security\AuthenticatedConnectionFactory.cs" />
+    <Compile Include="Diagnostics\PerformanceCounterEventListeners.cs" />
+    <Compile Include="Connections\DnsCache.cs" />
+    <Compile Include="Connections\DisposalProtectedServer.cs" />
+    <Compile Include="Events\ConnectionRemovedFromPoolEvent.cs" />
+    <Compile Include="Events\ConnectionAddedToPoolEvent.cs" />
+    <Compile Include="Events\ConnectionCheckedInToPoolEvent.cs" />
+    <Compile Include="Events\ConnectionCheckedOutOfPoolEvent.cs" />
+    <Compile Include="Events\ConnectionPoolWaitQueueExitedEvent.cs" />
+    <Compile Include="Events\ConnectionPoolWaitQueueEnteredEvent.cs" />
+    <Compile Include="Events\ConnectionClosedEvent.cs" />
+    <Compile Include="Events\ConnectionPoolOpenedEvent.cs" />
+    <Compile Include="Events\ConnectionPoolClosedEvent.cs" />
+    <Compile Include="Events\EventPublisher.cs" />
+    <Compile Include="Events\IEventListener.cs" />
+    <Compile Include="Connections\ReplicaSetClusterSettings.cs" />
+    <Compile Include="Connections\ChannelProviderBase.cs" />
+    <Compile Include="Connections\ICluster.cs" />
+    <Compile Include="Connections\IChannelProvider.cs" />
+    <Compile Include="Connections\IServer.cs" />
+    <Compile Include="Connections\DefaultChannelProviderFactory.cs" />
+    <Compile Include="Connections\DelegateServerSelector.cs" />
+    <Compile Include="Diagnostics\PerformanceCounters\ConnectionPoolPerformanceRecorder.cs" />
+    <Compile Include="Diagnostics\PerformanceCounters\ConnectionPerformanceRecorder.cs" />
+    <Compile Include="Diagnostics\PerformanceCounters\PerformanceCounterAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Diagnostics\PerformanceCounters\PerformanceCounterPackage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Connections\IChannel.cs" />
+    <Compile Include="Connections\IChannelProviderFactory.cs" />
+    <Compile Include="Events\IEventPublisher.cs" />
+    <Compile Include="Events\ConnectionMessageReceivedEvent.cs" />
+    <Compile Include="Events\ConnectionMessageSendingEvent.cs" />
+    <Compile Include="Extensions\System\Collections\Generics\IEnumerableExtensions.cs" />
+    <Compile Include="CommandResult.cs" />
+    <Compile Include="CommandResultSerializer.cs" />
+    <Compile Include="Connections\ServerChannelBase.cs" />
+    <Compile Include="Security\AuthenticationSettings.cs" />
+    <Compile Include="Security\MongoSecurityException.cs" />
+    <Compile Include="Security\IAuthenticationProtocol.cs" />
+    <Compile Include="Security\ISaslMechanism.cs" />
+    <Compile Include="Security\ISaslStep.cs" />
+    <Compile Include="Security\Mechanisms\GsaslGssapiImplementation.cs" />
+    <Compile Include="Security\Mechanisms\GsaslImplementationBase.cs" />
+    <Compile Include="Security\Mechanisms\Gsasl\NativeMethods.cs" />
+    <Compile Include="Security\Mechanisms\Gsasl\GsaslContext.cs" />
+    <Compile Include="Security\Mechanisms\Gsasl\GsaslException.cs" />
+    <Compile Include="Security\Mechanisms\Gsasl\GsaslProperty.cs" />
+    <Compile Include="Security\Mechanisms\Gsasl\GsaslSession.cs" />
+    <Compile Include="Security\Mechanisms\GssapiMechanism.cs" />
+    <Compile Include="Security\Mechanisms\SaslImplementationBase.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\AuthIdentity.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\AuthIdentityFlag.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\DataRepresentation.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\EncryptQualityOfProtection.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\QueryContextAttribute.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SecurityBuffer.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SecurityBufferDescriptor.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SecurityBufferType.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SecurityContext.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SecurityCredential.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SecurityCredentialUse.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SecurityPackageContextSizes.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SspiContextFlags.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SspiHandle.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\SspiPackage.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\NativeMethods.cs" />
+    <Compile Include="Security\Mechanisms\Sspi\Win32Exception.cs" />
+    <Compile Include="Security\Mechanisms\WindowsGssapiImplementation.cs" />
+    <Compile Include="Security\MongoCRAuthenticationProtocol.cs" />
+    <Compile Include="Security\MongoAuthenticationException.cs" />
+    <Compile Include="Security\SaslAuthenticationProtocol.cs" />
+    <Compile Include="Security\SaslCompletionStep.cs" />
+    <Compile Include="Security\SaslConversation.cs" />
+    <Compile Include="Connections\CommandHelper.cs" />
+    <Compile Include="Connections\ConnectedServerSelector.cs" />
+    <Compile Include="Connections\DefaultConnection.cs" />
+    <Compile Include="Connections\DefaultConnectionFactory.cs" />
+    <Compile Include="Connections\ConnectionMode.cs" />
+    <Compile Include="Connections\DefaultChannelProvider.cs" />
+    <Compile Include="Connections\DefaultChannelProviderSettings.cs" />
+    <Compile Include="Connections\DefaultStreamFactorySettings.cs" />
+    <Compile Include="Connections\MultiServerCluster.cs" />
+    <Compile Include="Connections\MultiServerClusterType.cs" />
+    <Compile Include="Connections\DefaultClusterableServerFactory.cs" />
+    <Compile Include="Connections\IClusterableServerFactory.cs" />
+    <Compile Include="Connections\SingleServerCluster.cs" />
+    <Compile Include="Connections\SingleServerClusterDescription.cs" />
+    <Compile Include="Connections\ChannelBase.cs" />
+    <Compile Include="Connections\IConnectionFactory.cs" />
+    <Compile Include="Connections\ClusterableServerBase.cs" />
+    <Compile Include="Connections\ClusterBase.cs" />
+    <Compile Include="Connections\IServerSelector.cs" />
+    <Compile Include="Connections\IsMasterResultHelper.cs" />
+    <Compile Include="Connections\ReplicaSetInfo.cs" />
+    <Compile Include="Extensions\System\Diagnostics\TraceSourceExtensions.cs" />
+    <Compile Include="Operations\CommandOperation.cs" />
+    <Compile Include="Operations\DatabaseOperation.cs" />
+    <Compile Include="Operations\ICursorChannelProvider.cs" />
+    <Compile Include="Operations\InsertOperation.cs" />
+    <Compile Include="Operations\QueryOperation.cs" />
+    <Compile Include="Operations\ReadOperation.cs" />
+    <Compile Include="Operations\RemoveOperation.cs" />
+    <Compile Include="Operations\UpdateOperation.cs" />
+    <Compile Include="Operations\WriteOperation.cs" />
+    <Compile Include="ReadPreference.cs" />
+    <Compile Include="ReadPreferenceMode.cs" />
+    <Compile Include="ReadPreferenceServerSelector.cs" />
+    <Compile Include="Security\SslSettings.cs" />
+    <Compile Include="ReplicaSetTag.cs" />
+    <Compile Include="ReplicaSetTagSet.cs" />
+    <Compile Include="Security\SslStreamFactory.cs" />
+    <Compile Include="Support\Ensure.cs" />
+    <Compile Include="WriteConcernResult.cs" />
+    <Compile Include="MongoException.cs" />
+    <Compile Include="MongoNamespace.cs" />
+    <Compile Include="Support\MongoUtils.cs" />
+    <Compile Include="Protocol\InsertFlags.cs" />
+    <Compile Include="Connections\MongoConnectTimeoutException.cs" />
+    <Compile Include="Protocol\MongoProtocolException.cs" />
+    <Compile Include="Protocol\QueryFlags.cs" />
+    <Compile Include="Protocol\DeleteFlags.cs" />
+    <Compile Include="Protocol\ReplyFlags.cs" />
+    <Compile Include="Protocol\UpdateFlags.cs" />
+    <Compile Include="Connections\ServerBuildInfo.cs" />
+    <Compile Include="Connections\ClusterDescription.cs" />
+    <Compile Include="Connections\ClusterDescriptionType.cs" />
+    <Compile Include="Connections\DefaultClusterableServerSettings.cs" />
+    <Compile Include="Connections\ServerStatus.cs" />
+    <Compile Include="Connections\ServerType.cs" />
+    <Compile Include="Connections\PingTimeAggregator.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Connections\ReplicaSetCluster.cs" />
+    <Compile Include="Connections\ServerDescription.cs" />
+    <Compile Include="Connections\DefaultClusterableServer.cs" />
+    <Compile Include="Connections\UpdatedEventArgs.cs" />
+    <Compile Include="Security\ExternalEvidence.cs" />
+    <Compile Include="Security\MongoCredential.cs" />
+    <Compile Include="Security\MongoExternalIdentity.cs" />
+    <Compile Include="Security\MongoIdentity.cs" />
+    <Compile Include="Security\MongoIdentityEvidence.cs" />
+    <Compile Include="Security\MongoInternalIdentity.cs" />
+    <Compile Include="Security\PasswordEvidence.cs" />
+    <Compile Include="WriteConcern.cs" />
+    <Compile Include="MongoWriteConcernException.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MongoDB.Bson\MongoDB.Bson.csproj">
+      <Project>{0e9a3a2a-49cd-4f6c-847c-dc79b4b65ce6}</Project>
+      <Name>MongoDB.Bson</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
