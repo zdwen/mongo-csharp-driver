@@ -133,11 +133,11 @@ namespace MongoDB.Driver.Core.Connections
         public override event EventHandler<UpdatedEventArgs<ServerDescription>> DescriptionUpdated;
 
         // public methods
-        public override IServerChannel GetChannel(int millisecondsTimeout, CancellationToken cancellationToken)
+        public override IServerChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
         {
             ThrowIfUninitialized();
             ThrowIfDisposed();
-            return new ServerChannel(this, _channelProvider.GetChannel(millisecondsTimeout, cancellationToken));
+            return new ServerChannel(this, _channelProvider.GetChannel(timeout, cancellationToken));
         }
 
         public override void Initialize()

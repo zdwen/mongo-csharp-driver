@@ -48,10 +48,10 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets a channel.
         /// </summary>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
+        /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A channel.</returns>
-        public abstract IChannel GetChannel(int millisecondsTimeout, CancellationToken cancellationToken);
+        public abstract IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken);
 
         // protected methods
         /// <summary>

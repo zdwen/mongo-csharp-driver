@@ -31,7 +31,7 @@ namespace MongoDB.Driver.Core.Mocks
             // YAY!!!
         }
 
-        public override IChannel GetChannel(int millisecondsTimeout, CancellationToken cancellationToken)
+        public override IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
         {
             return new MockChannel(_connectionFactory.Create(_dnsEndPoint));
         }

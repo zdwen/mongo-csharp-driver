@@ -48,10 +48,10 @@ namespace MongoDB.Driver.Core.Connections
         /// Selects a server using the specified selector.
         /// </summary>
         /// <param name="selector">The selector.</param>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
+        /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A server.</returns>
-        public abstract IServer SelectServer(IServerSelector selector, int millisecondsTimeout, CancellationToken cancellationToken);
+        public abstract IServer SelectServer(IServerSelector selector, TimeSpan timeout, CancellationToken cancellationToken);
 
         // protected methods
         protected virtual void Dispose(bool disposing)

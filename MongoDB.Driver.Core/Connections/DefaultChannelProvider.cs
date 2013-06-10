@@ -135,10 +135,11 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets a connection.
         /// </summary>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
+        /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A connection.</returns>
-        public override IChannel GetChannel(int millisecondsTimeout, CancellationToken cancellationToken)
+        /// <exception cref="MongoDriverException">Too many threads are already waiting for a connection.</exception>
+        public override IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
         {
             ThrowIfUninitialized();
             ThrowIfDisposed();
@@ -152,7 +153,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
                 _events.Publish(new ConnectionPoolWaitQueueEnteredEvent(this));
 
-                if (_poolQueue.Wait(millisecondsTimeout, cancellationToken))
+                if (_poolQueue.Wait(timeout, cancellationToken))
                 {
                     ConnectionChannel channel;
                     if (_pool.TryDequeue(out channel))
@@ -184,7 +185,7 @@ namespace MongoDB.Driver.Core.Connections
                     }
                 }
 
-                _trace.TraceWarning("{0}: timeout waiting for a connection. Timeout was {1} milliseconds.", _toStringDescription, millisecondsTimeout);
+                _trace.TraceWarning("{0}: timeout waiting for a connection. Timeout was {1}.", _toStringDescription, timeout);
                 throw new MongoDriverException("Timeout waiting for a connection.");
             }
             finally

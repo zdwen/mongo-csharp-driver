@@ -72,17 +72,18 @@ namespace MongoDB.Driver.Core.Connections
         /// Selects a server using the specified selector.
         /// </summary>
         /// <param name="selector">The selector.</param>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
+        /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A server.</returns>
-        public override IServer SelectServer(IServerSelector selector, int millisecondsTimeout, CancellationToken cancellationToken)
+        /// <exception cref="MongoDriverException"></exception>
+        public override IServer SelectServer(IServerSelector selector, TimeSpan timeout, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull("selector", selector);
 
             ThrowIfUninitialized();
             ThrowIfDisposed();
 
-            var timeoutAt = DateTime.UtcNow.AddMilliseconds(millisecondsTimeout);
+            var timeoutAt = DateTime.UtcNow.Add(timeout);
             TimeSpan remaining;
             ManualResetEventSlim currentWaitHandle;
             ServerDescription description;
@@ -103,7 +104,7 @@ namespace MongoDB.Driver.Core.Connections
                     break;
                 }
 
-                if (millisecondsTimeout == Timeout.Infinite)
+                if (timeout.TotalMilliseconds == Timeout.Infinite)
                 {
                     remaining = TimeSpan.FromMilliseconds(Timeout.Infinite);
                 }
@@ -112,7 +113,7 @@ namespace MongoDB.Driver.Core.Connections
                     remaining = timeoutAt - DateTime.UtcNow;
                 }
             }
-            while ((millisecondsTimeout == Timeout.Infinite || remaining > TimeSpan.Zero) && currentWaitHandle.Wait(remaining, cancellationToken));
+            while ((timeout.TotalMilliseconds == Timeout.Infinite || remaining > TimeSpan.Zero) && currentWaitHandle.Wait(remaining, cancellationToken));
 
             throw new MongoDriverException(string.Format("The server {0} does not match '{1}'.", description.DnsEndPoint, selector.Description));
         }

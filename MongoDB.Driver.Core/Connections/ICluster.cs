@@ -38,10 +38,10 @@ namespace MongoDB.Driver.Core.Connections
         /// Selects a server using the specified selector.
         /// </summary>
         /// <param name="selector">The selector.</param>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
+        /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A server.</returns>
-        IServer SelectServer(IServerSelector selector, int millisecondsTimeout, CancellationToken cancellationToken);
+        IServer SelectServer(IServerSelector selector, TimeSpan timeout, CancellationToken cancellationToken);
     }
 
     public static class IClusterExtensions
@@ -54,7 +54,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A server.</returns>
         public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector)
         {
-            return @this.SelectServer(serverSelector, Timeout.Infinite, CancellationToken.None);
+            return @this.SelectServer(serverSelector, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
         }
 
         /// <summary>
@@ -64,17 +64,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A server.</returns>
         public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector, CancellationToken cancellationToken)
         {
-            return @this.SelectServer(serverSelector, Timeout.Infinite, cancellationToken);
-        }
-
-        /// <summary>
-        /// Selects a server using the specified selector.
-        /// </summary>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
-        /// <returns>A server.</returns>
-        public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector, int millisecondsTimeout)
-        {
-            return @this.SelectServer(serverSelector, millisecondsTimeout, CancellationToken.None);
+            return @this.SelectServer(serverSelector, TimeSpan.FromMilliseconds(Timeout.Infinite), cancellationToken);
         }
 
         /// <summary>
@@ -84,30 +74,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A server.</returns>
         public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector, TimeSpan timeout)
         {
-            var millisecondsTimeout = (long)timeout.TotalMilliseconds;
-            if (millisecondsTimeout < (long)-1 || millisecondsTimeout > (long)0x7fffffff)
-            {
-                throw new ArgumentOutOfRangeException("timeout");
-            }
-
-            return @this.SelectServer(serverSelector, (int)millisecondsTimeout, CancellationToken.None);
-        }
-
-        /// <summary>
-        /// Selects a server using the specified selector.
-        /// </summary>
-        /// <param name="timeout">A <see cref="T:System.TimeSpan" /> that represents the number of milliseconds to wait, or a <see cref="T:System.TimeSpan" /> that represents -1 milliseconds to wait indefinitely.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
-        /// <returns>A server.</returns>
-        public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector, TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            var millisecondsTimeout = (long)timeout.TotalMilliseconds;
-            if (millisecondsTimeout < (long)-1 || millisecondsTimeout > (long)0x7fffffff)
-            {
-                throw new ArgumentOutOfRangeException("timeout");
-            }
-
-            return @this.SelectServer(serverSelector, (int)millisecondsTimeout, cancellationToken);
+            return @this.SelectServer(serverSelector, timeout, CancellationToken.None);
         }
     }
 }

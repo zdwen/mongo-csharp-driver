@@ -31,10 +31,10 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets a channel.
         /// </summary>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
+        /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A channel.</returns>
-        IServerChannel GetChannel(int millisecondsTimeout, CancellationToken cancellationToken);
+        IServerChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken);
     }
 
     public static class IServerExtensions
@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A channel.</returns>
         public static IServerChannel GetChannel(this IServer @this)
         {
-            return @this.GetChannel(Timeout.Infinite, CancellationToken.None);
+            return @this.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
         }
 
         /// <summary>
@@ -55,17 +55,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A channel.</returns>
         public static IServerChannel GetChannel(this IServer @this, CancellationToken cancellationToken)
         {
-            return @this.GetChannel(Timeout.Infinite, cancellationToken);
-        }
-
-        /// <summary>
-        /// Gets a channel.
-        /// </summary>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
-        /// <returns>A channel.</returns>
-        public static IServerChannel GetChannel(this IServer @this, int millisecondsTimeout)
-        {
-            return @this.GetChannel(millisecondsTimeout, CancellationToken.None);
+            return @this.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), cancellationToken);
         }
 
         /// <summary>
@@ -75,30 +65,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A channel.</returns>
         public static IServerChannel GetChannel(this IServer @this, TimeSpan timeout)
         {
-            var millisecondsTimeout = (long)timeout.TotalMilliseconds;
-            if (millisecondsTimeout < (long)-1 || millisecondsTimeout > (long)0x7fffffff)
-            {
-                throw new ArgumentOutOfRangeException("timeout");
-            }
-
-            return @this.GetChannel((int)millisecondsTimeout, CancellationToken.None);
-        }
-
-        /// <summary>
-        /// Gets a channel.
-        /// </summary>
-        /// <param name="timeout">A <see cref="T:System.TimeSpan" /> that represents the number of milliseconds to wait, or a <see cref="T:System.TimeSpan" /> that represents -1 milliseconds to wait indefinitely.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
-        /// <returns>A channel.</returns>
-        public static IServerChannel GetChannel(this IServer @this, TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            var millisecondsTimeout = (long)timeout.TotalMilliseconds;
-            if (millisecondsTimeout < (long)-1 || millisecondsTimeout > (long)0x7fffffff)
-            {
-                throw new ArgumentOutOfRangeException("timeout");
-            }
-
-            return @this.GetChannel((int)millisecondsTimeout, cancellationToken);
+            return @this.GetChannel(timeout, CancellationToken.None);
         }
     }
 }

@@ -52,7 +52,7 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        public override IChannel GetChannel(int millisecondsTimeout, System.Threading.CancellationToken cancellationToken)
+        public override IChannel GetChannel(TimeSpan timeout, System.Threading.CancellationToken cancellationToken)
         {
             return new PipelinedChannel(this);
         }
