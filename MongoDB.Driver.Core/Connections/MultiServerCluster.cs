@@ -31,10 +31,11 @@ namespace MongoDB.Driver.Core.Connections
         // private fields
         private readonly object _serversLock = new object();
         private readonly IClusterableServerFactory _serverFactory;
+        private readonly DnsEndPoint[] _seedList;
         private readonly ConcurrentDictionary<DnsEndPoint, IClusterableServer> _servers;
         private readonly MultiServerClusterType _type;
         private MultiServerClusterDescription _currentDescription;
-        private ManualResetEventSlim _currentWaitHandle;
+        private ManualResetEventSlim _selectServerEvent;
         private int _state;
 
         // constructors
@@ -52,20 +53,10 @@ namespace MongoDB.Driver.Core.Connections
             _serverFactory = serverFactory;
             _servers = new ConcurrentDictionary<DnsEndPoint, IClusterableServer>();
             _type = type;
-            _currentWaitHandle = new ManualResetEventSlim();
+            _selectServerEvent = new ManualResetEventSlim();
 
-            var descriptions = new List<ServerDescription>();
-            foreach (var dnsEndPoint in dnsEndPoints)
-            {
-                var server = CreateServer(dnsEndPoint);
-                if (_servers.TryAdd(dnsEndPoint, server))
-                {
-                    server.DescriptionUpdated += ServerDescriptionUpdated;
-                    descriptions.Add(server.Description);
-                }
-            }
-
-            _currentDescription = new MultiServerClusterDescription(_type, descriptions);
+            _currentDescription = new MultiServerClusterDescription(_type, Enumerable.Empty<ServerDescription>());
+            _seedList = dnsEndPoints.ToArray();
         }
 
         // public properties
@@ -91,9 +82,9 @@ namespace MongoDB.Driver.Core.Connections
             ThrowIfDisposed();
             if (Interlocked.CompareExchange(ref _state, (int)State.Initialized, (int)State.Unitialized) == (int)State.Unitialized)
             {
-                foreach (var server in _servers)
+                foreach (var dnsEndPoint in _seedList)
                 {
-                    server.Value.Initialize();
+                    AddServer(dnsEndPoint);
                 }
             }
         }
@@ -120,7 +111,7 @@ namespace MongoDB.Driver.Core.Connections
             ManualResetEventSlim currentWaitHandle;
             do
             {
-                currentWaitHandle = Interlocked.CompareExchange(ref _currentWaitHandle, null, null);
+                currentWaitHandle = Interlocked.CompareExchange(ref _selectServerEvent, null, null);
                 var descriptions = getDescriptions();
 
                 var selectedDescription = selector.SelectServer(descriptions);
@@ -168,7 +159,7 @@ namespace MongoDB.Driver.Core.Connections
                     }
 
                     _servers.Clear();
-                    _currentWaitHandle.Dispose();
+                    _selectServerEvent.Dispose();
                 }
             }
         }
@@ -284,6 +275,8 @@ namespace MongoDB.Driver.Core.Connections
 
         private void ServerDescriptionUpdated(object sender, UpdatedEventArgs<ServerDescription> e)
         {
+            // we only want to process updated events after all servers in the seed list have
+            // been initialized
             HandleUpdatedDescription(e.New);
             OnDescriptionUpdated();           
         }
@@ -293,7 +286,7 @@ namespace MongoDB.Driver.Core.Connections
             var descriptions = _servers.Select(x => x.Value.Description).ToList();
             var newDescription = new MultiServerClusterDescription(_type, descriptions);
             Interlocked.Exchange(ref _currentDescription, newDescription);
-            var old = Interlocked.Exchange(ref _currentWaitHandle, new ManualResetEventSlim());
+            var old = Interlocked.Exchange(ref _selectServerEvent, new ManualResetEventSlim());
             old.Set();
         }
 

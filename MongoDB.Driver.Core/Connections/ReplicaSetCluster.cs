@@ -69,19 +69,21 @@ namespace MongoDB.Driver.Core.Connections
                 return;
             }
 
+            // make sure we know about these and only these servers.
+            EnsureServers(server.ReplicaSetInfo.Members);
+
+            // if the members do not contain the server we are processing, remove it from the mix.
+            if (!server.ReplicaSetInfo.Members.Contains(server.DnsEndPoint))
+            {
+                RemoveServer(server.DnsEndPoint);
+                return;
+            }
+
             if (server.Type == ServerType.ReplicaSetPrimary)
             {
-                // we want to take the current primary(ies)and get invalidate it so we don't have 2 primaries
+                // we want to take the current primary(ies)and invalidate it so we don't have 2 primaries.
                 var currentPrimaries = ((MultiServerClusterDescription)Description).Servers.Where(x => x.Type == ServerType.ReplicaSetPrimary && !x.DnsEndPoint.Equals(server.DnsEndPoint)).ToList();
                 currentPrimaries.ForEach(x => InvalidateServer(x.DnsEndPoint));
-                
-                // make sure we know about these guys and only these guys
-                EnsureServers(server.ReplicaSetInfo.Members);
-            }
-            else if (server.ReplicaSetInfo.Primary != null)
-            {
-                // make sure we know about the primary
-                EnsureServer(server.ReplicaSetInfo.Primary);
             }
         }
     }
