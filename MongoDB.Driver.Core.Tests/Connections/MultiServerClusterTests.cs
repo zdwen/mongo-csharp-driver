@@ -31,6 +31,16 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Test]
+        public void Description_should_return_a_cluster_description_of_type_Multi()
+        {
+            _subject.Initialize();
+
+            var description = _subject.Description;
+
+            Assert.AreEqual(ClusterDescriptionType.Multi, description.Type);
+        }
+
+        [Test]
         public void SelectServer_should_throw_an_exception_if_not_initialized()
         {
             Assert.Throws<InvalidOperationException>(() => _subject.SelectServer(ConnectedServerSelector.Instance));
