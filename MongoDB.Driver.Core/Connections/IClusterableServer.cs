@@ -25,7 +25,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Occurs when the description is updated.
         /// </summary>
-        event EventHandler<UpdatedEventArgs<ServerDescription>> DescriptionUpdated;
+        event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
 
         /// <summary>
         /// Initializes the server.

@@ -39,7 +39,7 @@ namespace MongoDB.Driver.Core.Mocks
             get { return _dnsEndPoint; }
         }
 
-        public override event EventHandler<UpdatedEventArgs<ServerDescription>> DescriptionUpdated;
+        public override event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
 
         public override IServerChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
         {
@@ -74,10 +74,10 @@ namespace MongoDB.Driver.Core.Mocks
         public void ApplyChanges()
         {
             var next = Interlocked.CompareExchange(ref _nextDescription, null, null);
-            var old = Interlocked.Exchange(ref _currentDescription, next);
+            Interlocked.Exchange(ref _currentDescription, next);
             if (DescriptionUpdated != null)
             {
-                DescriptionUpdated(this, new UpdatedEventArgs<ServerDescription>(old, next));
+                DescriptionUpdated(this, new ServerDescriptionChangedEventArgs<ServerDescription>(next));
             }
         }
 

@@ -31,7 +31,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Occurs when the description is updated.
         /// </summary>
-        public abstract event EventHandler<UpdatedEventArgs<ServerDescription>> DescriptionUpdated;
+        public abstract event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

@@ -213,7 +213,7 @@
     <Compile Include="Connections\ReplicaSetCluster.cs" />
     <Compile Include="Connections\ServerDescription.cs" />
     <Compile Include="Connections\DefaultClusterableServer.cs" />
-    <Compile Include="Connections\UpdatedEventArgs.cs" />
+    <Compile Include="Connections\ServerDescriptionChangedEventArgs.cs" />
     <Compile Include="Security\ExternalEvidence.cs" />
     <Compile Include="Security\MongoCredential.cs" />
     <Compile Include="Security\MongoExternalIdentity.cs" />

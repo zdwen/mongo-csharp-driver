@@ -96,9 +96,12 @@ namespace MongoDB.DriverUnitTests.Jira
                 nodeFactory);
             cluster.Initialize();
 
+            Console.WriteLine("Clearing Data");
             ClearData(cluster);
+            Console.WriteLine("Inserting Seed Data");
             InsertData(cluster);
 
+            Console.WriteLine("Running Tests (errors will show up as + (query error) or * (insert/update error))");
             for (int i = 0; i < 7; i++)
             {
                 ThreadPool.QueueUserWorkItem(_ => DoWork(cluster));

@@ -134,7 +134,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         // private methods
-        private void ServerDescriptionUpdated(object sender, UpdatedEventArgs<ServerDescription> e)
+        private void ServerDescriptionUpdated(object sender, ServerDescriptionChangedEventArgs<ServerDescription> e)
         {
             var old = Interlocked.Exchange(ref _currentWaitHandle, new ManualResetEventSlim());
             old.Set();

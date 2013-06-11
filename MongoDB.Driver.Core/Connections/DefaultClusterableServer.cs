@@ -130,7 +130,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         // public events
-        public override event EventHandler<UpdatedEventArgs<ServerDescription>> DescriptionUpdated;
+        public override event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
 
         // public methods
         public override IServerChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
@@ -329,7 +329,7 @@ namespace MongoDB.Driver.Core.Connections
                 var descriptionString = GetServerDescriptionString(description);
                 _events.Publish(new ServerDescriptionUpdatedEvent(this));
                 _trace.TraceInformation("{0}: description updated - {1}.", _toStringDescription, descriptionString);
-                var args = new UpdatedEventArgs<ServerDescription>(oldDescription, description);
+                var args = new ServerDescriptionChangedEventArgs<ServerDescription>(description);
                 if (DescriptionUpdated != null)
                 {
                     DescriptionUpdated(this, args);
@@ -339,9 +339,10 @@ namespace MongoDB.Driver.Core.Connections
 
         private bool AreDescriptionsEqual(ServerDescription a, ServerDescription b)
         {
-            return AreReplicaSetsEqual(a.ReplicaSetInfo, b.ReplicaSetInfo) &&
+            return a.AveragePingTime == b.AveragePingTime &&
                 a.Status == b.Status &&
-                a.Type == b.Type;
+                a.Type == b.Type &&
+                AreReplicaSetsEqual(a.ReplicaSetInfo, b.ReplicaSetInfo);
         }
 
         private bool AreReplicaSetsEqual(ReplicaSetInfo a, ReplicaSetInfo b)
@@ -364,7 +365,7 @@ namespace MongoDB.Driver.Core.Connections
         private string GetServerDescriptionString(ServerDescription description)
         {
             var builder = new StringBuilder();
-            builder.AppendFormat("Type={0},Status={1}", description.Type, description.Status);
+            builder.AppendFormat("Type={0},Status={1},PingTime={2}", description.Type, description.Status, description.AveragePingTime);
             if (description.ReplicaSetInfo != null)
             {
                 var members = string.Join(",", description.ReplicaSetInfo.Members);

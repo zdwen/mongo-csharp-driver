@@ -273,11 +273,11 @@ namespace MongoDB.Driver.Core.Connections
             return _serverFactory.Create(dnsEndPoint);
         }
 
-        private void ServerDescriptionUpdated(object sender, UpdatedEventArgs<ServerDescription> e)
+        private void ServerDescriptionUpdated(object sender, ServerDescriptionChangedEventArgs<ServerDescription> e)
         {
             // we only want to process updated events after all servers in the seed list have
             // been initialized
-            HandleUpdatedDescription(e.New);
+            HandleUpdatedDescription(e.Value);
             OnDescriptionUpdated();           
         }
 
