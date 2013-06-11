@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BsonBufferHelper.cs" />
+    <Compile Include="Connections\CommandHelperTests.cs" />
     <Compile Include="Connections\DefaultConnectionPoolTests.cs" />
     <Compile Include="Mocks\MockChannel.cs" />
     <Compile Include="Mocks\MockChannelProvider.cs" />
