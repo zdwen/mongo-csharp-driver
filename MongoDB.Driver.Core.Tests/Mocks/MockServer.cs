@@ -65,8 +65,10 @@ namespace MongoDB.Driver.Core.Mocks
 
         public override void Invalidate()
         {
+            var next = Interlocked.CompareExchange(ref _nextDescription, null, null);
             SetNextDescription(_connectingDescription);
             ApplyChanges();
+            SetNextDescription(next);
         }
 
         public void ApplyChanges()
