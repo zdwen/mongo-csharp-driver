@@ -80,14 +80,6 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         /// <summary>
-        /// Gets the id.
-        /// </summary>
-        public int Id
-        {
-            get { return _id; }
-        }
-
-        /// <summary>
         /// Gets a value indicating whether this connection is open.
         /// </summary>
         public override bool IsOpen

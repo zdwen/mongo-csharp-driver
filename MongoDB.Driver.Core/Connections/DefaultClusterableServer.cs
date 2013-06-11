@@ -113,22 +113,6 @@ namespace MongoDB.Driver.Core.Connections
             get { return Interlocked.CompareExchange(ref _currentDescription, null, null); }
         }
 
-        /// <summary>
-        /// Gets the id.
-        /// </summary>
-        public int Id
-        {
-            get { return _id; }
-        }
-
-        /// <summary>
-        /// Gets the settings.
-        /// </summary>
-        public DefaultClusterableServerSettings Settings
-        {
-            get { return _settings; }
-        }
-
         // public events
         public override event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
 
