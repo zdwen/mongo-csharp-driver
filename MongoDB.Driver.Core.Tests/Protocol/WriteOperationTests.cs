@@ -95,7 +95,7 @@ namespace MongoDB.Driver.Core.Protocol
                 doc["err"] = err;
             }
 
-            return BsonBufferHelper.BuildReplyMessage(new[] { doc });
+            return ProtocolHelper.BuildReplyMessage(new[] { doc });
         }
 
         private class TestWriteOperation : WriteOperation

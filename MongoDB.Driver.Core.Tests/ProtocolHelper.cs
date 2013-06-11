@@ -5,13 +5,31 @@ using System.Text;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
 
 namespace MongoDB.Driver.Core
 {
-    public static class BsonBufferHelper
+    public static class ProtocolHelper
     {
-        public static ReplyMessage BuildReplyMessage(IEnumerable<BsonDocument> documents)
+        public static IRequestMessage BuildRequestMessage(string commandName)
+        {
+            var request = new BsonBufferedRequestMessage();
+
+            var builder = new QueryMessageBuilder(
+                new MongoNamespace("test", MongoNamespace.CommandCollectionName),
+                QueryFlags.AwaitData,
+                0,
+                1,
+                new BsonDocument(commandName, 1),
+                null,
+                new BsonBinaryWriterSettings());
+
+            builder.AddToRequest(request);
+            return request;
+        }
+
+        public static ReplyMessage BuildReplyMessage(IEnumerable<BsonDocument> documents, int responseTo = 0)
         {
             var buffer = new BsonBuffer();
             int docCount = 0;
@@ -28,7 +46,7 @@ namespace MongoDB.Driver.Core
             return new ReplyMessage(
                 4 + 4 + 4 + 4 + 4 + 8 + 4 + 4 + buffer.Length,
                 0,
-                0,
+                responseTo,
                 OpCode.Reply,
                 ReplyFlags.AwaitCapable,
                 0,
@@ -61,5 +79,33 @@ namespace MongoDB.Driver.Core
 
             return query;
         }
+
+        private class DummyRequestMessage : IRequestMessage
+        {
+            private readonly int _length;
+            private readonly int _requestId;
+
+            public DummyRequestMessage(int requestId, int length, string commandName)
+            {
+                _requestId = requestId;
+                _length = length;
+            }
+
+            public int Length
+            {
+                get { return _length; }
+            }
+
+            public int RequestId
+            {
+                get { return _requestId; }
+            }
+
+            public void Write(System.IO.Stream stream)
+            {
+                // do nothing...
+            }
+        }
+
     }
 }

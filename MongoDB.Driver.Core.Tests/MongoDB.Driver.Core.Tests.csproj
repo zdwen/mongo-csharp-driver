@@ -49,9 +49,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BsonBufferHelper.cs" />
+    <Compile Include="ProtocolHelper.cs" />
     <Compile Include="Connections\CommandHelperTests.cs" />
-    <Compile Include="Connections\DefaultConnectionPoolTests.cs" />
+    <Compile Include="Connections\DefaultChannelProviderTests.cs" />
     <Compile Include="Mocks\MockChannel.cs" />
     <Compile Include="Mocks\MockChannelProvider.cs" />
     <Compile Include="Protocol\ReadOperationTests.cs" />

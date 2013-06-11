@@ -54,7 +54,7 @@ namespace MongoDB.Driver.Core.Mocks
             if (_responseQueue.Count > 0)
             {
                 var replyDocs = _responseQueue.Dequeue()();
-                return BsonBufferHelper.BuildReplyMessage(replyDocs);
+                return ProtocolHelper.BuildReplyMessage(replyDocs);
             }
 
             _isOpen = false;
@@ -71,7 +71,7 @@ namespace MongoDB.Driver.Core.Mocks
 
             if (message is BsonBufferedRequestMessage)
             {
-                var doc = BsonBufferHelper.ReadQueryMessage((BsonBufferedRequestMessage)message);
+                var doc = ProtocolHelper.ReadQueryMessage((BsonBufferedRequestMessage)message);
                 // get the last one here in case a response is changed 
                 var registeredResponse = _responses.LastOrDefault(x => x.Item1(doc));
                 if (registeredResponse != null)
