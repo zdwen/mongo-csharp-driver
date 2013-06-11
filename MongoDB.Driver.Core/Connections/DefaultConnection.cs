@@ -240,12 +240,8 @@ namespace MongoDB.Driver.Core.Connections
                 _traceSource.TraceInformation("{0}: closed with {1}.", _toStringDescription, _dnsEndPoint);
                 _events.Publish(new ConnectionClosedEvent(this));
                 _state = State.Disposed;
-                if (_stream != null)
-                {
-                    try { _stream.Close(); }
-                    catch { } // ignore exceptions
-                    _stream = null;
-                }
+                try { _stream.Close(); }
+                catch { } // ignore exceptions
             }
             _disposed = true;
             base.Dispose(disposing);
