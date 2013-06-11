@@ -135,6 +135,29 @@ namespace MongoDB.Driver.Core.Connections
             Assert.AreEqual(ServerStatus.Connected, description.Status);
         }
 
+        [Test]
+        public void Invalidate_should_change_description_to_connecting_and_update_against_the_server()
+        {
+            SetupLookupDescriptionResults();
+            var subject = CreateSubject();
+            subject.Initialize();
+
+            // let the information get pulled back...
+            Thread.Sleep(4000);
+
+            var updates = new List<ServerDescription>();
+            subject.DescriptionUpdated += (o, e) => updates.Add(e.Value);
+            subject.Invalidate();
+
+            // let the information get pulled back again...
+            Thread.Sleep(4000);
+
+            // 2 updates should have come, the first the change to connecting, the second back to connected
+            Assert.AreEqual(2, updates.Count);
+            var firstDescription = updates[0];
+            Assert.AreEqual(ServerStatus.Connecting, firstDescription.Status);
+        }
+
         private DefaultClusterableServer CreateSubject()
         {
             return new DefaultClusterableServer(_serverSettings, _dnsEndPoint, _channelProvider, _connectionFactory, new EventPublisher(), new TraceManager());
