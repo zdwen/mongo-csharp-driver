@@ -73,7 +73,7 @@ namespace MongoDB.Driver.Core.Operations
             var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
             var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
 
-            var updateMessage = new UpdateMessage(
+            var updateMessage = new UpdateMessageBuilders(
                 Namespace,
                 _flags,
                 _query,

@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Protocol
     /// <summary>
     /// Builds a <see cref="BsonBufferedRequestMessage"/> to update one or more documents.
     /// </summary>
-    public sealed class UpdateMessage : BsonBufferedRequestMessageBuilder
+    public sealed class UpdateMessageBuilders : BsonBufferedRequestMessageBuilder
     {
         // private fields
         private readonly UpdateFlags _flags;
@@ -34,14 +34,14 @@ namespace MongoDB.Driver.Core.Protocol
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="UpdateMessage" /> class.
+        /// Initializes a new instance of the <see cref="UpdateMessageBuilders" /> class.
         /// </summary>
         /// <param name="namespace">The namespace.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="selector">The selector.</param>
         /// <param name="update">The update.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public UpdateMessage(MongoNamespace @namespace, UpdateFlags flags, object selector, object update, BsonBinaryWriterSettings writerSettings)
+        public UpdateMessageBuilders(MongoNamespace @namespace, UpdateFlags flags, object selector, object update, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Update)
         {
             Ensure.IsNotNull("@namespace", @namespace);

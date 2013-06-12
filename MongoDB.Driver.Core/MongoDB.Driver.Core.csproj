@@ -67,7 +67,7 @@
     <Compile Include="Protocol\BsonBufferedRequestMessage.cs" />
     <Compile Include="Protocol\InsertMessageBuilder.cs" />
     <Compile Include="Protocol\OpCode.cs" />
-    <Compile Include="Protocol\UpdateMessage.cs" />
+    <Compile Include="Protocol\UpdateMessageBuilders.cs" />
     <Compile Include="Protocol\QueryMessageBuilder.cs" />
     <Compile Include="Protocol\KillCursorsMessageBuilder.cs" />
     <Compile Include="Protocol\DeleteMessageBuilder.cs" />
