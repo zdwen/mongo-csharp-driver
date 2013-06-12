@@ -51,8 +51,10 @@ namespace MongoDB.Driver.Core.Events
                 .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEventListener<>))
                 .Select(x => x.GetGenericArguments()[0]);
 
+            bool foundAny = false;
             foreach (var eventType in eventTypes)
             {
+                foundAny = true;
                 List<object> list;
                 if (!_listeners.TryGetValue(eventType, out list))
                 {
@@ -60,6 +62,11 @@ namespace MongoDB.Driver.Core.Events
                 }
 
                 list.Add(listener);
+            }
+
+            if (!foundAny)
+            {
+                throw new ArgumentException("The provided listener did not implement IEventPublisher<>. As such, no events were subscribed.", "listener");
             }
         }
     }
