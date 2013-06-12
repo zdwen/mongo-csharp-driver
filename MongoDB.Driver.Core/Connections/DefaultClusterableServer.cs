@@ -224,7 +224,7 @@ namespace MongoDB.Driver.Core.Connections
                 averagePingTime: _pingTimeAggregator.Average,
                 buildInfo: buildInfo,
                 dnsEndPoint: _dnsEndPoint,
-                maxDocumentSize: IsMasterResultHelper.GetMaxDocumentSizeSize(isMasterResult, _settings.MaxDocumentSizeDefault),
+                maxDocumentSize: IsMasterResultHelper.GetMaxDocumentSize(isMasterResult, _settings.MaxDocumentSizeDefault),
                 maxMessageSize: IsMasterResultHelper.GetMaxMessageSize(isMasterResult, _settings.MaxDocumentSizeDefault, _settings.MaxMessageSizeDefault),
                 replicaSetInfo: replicaSetInfo,
                 status: ServerStatus.Connected,

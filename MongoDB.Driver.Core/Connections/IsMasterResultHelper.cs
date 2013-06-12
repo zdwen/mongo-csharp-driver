@@ -29,7 +29,7 @@ namespace MongoDB.Driver.Core.Connections
         public const int MAX_DOCUMENT_SIZE = 4 * 1024 * 1024; // 4MiB
         public const int MAX_MESSAGE_LENGTH = 16000000; // 16MB (not 16 MiB!)
 
-        public static int GetMaxDocumentSizeSize(BsonDocument isMasterResult, int maxDocumentSizeDefault)
+        public static int GetMaxDocumentSize(BsonDocument isMasterResult, int maxDocumentSizeDefault)
         {
             return isMasterResult.GetValue("maxBsonObjectSize", maxDocumentSizeDefault).ToInt32();
         }
@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             return isMasterResult.GetValue(
                     "maxMessageSizeBytes",
-                    Math.Max(maxMessageSizeDefault, GetMaxDocumentSizeSize(isMasterResult, maxDocumentSizeDefault) + 1024))
+                    Math.Max(maxMessageSizeDefault, GetMaxDocumentSize(isMasterResult, maxDocumentSizeDefault) + 1024))
                     .ToInt32();
         }
 
