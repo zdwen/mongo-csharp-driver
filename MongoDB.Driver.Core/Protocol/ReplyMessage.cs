@@ -146,7 +146,7 @@ namespace MongoDB.Driver.Core.Protocol
         {
             var messageLength = ReadMessageLength(stream);
             var byteBuffer = ByteBufferFactory.Create(BsonChunkPool.Default, messageLength);
-            var buffer = new BsonBuffer();
+            var buffer = new BsonBuffer(byteBuffer, true);
             buffer.WriteInt32(messageLength);
             buffer.LoadFrom(stream, messageLength - 4); // 4 is the size of the message length
             buffer.Position = 4;
