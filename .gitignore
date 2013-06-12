@@ -31,6 +31,9 @@ Help
 # Nupkg artifacts
 *.nupkg
 
+# Coverity artifacts
+.cov
+
 # NCrunch artifacts
 *.ncrunch*
 
