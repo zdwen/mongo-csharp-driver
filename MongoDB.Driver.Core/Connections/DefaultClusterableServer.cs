@@ -279,12 +279,39 @@ namespace MongoDB.Driver.Core.Connections
                             // we want to catch every exception because this is occuring on a background
                             // thread and any unhandled exceptions could crash the process.
 
-                            _trace.TraceWarning(ex, "{0}: unable to communicate with server.", _toStringDescription);
-                            description = _connectingDescription;
+                            bool takeDownServer = true;
+                            if (Description.Status == ServerStatus.Connected)
+                            {
+                                // if we used to be connected and we had an error, let's immediately try this
+                                // again in case it is just a one-time deal...
+                                _trace.TraceWarning(ex, "{0}: unable to communicate with server. Trying again immediately.", _toStringDescription);
 
-                            // we want to use the presumably shorter frequency
-                            // when we are supposed to be connected but are not.
-                            _descriptionUpdateTimer.Change(_settings.ConnectRetryFrequency, _settings.ConnectRetryFrequency);
+                                try
+                                {
+                                    description = LookupDescription();
+
+                                    // we want to use the presumably longer frequency for normal status updates.
+                                    _descriptionUpdateTimer.Change(_settings.HeartbeatFrequency, _settings.HeartbeatFrequency);
+        
+                                    takeDownServer = false;
+                                }
+                                catch(Exception ex2)
+                                {
+                                    // we want the takeDownServer code below to report the next error 
+                                    // since the previous one was already reported
+                                    ex = ex2;
+                                } 
+                            }
+
+                            if (takeDownServer)
+                            {
+                                _trace.TraceWarning(ex, "{0}: unable to communicate with server.", _toStringDescription);
+                                description = _connectingDescription;
+
+                                // we want to use the presumably shorter frequency
+                                // when we are supposed to be connected but are not.
+                                _descriptionUpdateTimer.Change(_settings.ConnectRetryFrequency, _settings.ConnectRetryFrequency);
+                            }
                         }
                     }
                 }
