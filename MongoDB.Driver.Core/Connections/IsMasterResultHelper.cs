@@ -90,7 +90,6 @@ namespace MongoDB.Driver.Core.Connections
             var passives = GetInstanceAddressesFromNamedResponseElement(addressFamily, isMasterResult, "passives");
             var arbiters = GetInstanceAddressesFromNamedResponseElement(addressFamily, isMasterResult, "arbiters");
 
-
             var tags = new Dictionary<string, string>();
             if (isMasterResult.Contains("tags"))
             {
@@ -100,7 +99,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            var version = isMasterResult.GetValue("setVersion", 0).AsInt32;
+            var version = isMasterResult.GetValue("setVersion", null).AsNullableInt32;
 
             return new ReplicaSetInfo(name, primary, hosts.Concat(passives).Concat(arbiters), tags, version);
         }

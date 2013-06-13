@@ -71,12 +71,21 @@ namespace MongoDB.Driver.Core.Connections
                 return;
             }
 
-            var oldReplicaSetVersion = Interlocked.Exchange(ref _replicaSetVersion, server.ReplicaSetInfo.Version);
-
-            if (oldReplicaSetVersion < server.ReplicaSetInfo.Version)
+            bool acceptReplicaSetMembers = true;
+            if (server.ReplicaSetInfo.Version.HasValue)
             {
-                // this is the first time we've received a new version, so let's process
-                // the Members.
+                var oldReplicaSetVersion = Interlocked.Exchange(ref _replicaSetVersion, server.ReplicaSetInfo.Version.Value);
+
+                if (oldReplicaSetVersion >= server.ReplicaSetInfo.Version)
+                {
+                    // this is not the first time we've received this version, so we'll
+                    // ignore it...
+                    acceptReplicaSetMembers = false;
+                }
+            }
+
+            if (acceptReplicaSetMembers)
+            {
                 EnsureServers(server.ReplicaSetInfo.Members);
             }
 

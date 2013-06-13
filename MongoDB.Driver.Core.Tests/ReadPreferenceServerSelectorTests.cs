@@ -246,7 +246,7 @@ namespace MongoDB.Driver.Core
             {
                 if (includeTagSets)
                 {
-                    n.ReplicaSetInfo(new ReplicaSetInfo("rs", new DnsEndPoint("localhost", 1000), new DnsEndPoint[0], new Dictionary<string, string> { { "a", "true" }, { "b", "true" } }, 0));
+                    n.ReplicaSetInfo(new ReplicaSetInfo("rs", new DnsEndPoint("localhost", 1000), new DnsEndPoint[0], new Dictionary<string, string> { { "a", "true" }, { "b", "true" } }, null));
                 }
                 n.DnsEndPoint(new DnsEndPoint("localhost", 1000));
                 n.AveragePingTime(TimeSpan.FromMilliseconds(10));
@@ -257,7 +257,7 @@ namespace MongoDB.Driver.Core
             {
                 if (includeTagSets)
                 {
-                    n.ReplicaSetInfo(new ReplicaSetInfo("rs", new DnsEndPoint("localhost", 1000), new DnsEndPoint[0], new Dictionary<string, string> { { "a", "true" }, { "c", "true" } }, 0));
+                    n.ReplicaSetInfo(new ReplicaSetInfo("rs", new DnsEndPoint("localhost", 1000), new DnsEndPoint[0], new Dictionary<string, string> { { "a", "true" }, { "c", "true" } }, null));
                 }
                 n.DnsEndPoint(new DnsEndPoint("localhost", 1001));
                 n.AveragePingTime(TimeSpan.FromMilliseconds(20));
@@ -268,7 +268,7 @@ namespace MongoDB.Driver.Core
             {
                 if (includeTagSets)
                 {
-                    n.ReplicaSetInfo(new ReplicaSetInfo("rs", new DnsEndPoint("localhost", 1000), new DnsEndPoint[0], new Dictionary<string, string> { { "b", "true" }, { "c", "true" } }, 0));
+                    n.ReplicaSetInfo(new ReplicaSetInfo("rs", new DnsEndPoint("localhost", 1000), new DnsEndPoint[0], new Dictionary<string, string> { { "b", "true" }, { "c", "true" } }, null));
                 }
                 n.DnsEndPoint(new DnsEndPoint("localhost", 1002));
                 n.AveragePingTime(TimeSpan.FromMilliseconds(30));
@@ -279,7 +279,7 @@ namespace MongoDB.Driver.Core
             {
                 if (includeTagSets)
                 {
-                    n.ReplicaSetInfo(new ReplicaSetInfo("rs", new DnsEndPoint("localhost", 1000), new DnsEndPoint[0], new Dictionary<string, string> { { "b", "true" }, { "d", "true" } }, 0));
+                    n.ReplicaSetInfo(new ReplicaSetInfo("rs", new DnsEndPoint("localhost", 1000), new DnsEndPoint[0], new Dictionary<string, string> { { "b", "true" }, { "d", "true" } }, null));
                 }
                 n.DnsEndPoint(new DnsEndPoint("localhost", 1003));
                 n.AveragePingTime(TimeSpan.FromMilliseconds(40));
