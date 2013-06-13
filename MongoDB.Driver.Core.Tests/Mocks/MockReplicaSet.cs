@@ -147,7 +147,8 @@ namespace MongoDB.Driver.Core.Mocks
                 _replicaSetName,
                 primary != null ? primary.Server.DnsEndPoint : null,
                 hosts.Select(x => x.Server.DnsEndPoint),
-                new Dictionary<string, string>());
+                new Dictionary<string, string>(),
+                0);
 
             foreach (var server in _servers.Values)
             {

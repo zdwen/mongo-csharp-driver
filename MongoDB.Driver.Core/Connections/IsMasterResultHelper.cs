@@ -100,7 +100,9 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            return new ReplicaSetInfo(name, primary, hosts.Concat(passives).Concat(arbiters), tags);
+            var version = isMasterResult.GetValue("setVersion", 0).AsInt32;
+
+            return new ReplicaSetInfo(name, primary, hosts.Concat(passives).Concat(arbiters), tags, version);
         }
 
         private static IEnumerable<DnsEndPoint> GetInstanceAddressesFromNamedResponseElement(AddressFamily addressFamily, BsonDocument isMasterResult, string elementName)

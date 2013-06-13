@@ -28,6 +28,7 @@ namespace MongoDB.Driver.Core.Connections
         private readonly DnsEndPoint _primary;
         private readonly List<DnsEndPoint> _members;
         private readonly IEnumerable<KeyValuePair<string, string>> _tags;
+        private readonly int _version;
 
         // constructors
         /// <summary>
@@ -37,12 +38,13 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="primary">The primary.</param>
         /// <param name="members">The members.</param>
         /// <param name="tags">The tags.</param>
-        public ReplicaSetInfo(string name, DnsEndPoint primary, IEnumerable<DnsEndPoint> members, IEnumerable<KeyValuePair<string, string>> tags)
+        public ReplicaSetInfo(string name, DnsEndPoint primary, IEnumerable<DnsEndPoint> members, IEnumerable<KeyValuePair<string, string>> tags, int version)
         {
             _name = name;
             _primary = primary;
             _members = members == null ? new List<DnsEndPoint>() : members.ToList();
             _tags = tags ?? Enumerable.Empty<KeyValuePair<string, string>>();
+            _version = version;
         }
 
         // public properties
@@ -76,6 +78,14 @@ namespace MongoDB.Driver.Core.Connections
         public IEnumerable<KeyValuePair<string, string>> Tags
         {
             get { return _tags; }
+        }
+
+        /// <summary>
+        /// Gets the version.
+        /// </summary>
+        public int Version
+        {
+            get { return _version; }
         }
     }
 }
