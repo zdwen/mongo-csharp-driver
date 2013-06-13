@@ -89,7 +89,7 @@ namespace MongoDB.Driver.Core.Connections
 
         public void ReplicaSetInfo(string name, DnsEndPoint primary, params DnsEndPoint[] members)
         {
-            ReplicaSetInfo(new ReplicaSetInfo(name, primary, members, null, 0));
+            ReplicaSetInfo(new ReplicaSetInfo(name, primary, members, null, null));
         }
 
         public void ReplicaSetInfo(ReplicaSetInfo info)

@@ -124,7 +124,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Test]
-        public void When_the_primary_reports_a_new_server_it_should_get_added()
+        public void When_a_server_reports_a_new_member_it_should_get_added()
         {
             _replicaSet.AddMember(ServerType.ReplicaSetPrimary, new DnsEndPoint("localhost", 1000));
             _replicaSet.AddMember(ServerType.ReplicaSetSecondary, new DnsEndPoint("localhost", 1001));
@@ -146,7 +146,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Test]
-        public void When_the_primary_reports_a_dropped_server_it_should_get_removed()
+        public void When_a_server_reports_a_dropped_member_it_should_get_removed()
         {
             _replicaSet.AddMember(ServerType.ReplicaSetPrimary, new DnsEndPoint("localhost", 1000));
             _replicaSet.AddMember(ServerType.ReplicaSetSecondary, new DnsEndPoint("localhost", 1001));

@@ -99,7 +99,11 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            var version = isMasterResult.GetValue("setVersion", null).AsNullableInt32;
+            int? version = null;
+            if (isMasterResult.Contains("setVersion"))
+            {
+                version = isMasterResult.GetValue("setVersion").AsInt32;
+            }
 
             return new ReplicaSetInfo(name, primary, hosts.Concat(passives).Concat(arbiters), tags, version);
         }
