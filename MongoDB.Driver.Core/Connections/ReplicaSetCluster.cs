@@ -27,6 +27,7 @@ namespace MongoDB.Driver.Core.Connections
     {
         // private fields
         private string _replicaSetName;
+        private int _replicaSetVersion;
 
         // constructors
         /// <summary>
@@ -39,6 +40,7 @@ namespace MongoDB.Driver.Core.Connections
             : base(MultiServerClusterType.ReplicaSet, dnsEndPoints, serverFactory)
         {
             _replicaSetName = settings.ReplicaSetName;
+            _replicaSetVersion = int.MinValue; // make sure the first change gets processed...
         }
 
         // protected methods
@@ -60,6 +62,7 @@ namespace MongoDB.Driver.Core.Connections
             }
 
             var currentReplicaSetName = Interlocked.CompareExchange(ref _replicaSetName, server.ReplicaSetInfo.Name, null);
+            var oldReplicaSetVersion = Interlocked.Exchange(ref _replicaSetVersion, server.ReplicaSetInfo.Version);
 
             // if the server has a different replica set name than the one we are connected to,
             // get rid of it.
@@ -69,8 +72,12 @@ namespace MongoDB.Driver.Core.Connections
                 return;
             }
 
-            // make sure we know about these and only these servers.
-            EnsureServers(server.ReplicaSetInfo.Members);
+            if (oldReplicaSetVersion < server.ReplicaSetInfo.Version)
+            {
+                // this is the first time we've received a new version, so let's process
+                // the Members.
+                EnsureServers(server.ReplicaSetInfo.Members);
+            }
 
             // if the members do not contain the server we are processing, remove it from the mix.
             if (!server.ReplicaSetInfo.Members.Contains(server.DnsEndPoint))
