@@ -62,7 +62,6 @@ namespace MongoDB.Driver.Core.Connections
             }
 
             var currentReplicaSetName = Interlocked.CompareExchange(ref _replicaSetName, server.ReplicaSetInfo.Name, null);
-            var oldReplicaSetVersion = Interlocked.Exchange(ref _replicaSetVersion, server.ReplicaSetInfo.Version);
 
             // if the server has a different replica set name than the one we are connected to,
             // get rid of it.
@@ -71,6 +70,8 @@ namespace MongoDB.Driver.Core.Connections
                 RemoveServer(server.DnsEndPoint);
                 return;
             }
+
+            var oldReplicaSetVersion = Interlocked.Exchange(ref _replicaSetVersion, server.ReplicaSetInfo.Version);
 
             if (oldReplicaSetVersion < server.ReplicaSetInfo.Version)
             {
