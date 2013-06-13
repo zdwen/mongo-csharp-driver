@@ -79,39 +79,6 @@ namespace MongoDB.Driver.Core.Security
         }
 
         /// <summary>
-        /// Gets the password.
-        /// </summary>
-        [Obsolete("Use Evidence instead.")]
-        public string Password
-        {
-            [SecuritySafeCritical]
-            get
-            {
-                var passwordEvidence = _evidence as PasswordEvidence;
-                if (passwordEvidence != null)
-                {
-                    var secureString = passwordEvidence.SecurePassword;
-                    if (secureString == null || secureString.Length == 0)
-                    {
-                        return "";
-                    }
-
-                    var bstr = Marshal.SecureStringToBSTR(secureString);
-                    try
-                    {
-                        return Marshal.PtrToStringBSTR(bstr);
-                    }
-                    finally
-                    {
-                        Marshal.ZeroFreeBSTR(bstr);
-                    }
-                }
-
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Gets the source.
         /// </summary>
         public string Source
@@ -162,7 +129,7 @@ namespace MongoDB.Driver.Core.Security
             return FromComponents("GSSAPI",
                 "$external",
                 username,
-                (PasswordEvidence)null);
+                new ExternalEvidence());
         }
 
         /// <summary>
