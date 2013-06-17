@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson.IO;
-using MongoDB.Bson.IO.Extensions;
 
 namespace MongoDB.Bson.IO
 {
@@ -382,17 +381,12 @@ namespace MongoDB.Bson.IO
         /// <summary>
         /// Reads a BSON CString from the stream.
         /// </summary>
-        /// <param name="encoding">The encoding.</param>
         /// <returns>
         /// A string.
         /// </returns>
         /// <exception cref="System.ArgumentNullException">encoding</exception>
-        public string ReadBsonCString(UTF8Encoding encoding)
+        public string ReadBsonCString()
         {
-            if (encoding == null)
-            {
-                throw new ArgumentNullException("encoding");
-            }
             if (!_isOpen)
             {
                 StreamIsClosed();
@@ -403,7 +397,7 @@ namespace MongoDB.Bson.IO
             var length = nullPosition - position + 1; // read null byte also
             _position = nullPosition + 1;
 
-            return StreamExtensions.DecodeUtf8String(_buffer, position, length - 1, encoding); // don't decode null byte
+            return Utf8Helper.DecodeUtf8String(_buffer, position, length - 1, Utf8Helper.StrictUtf8Encoding); // don't decode null byte
         }
 
         /// <summary>
@@ -539,7 +533,7 @@ namespace MongoDB.Bson.IO
                 throw new EndOfStreamException();
             }
 
-            return StreamExtensions.DecodeUtf8String(_buffer, position, length - 1, encoding);
+            return Utf8Helper.DecodeUtf8String(_buffer, position, length - 1, encoding);
         }
 
         /// <summary>
@@ -737,8 +731,7 @@ namespace MongoDB.Bson.IO
         /// Writes a BSON CString to the stream.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <param name="encoding">The encoding.</param>
-        public void WriteBsonCString(string value, UTF8Encoding encoding)
+        public void WriteBsonCString(string value)
         {
             if (!_isOpen)
             {
@@ -746,11 +739,11 @@ namespace MongoDB.Bson.IO
             }
             EnsureWriteable();
 
-            var maxLength = encoding.GetMaxByteCount(value.Length) + 1;
+            var maxLength = Utf8Helper.StrictUtf8Encoding.GetMaxByteCount(value.Length) + 1;
             var maxNewPosition = _position + maxLength;
             EnsurePosition(maxNewPosition);
 
-            var length = encoding.GetBytes(value, 0, value.Length, _buffer, _position);
+            var length = Utf8Helper.StrictUtf8Encoding.GetBytes(value, 0, value.Length, _buffer, _position);
             _buffer[_position + length] = 0;
 
             _position += length + 1;

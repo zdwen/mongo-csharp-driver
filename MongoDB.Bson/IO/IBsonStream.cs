@@ -16,9 +16,8 @@ namespace MongoDB.Bson.IO
         /// <summary>
         /// Reads a BSON CString from the stream.
         /// </summary>
-        /// <param name="encoding">The encoding.</param>
         /// <returns>A string.</returns>
-        string ReadBsonCString(UTF8Encoding encoding);
+        string ReadBsonCString();
 
         /// <summary>
         /// Reads a BSON double from the stream.
@@ -60,8 +59,7 @@ namespace MongoDB.Bson.IO
         /// Writes a BSON CString to the stream.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <param name="encoding">The encoding.</param>
-        void WriteBsonCString(string value, UTF8Encoding encoding);
+        void WriteBsonCString(string value);
 
         /// <summary>
         /// Writes a BSON double to the stream.

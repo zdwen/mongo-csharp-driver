@@ -17,7 +17,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using MongoDB.Bson.IO.Extensions;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 
@@ -551,12 +550,13 @@ namespace MongoDB.Bson.IO
             using (var memoryStream = new MemoryStream(documentLength))
             {
                 // wrap the array in a fake document so we can deserialize it
-                memoryStream.WriteBsonInt32(documentLength);
-                memoryStream.WriteBsonType(BsonType.Array);
-                memoryStream.WriteByte((byte)'x');
-                memoryStream.WriteByte(0);
-                slice.WriteTo(memoryStream);
-                memoryStream.WriteByte(0);
+                var streamWriter = new BsonStreamWriter(memoryStream);
+                streamWriter.WriteBsonInt32(documentLength);
+                streamWriter.WriteBsonType(BsonType.Array);
+                streamWriter.WriteByte((byte)'x');
+                streamWriter.WriteByte(0);
+                slice.WriteTo(streamWriter.BaseStream);
+                streamWriter.WriteByte(0);
 
                 memoryStream.Position = 0;
                 using (var bsonReader = new BsonBinaryReader(memoryStream, BsonBinaryReaderSettings.Defaults))

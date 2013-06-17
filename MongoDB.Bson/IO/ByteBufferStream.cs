@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MongoDB.Bson.IO.Extensions;
 
 namespace MongoDB.Bson.IO
 {
@@ -133,19 +132,13 @@ namespace MongoDB.Bson.IO
         /// <summary>
         /// Reads a BSON CString from the stream.
         /// </summary>
-        /// <param name="encoding">The encoding.</param>
         /// <returns>
         /// A string.
         /// </returns>
         /// <exception cref="System.ArgumentNullException">encoding</exception>
         /// <exception cref="System.FormatException">CString is missing terminating null byte.</exception>
-        public string ReadBsonCString(UTF8Encoding encoding)
+        public string ReadBsonCString()
         {
-            if (encoding == null)
-            {
-                throw new ArgumentNullException("encoding");
-            }
-
             var nullPosition = _byteBuffer.FindNullByte();
             if (nullPosition == -1)
             {
@@ -156,12 +149,12 @@ namespace MongoDB.Bson.IO
             var segment = _byteBuffer.ReadBackingBytes(length);
             if (segment.Count >= length)
             {
-                return StreamExtensions.DecodeUtf8String(segment.Array, segment.Offset, length - 1, encoding); // don't decode null byte
+                return Utf8Helper.DecodeUtf8String(segment.Array, segment.Offset, length - 1, Utf8Helper.StrictUtf8Encoding); // don't decode null byte
             }
             else
             {
                 var bytes = _byteBuffer.ReadBytes(length);
-                return StreamExtensions.DecodeUtf8String(bytes, 0, length - 1, encoding); // don't decode null byte
+                return Utf8Helper.DecodeUtf8String(bytes, 0, length - 1, Utf8Helper.StrictUtf8Encoding); // don't decode null byte
             }
         }
 
@@ -287,7 +280,7 @@ namespace MongoDB.Bson.IO
                 {
                     throw new FormatException("String is missing terminating null byte.");
                 }
-                return StreamExtensions.DecodeUtf8String(segment.Array, segment.Offset, length - 1, encoding);
+                return Utf8Helper.DecodeUtf8String(segment.Array, segment.Offset, length - 1, encoding);
             }
             else
             {
@@ -296,7 +289,7 @@ namespace MongoDB.Bson.IO
                 {
                     throw new FormatException("String is missing terminating null byte.");
                 }
-                return StreamExtensions.DecodeUtf8String(bytes, 0, length - 1, encoding);
+                return Utf8Helper.DecodeUtf8String(bytes, 0, length - 1, encoding);
             }
         }
 
@@ -361,19 +354,18 @@ namespace MongoDB.Bson.IO
         /// Writes a BSON CString to the stream.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <param name="encoding">The encoding.</param>
         /// <exception cref="System.ArgumentException">
         /// UTF8 representation of a CString cannot contain null bytes.
         /// or
         /// UTF8 representation of a CString cannot contain null bytes.
         /// </exception>
-        public void WriteBsonCString(string value, UTF8Encoding encoding)
+        public void WriteBsonCString(string value)
         {
-            var maxLength = encoding.GetMaxByteCount(value.Length) + 1;
+            var maxLength = Utf8Helper.StrictUtf8Encoding.GetMaxByteCount(value.Length) + 1;
             var segment = _byteBuffer.WriteBackingBytes(maxLength);
             if (segment.Count >= maxLength)
             {
-                var length = encoding.GetBytes(value, 0, value.Length, segment.Array, segment.Offset);
+                var length = Utf8Helper.StrictUtf8Encoding.GetBytes(value, 0, value.Length, segment.Array, segment.Offset);
                 if (Array.IndexOf<byte>(segment.Array, 0, segment.Offset, length) != -1)
                 {
                     throw new ArgumentException("UTF8 representation of a CString cannot contain null bytes.");
@@ -383,7 +375,7 @@ namespace MongoDB.Bson.IO
             }
             else
             {
-                var bytes = encoding.GetBytes(value);
+                var bytes = Utf8Helper.StrictUtf8Encoding.GetBytes(value);
                 if (bytes.Contains<byte>(0))
                 {
                     throw new ArgumentException("UTF8 representation of a CString cannot contain null bytes.");

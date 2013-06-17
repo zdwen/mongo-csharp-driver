@@ -118,16 +118,18 @@
     <Compile Include="IO\BsonDocumentWriterSettings.cs" />
     <Compile Include="IO\BsonMemoryStream.cs" />
     <Compile Include="IO\BsonReaderSettings.cs" />
+    <Compile Include="IO\BsonStreamReader.cs" />
+    <Compile Include="IO\BsonStreamWriter.cs" />
     <Compile Include="IO\BsonTrie.cs" />
     <Compile Include="IO\BsonWriterSettings.cs" />
     <Compile Include="IO\ByteBufferFactory.cs" />
     <Compile Include="IO\ByteArrayBuffer.cs" />
     <Compile Include="IO\ByteBufferStream.cs" />
-    <Compile Include="IO\Extensions\StreamExtensions.cs" />
     <Compile Include="IO\IBsonStream.cs" />
     <Compile Include="IO\IByteBuffer.cs" />
     <Compile Include="IO\MultiChunkBuffer.cs" />
     <Compile Include="IO\SingleChunkBuffer.cs" />
+    <Compile Include="IO\Utf8Helper.cs" />
     <Compile Include="ObjectModel\GuidRepresentation.cs" />
     <Compile Include="ObjectModel\GuidConverter.cs" />
     <Compile Include="IO\JsonReaderSettings.cs" />
@@ -408,6 +410,9 @@
     <CodeAnalysisDictionary Include="..\CustomDictionary.xml">
       <Link>CustomDictionary.xml</Link>
     </CodeAnalysisDictionary>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="IO\Extensions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
