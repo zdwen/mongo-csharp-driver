@@ -113,13 +113,13 @@ namespace MongoDB.Bson
             IBsonSerializationOptions options,
             BsonBinaryWriterSettings settings)
         {
-            using (var buffer = new BsonBuffer())
+            using (var memoryStream = new MemoryStream())
             {
-                using (var bsonWriter = BsonWriter.Create(buffer, settings))
+                using (var bsonWriter = BsonWriter.Create(memoryStream, settings))
                 {
                     BsonSerializer.Serialize(bsonWriter, nominalType, obj, options);
                 }
-                return buffer.ToByteArray();
+                return memoryStream.ToArray();
             }
         }
 

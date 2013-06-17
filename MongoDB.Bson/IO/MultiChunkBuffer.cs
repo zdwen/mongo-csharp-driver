@@ -525,25 +525,26 @@ namespace MongoDB.Bson.IO
         /// Writes bytes.
         /// </summary>
         /// <param name="source">The bytes (in the form of a byte array).</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="count">The count.</param>
         /// <exception cref="System.ObjectDisposedException">MultiChunkBuffer</exception>
         /// <exception cref="System.InvalidOperationException">The MultiChunkBuffer is read only.</exception>
-        public void WriteBytes(byte[] source)
+        public void WriteBytes(byte[] source, int offset, int count)
         {
             ThrowIfDisposed();
             EnsureIsWritable();
             EnsureSpaceAvailable(source.Length);
             var chunkIndex = (_sliceOffset + _position) / _chunkSize;
             var chunkOffset = (_sliceOffset + _position) % _chunkSize;
-            var remaining = source.Length;
-            var sourceOffset = 0;
-            while (remaining > 0)
+            var sourceOffset = offset;
+            while (count > 0)
             {
                 var chunkRemaining = _chunkSize - chunkOffset;
-                var bytesToCopy = (remaining < chunkRemaining) ? remaining : chunkRemaining;
+                var bytesToCopy = (count < chunkRemaining) ? count : chunkRemaining;
                 Buffer.BlockCopy(source, sourceOffset, _chunks[chunkIndex].Bytes, chunkOffset, bytesToCopy);
                 chunkIndex += 1;
                 chunkOffset = 0;
-                remaining -= bytesToCopy;
+                count -= bytesToCopy;
                 sourceOffset += bytesToCopy;
                 _position += bytesToCopy;
             }

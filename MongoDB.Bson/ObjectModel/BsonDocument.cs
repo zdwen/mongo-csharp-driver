@@ -371,20 +371,6 @@ namespace MongoDB.Bson
         }
 
         /// <summary>
-        /// Reads a BsonDocument from a BsonBuffer.
-        /// </summary>
-        /// <param name="buffer">The BsonBuffer.</param>
-        /// <returns>A BsonDocument.</returns>
-        [Obsolete("Use BsonSerializer.Deserialize<BsonDocument> instead.")]
-        public static BsonDocument ReadFrom(BsonBuffer buffer)
-        {
-            using (BsonReader bsonReader = BsonReader.Create(buffer))
-            {
-                return BsonSerializer.Deserialize<BsonDocument>(bsonReader);
-            }
-        }
-
-        /// <summary>
         /// Reads a BsonDocument from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
@@ -1237,19 +1223,6 @@ namespace MongoDB.Bson
         public new void WriteTo(BsonWriter bsonWriter)
         {
             BsonSerializer.Serialize(bsonWriter, this);
-        }
-
-        /// <summary>
-        /// Writes the document to a BsonBuffer.
-        /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        [Obsolete("Use BsonSerializer.Serialize<BsonDocument> instead.")]
-        public void WriteTo(BsonBuffer buffer)
-        {
-            using (BsonWriter bsonWriter = BsonWriter.Create(buffer))
-            {
-                BsonSerializer.Serialize(bsonWriter, this);
-            }
         }
 
         /// <summary>

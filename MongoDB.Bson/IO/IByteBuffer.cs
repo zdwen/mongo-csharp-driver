@@ -145,7 +145,9 @@ namespace MongoDB.Bson.IO
         /// Writes bytes.
         /// </summary>
         /// <param name="source">The bytes (in the form of a byte array).</param>
-        void WriteBytes(byte[] source);
+        /// <param name="offset">The offset.</param>
+        /// <param name="count">The count.</param>
+        void WriteBytes(byte[] source, int offset, int count);
 
         /// <summary>
         /// Writes bytes.

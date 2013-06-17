@@ -411,15 +411,16 @@ namespace MongoDB.Bson.IO
         /// Writes bytes.
         /// </summary>
         /// <param name="bytes">The bytes.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="count">The count.</param>
         /// <exception cref="System.ObjectDisposedException">ByteArrayBuffer</exception>
         /// <exception cref="System.InvalidOperationException">Write operations are not allowed for read only buffers.</exception>
-        public void WriteBytes(byte[] bytes)
+        public void WriteBytes(byte[] bytes, int offset, int count)
         {
             ThrowIfDisposed();
             EnsureIsWritable();
-            var count = bytes.Length;
             EnsureSpaceAvailable(count);
-            Buffer.BlockCopy(bytes, 0, _bytes, _sliceOffset + _position, count);
+            Buffer.BlockCopy(bytes, offset, _bytes, _sliceOffset + _position, count);
             _position += count;
             if (_length < _position)
             {

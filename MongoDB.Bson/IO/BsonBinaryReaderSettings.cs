@@ -26,10 +26,11 @@ namespace MongoDB.Bson.IO
     {
         // private static fields
         private static BsonBinaryReaderSettings __defaults = null; // delay creation to pick up the latest default values
+        private static readonly UTF8Encoding __strictUTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         // private fields
         private bool _closeInput = false;
-        private UTF8Encoding _encoding = new UTF8Encoding(false, true);
+        private UTF8Encoding _encoding = __strictUTF8Encoding;
         private bool _fixOldBinarySubTypeOnInput = true;
         private bool _fixOldDateTimeMaxValueOnInput = true;
         private int _maxDocumentSize = BsonDefaults.MaxDocumentSize;

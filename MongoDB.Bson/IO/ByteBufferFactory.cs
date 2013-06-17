@@ -88,7 +88,7 @@ namespace MongoDB.Bson.IO
             var length = BitConverter.ToInt32(lengthBytes, 0);
 
             var buffer = Create(BsonChunkPool.Default, length);
-            buffer.WriteBytes(lengthBytes);
+            buffer.WriteBytes(lengthBytes, 0, 4);
             buffer.LoadFrom(stream, length - 4);
             buffer.Position = 0;
 

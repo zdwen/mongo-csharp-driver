@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System;
 using System.IO;
 using System.Text;
 using MongoDB.Bson;
@@ -81,8 +82,8 @@ namespace MongoDB.BsonUnitTests.IO
         {
             var bytes = new byte[] { 13, 0, 0, 0, (byte)BsonType.String, (byte)'s', 0, 0, 0, 0, 0, 0, 0 };
             Assert.AreEqual(13, bytes.Length);
-            var ex = Assert.Throws<FileFormatException>(() => { BsonSerializer.Deserialize<BsonDocument>(bytes); });
-            Assert.AreEqual("Invalid string length: 0 (the length includes the null terminator so it must be greater than or equal to 1).", ex.Message);
+            var ex = Assert.Throws<FormatException>(() => { BsonSerializer.Deserialize<BsonDocument>(bytes); });
+            Assert.AreEqual("Invalid string length: 0.", ex.Message);
         }
 
         [Test]
@@ -90,8 +91,8 @@ namespace MongoDB.BsonUnitTests.IO
         {
             var bytes = new byte[] { 13, 0, 0, 0, (byte)BsonType.String, (byte)'s', 0, 1, 0, 0, 0, 123, 0 };
             Assert.AreEqual(13, bytes.Length);
-            var ex = Assert.Throws<FileFormatException>(() => { BsonSerializer.Deserialize<BsonDocument>(bytes); });
-            Assert.AreEqual("String is missing null terminator.", ex.Message);
+            var ex = Assert.Throws<FormatException>(() => { BsonSerializer.Deserialize<BsonDocument>(bytes); });
+            Assert.AreEqual("String is missing terminating null byte.", ex.Message);
         }
 
         [Test]

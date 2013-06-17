@@ -65,7 +65,7 @@ namespace MongoDB.BsonUnitTests.IO
                 Assert.AreEqual(0, backingBytes[0]);
                 Assert.AreEqual(0, backingBytes[1]);
                 Assert.AreEqual(0, backingBytes[2]);
-                buffer.WriteBytes(bytes);
+                buffer.WriteBytes(bytes, 0, bytes.Length);
                 Assert.AreEqual(1, backingBytes[0]);
                 Assert.AreEqual(2, backingBytes[1]);
                 Assert.AreEqual(0, backingBytes[2]);
@@ -101,7 +101,7 @@ namespace MongoDB.BsonUnitTests.IO
             var backingBytes = new byte[100];
             using (var buffer = new ByteArrayBuffer(backingBytes, 0, 0, false))
             {
-                buffer.WriteBytes(new[] { (byte)1, (byte)2 });
+                buffer.WriteBytes(new[] { (byte)1, (byte)2 }, 0, 2);
 
                 using (var memoryStream = new MemoryStream())
                 {

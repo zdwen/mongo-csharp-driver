@@ -16,6 +16,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
@@ -538,7 +539,8 @@ namespace MongoDB.Bson
         {
             var values = new List<BsonValue>();
 
-            using (var bsonReader = new BsonBinaryReader(new BsonBuffer(CloneSlice(), true), true, _readerSettings))
+            using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+            using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
                 bsonReader.ReadStartDocument();
                 BsonType bsonType;

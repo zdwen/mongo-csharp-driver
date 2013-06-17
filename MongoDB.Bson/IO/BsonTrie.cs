@@ -25,7 +25,7 @@ namespace MongoDB.Bson.IO
     public class BsonTrie<TValue>
     {
         // private static fields
-        private static readonly UTF8Encoding __utf8Encoding = new UTF8Encoding(false, true); // throw on invalid bytes
+        private static readonly UTF8Encoding __strictUTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         // private fields
         private readonly BsonTrieNode<TValue> _root;
@@ -59,7 +59,7 @@ namespace MongoDB.Bson.IO
         /// <param name="value">The value to add. The value can be null for reference types.</param>
         public void Add(string elementName, TValue value)
         {
-            var keyBytes = __utf8Encoding.GetBytes(elementName);
+            var keyBytes = __strictUTF8Encoding.GetBytes(elementName);
 
             var node = _root;
             foreach (var keyByte in keyBytes)
@@ -87,7 +87,7 @@ namespace MongoDB.Bson.IO
         /// <returns>True if the value was found; otherwise, false.</returns>
         public bool TryGetValue(string elementName, out TValue value)
         {
-            var keyBytes = __utf8Encoding.GetBytes(elementName);
+            var keyBytes = __strictUTF8Encoding.GetBytes(elementName);
 
             var node = _root;
             for (var i = 0; i < keyBytes.Length; i++)

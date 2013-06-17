@@ -794,7 +794,8 @@ namespace MongoDB.Bson
         {
             var elements = new List<BsonElement>();
 
-            using (var bsonReader = new BsonBinaryReader(new BsonBuffer(CloneSlice(), true), true, _readerSettings))
+            using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+            using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
                 bsonReader.ReadStartDocument();
                 BsonType bsonType;
