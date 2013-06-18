@@ -16,6 +16,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Internal;
@@ -55,12 +56,12 @@ namespace MongoDB.Driver.Operations
             WriteConcernException finalException = null;
             List<WriteConcernResult> results = (WriteConcern.Enabled) ? new List<WriteConcernResult>() : null;
 
-            using (var bsonBuffer = new BsonBuffer(new MultiChunkBuffer(BsonChunkPool.Default), true))
+            using (var stream = new MemoryStream())
             {
                 var readerSettings = GetNodeAdjustedReaderSettings(connection.ServerInstance);
                 var writerSettings = GetNodeAdjustedWriterSettings(connection.ServerInstance);
                 var message = new MongoInsertMessage(writerSettings, CollectionFullName, _checkElementNames, _flags);
-                message.WriteToBuffer(bsonBuffer); // must be called before AddDocument
+                message.WriteTo(stream); // must be called before AddDocument
 
                 var writeConcernEnabled = WriteConcern.Enabled;
                 var continueOnError = (_flags & InsertFlags.ContinueOnError) != 0;
@@ -91,17 +92,17 @@ namespace MongoDB.Driver.Operations
                             }
                         }
                     }
-                    message.AddDocument(bsonBuffer, _documentType, document);
+                    message.AddDocument(stream, _documentType, document);
 
                     if (message.MessageLength > connection.ServerInstance.MaxMessageLength)
                     {
-                        byte[] lastDocument = message.RemoveLastDocument(bsonBuffer);
+                        byte[] lastDocument = message.RemoveLastDocument(stream);
 
                         if (writeConcernEnabled && !continueOnError)
                         {
                             try
                             {
-                                var result = SendMessageWithWriteConcern(connection, bsonBuffer, message.RequestId, readerSettings, writerSettings, WriteConcern);
+                                var result = SendMessageWithWriteConcern(connection, stream, message.RequestId, readerSettings, writerSettings, WriteConcern);
                                 results.Add(result);
                             }
                             catch (WriteConcernException ex)
@@ -115,7 +116,7 @@ namespace MongoDB.Driver.Operations
                         {
                             try
                             {
-                                var result = SendMessageWithWriteConcern(connection, bsonBuffer, message.RequestId, readerSettings, writerSettings, WriteConcern);
+                                var result = SendMessageWithWriteConcern(connection, stream, message.RequestId, readerSettings, writerSettings, WriteConcern);
                                 results.Add(result);
                             }
                             catch (WriteConcernException ex)
@@ -128,7 +129,7 @@ namespace MongoDB.Driver.Operations
                         {
                             try
                             {
-                                SendMessageWithWriteConcern(connection, bsonBuffer, message.RequestId, readerSettings, writerSettings, WriteConcern.Acknowledged);
+                                SendMessageWithWriteConcern(connection, stream, message.RequestId, readerSettings, writerSettings, WriteConcern.Acknowledged);
                             }
                             catch (WriteConcernException)
                             {
@@ -137,10 +138,10 @@ namespace MongoDB.Driver.Operations
                         }
                         else if (!writeConcernEnabled && continueOnError)
                         {
-                            SendMessageWithWriteConcern(connection, bsonBuffer, message.RequestId, readerSettings, writerSettings, WriteConcern.Unacknowledged);
+                            SendMessageWithWriteConcern(connection, stream, message.RequestId, readerSettings, writerSettings, WriteConcern.Unacknowledged);
                         }
 
-                        message.ResetBatch(bsonBuffer, lastDocument);
+                        message.ResetBatch(stream, lastDocument);
                     }
                 }
 
@@ -148,7 +149,7 @@ namespace MongoDB.Driver.Operations
                 {
                     try
                     {
-                        var result = SendMessageWithWriteConcern(connection, bsonBuffer, message.RequestId, readerSettings, writerSettings, WriteConcern);
+                        var result = SendMessageWithWriteConcern(connection, stream, message.RequestId, readerSettings, writerSettings, WriteConcern);
                         results.Add(result);
                     }
                     catch (WriteConcernException ex)
@@ -167,7 +168,7 @@ namespace MongoDB.Driver.Operations
                 }
                 else
                 {
-                    SendMessageWithWriteConcern(connection, bsonBuffer, message.RequestId, readerSettings, writerSettings, WriteConcern.Unacknowledged);
+                    SendMessageWithWriteConcern(connection, stream, message.RequestId, readerSettings, writerSettings, WriteConcern.Unacknowledged);
                     return null;
                 }
             }

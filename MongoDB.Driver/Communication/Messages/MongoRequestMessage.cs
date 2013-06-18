@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.IO;
 using System.Threading;
 using MongoDB.Bson.IO;
 
@@ -45,27 +46,38 @@ namespace MongoDB.Driver.Internal
         }
 
         // internal methods
-        internal void WriteToBuffer(BsonBuffer buffer)
+        internal void WriteTo(Stream stream)
         {
             // normally this method is only called once (from MongoConnection.SendMessage)
             // but in the case of InsertBatch it is called before SendMessage is called to initialize the message so that AddDocument can be called
             // therefore we need the if statement to ignore subsequent calls from SendMessage
             if (_messageStartPosition == -1)
             {
-                _messageStartPosition = buffer.Position;
-                WriteMessageHeaderTo(buffer);
-                WriteBody(buffer);
-                BackpatchMessageLength(buffer);
+                var streamWriter = new BsonStreamWriter(stream);
+                _messageStartPosition = (int)stream.Position;
+                WriteMessageHeaderTo(streamWriter);
+                WriteBodyTo(streamWriter);
+                BackpatchMessageLength(stream);
             }
         }
 
         // protected methods
-        protected void BackpatchMessageLength(BsonBuffer buffer)
+        protected void BackpatchMessageLength(Stream stream)
         {
-            MessageLength = buffer.Position - _messageStartPosition;
-            buffer.Backpatch(_messageStartPosition, MessageLength);
+            MessageLength = (int)(stream.Position - _messageStartPosition);
+            Backpatch(stream, _messageStartPosition, MessageLength);
         }
 
-        protected abstract void WriteBody(BsonBuffer buffer);
+        protected abstract void WriteBodyTo(BsonStreamWriter streamWriter);
+
+        // private methods
+        private void Backpatch(Stream stream, int position, int value)
+        {
+            var streamWriter = new BsonStreamWriter(stream);
+            var currentPosition = stream.Position;
+            stream.Position = position;
+            streamWriter.WriteBsonInt32(value);
+            stream.Position = currentPosition;
+        }
     }
 }

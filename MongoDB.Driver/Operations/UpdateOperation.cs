@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System.IO;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Internal;
 
@@ -45,13 +46,13 @@ namespace MongoDB.Driver.Operations
 
         public WriteConcernResult Execute(MongoConnection connection)
         {
-            using (var buffer = new BsonBuffer(new MultiChunkBuffer(BsonChunkPool.Default), true))
+            using (var stream = new MemoryStream())
             {
                 var readerSettings = GetNodeAdjustedReaderSettings(connection.ServerInstance);
                 var writerSettings = GetNodeAdjustedWriterSettings(connection.ServerInstance);
                 var message = new MongoUpdateMessage(writerSettings, CollectionFullName, _checkElementNames, _flags, _query, _update);
-                message.WriteToBuffer(buffer);
-                return SendMessageWithWriteConcern(connection, buffer, message.RequestId, readerSettings, writerSettings, WriteConcern);
+                message.WriteTo(stream);
+                return SendMessageWithWriteConcern(connection, stream, message.RequestId, readerSettings, writerSettings, WriteConcern);
             }
         }
     }

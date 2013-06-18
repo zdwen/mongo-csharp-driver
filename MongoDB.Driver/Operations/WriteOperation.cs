@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System.IO;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -42,7 +43,7 @@ namespace MongoDB.Driver.Operations
 
         protected WriteConcernResult SendMessageWithWriteConcern(
             MongoConnection connection,
-            BsonBuffer buffer,
+            Stream stream,
             int requestId,
             BsonBinaryReaderSettings readerSettings,
             BsonBinaryWriterSettings writerSettings,
@@ -67,10 +68,10 @@ namespace MongoDB.Driver.Operations
 
                 // piggy back on network transmission for message
                 var getLastErrorMessage = new MongoQueryMessage(writerSettings, DatabaseName + ".$cmd", QueryFlags.None, 0, 1, getLastErrorCommand, null);
-                getLastErrorMessage.WriteToBuffer(buffer);
+                getLastErrorMessage.WriteTo(stream);
             }
 
-            connection.SendMessage(buffer, requestId);
+            connection.SendMessage(stream, requestId);
 
             WriteConcernResult writeConcernResult = null;
             if (writeConcern.Enabled)
