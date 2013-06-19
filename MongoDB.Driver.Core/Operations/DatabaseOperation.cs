@@ -50,6 +50,7 @@ namespace MongoDB.Driver.Core.Operations
             _writerSettings = (BsonBinaryWriterSettings)writerSettings.FrozenCopy();
         }
 
+        // protected properties
         /// <summary>
         /// Gets the namespace the operation will be performed against.
         /// </summary>
@@ -72,6 +73,7 @@ namespace MongoDB.Driver.Core.Operations
             return readerSettings;
         }
 
+        // protected methods
         /// <summary>
         /// Adjusts the writer settings based on server specific settings.
         /// </summary>

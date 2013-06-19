@@ -111,19 +111,22 @@ namespace MongoDB.Driver.Core.Protocol
                 var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
                 var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
 
-                var deleteMessage = new DeleteMessageBuilder(
+                var deleteMessage = new DeleteMessage(
                     Namespace,
-                    DeleteFlags.Single,
                     new BsonDocument(),
+                    DeleteFlags.Single,
                     writerSettings);
 
-                using (var request = new BsonBufferedRequestMessage())
+                SendMessageWithWriteConcernResult sendMessageResult;
+                using (var request = new BufferedRequestMessage())
                 {
-                    deleteMessage.AddToRequest(request);
-                    BufferLengthWithoutWriteConcern = request.Buffer.Length;
+                    request.AddMessage(deleteMessage);
+                    BufferLengthWithoutWriteConcern = (int)request.Stream.Length;
 
-                    return SendMessageWithWriteConcern(channel, request, readerSettings, writerSettings, WriteConcern);
+                    sendMessageResult = SendMessageWithWriteConcern(channel, request, WriteConcern, writerSettings);
                 }
+
+                return ReadWriteConcernResult(channel, sendMessageResult, readerSettings);
             }
         }
     }

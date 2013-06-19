@@ -21,11 +21,12 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Builds a <see cref="BsonBufferedRequestMessage"/> to update one or more documents.
+    /// Represents an Update message.
     /// </summary>
-    public sealed class UpdateMessageBuilders : BsonBufferedRequestMessageBuilder
+    public sealed class UpdateMessage : RequestMessage
     {
         // private fields
+        private readonly bool _checkUpdateDocument;
         private readonly UpdateFlags _flags;
         private readonly MongoNamespace _namespace;
         private readonly object _selector;
@@ -34,14 +35,15 @@ namespace MongoDB.Driver.Core.Protocol
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="UpdateMessageBuilders" /> class.
+        /// Initializes a new instance of the <see cref="UpdateMessage" /> class.
         /// </summary>
         /// <param name="namespace">The namespace.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="selector">The selector.</param>
+        /// <param name="selector">The query to select the document(s).</param>
         /// <param name="update">The update.</param>
+        /// <param name="flags">The flags.</param>
+        /// <param name="checkUpdateDocument">Set to true if the update document should be checked for invalid element names.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public UpdateMessageBuilders(MongoNamespace @namespace, UpdateFlags flags, object selector, object update, BsonBinaryWriterSettings writerSettings)
+        public UpdateMessage(MongoNamespace @namespace, object selector, object update, UpdateFlags flags, bool checkUpdateDocument, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Update)
         {
             Ensure.IsNotNull("@namespace", @namespace);
@@ -50,6 +52,7 @@ namespace MongoDB.Driver.Core.Protocol
             Ensure.IsNotNull("writerSettings", writerSettings);
 
             _namespace = @namespace;
+            _checkUpdateDocument = checkUpdateDocument;
             _flags = flags;
             _selector = selector;
             _update = update;
@@ -58,19 +61,21 @@ namespace MongoDB.Driver.Core.Protocol
 
         // protected methods
         /// <summary>
-        /// Writes the message to the specified buffer.
+        /// Writes the body of the message a stream.
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        protected override void Write(BsonBuffer buffer)
+        /// <param name="streamWriter">The stream.</param>
+        protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            buffer.WriteInt32(0); // ZERO
-            buffer.WriteCString(__encoding, _namespace.FullName); // fullCollectionName
-            buffer.WriteInt32((int)_flags); // flags
+            streamWriter.WriteBsonInt32(0); // reserved
+            streamWriter.WriteBsonCString(_namespace.FullName);
+            streamWriter.WriteBsonInt32((int)_flags);
 
-            using (var writer = new BsonBinaryWriter(buffer, false, _writerSettings))
+            using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, _writerSettings))
             {
-                BsonSerializer.Serialize(writer, _selector.GetType(), _selector, DocumentSerializationOptions.SerializeIdFirstInstance);
-                BsonSerializer.Serialize(writer, _update.GetType(), _update, DocumentSerializationOptions.SerializeIdFirstInstance);
+                BsonSerializer.Serialize(bsonWriter, _selector.GetType(), _selector, DocumentSerializationOptions.SerializeIdFirstInstance);
+
+                bsonWriter.CheckUpdateDocument = _checkUpdateDocument;
+                BsonSerializer.Serialize(bsonWriter, _update.GetType(), _update, DocumentSerializationOptions.SerializeIdFirstInstance);
             }
         }
     }

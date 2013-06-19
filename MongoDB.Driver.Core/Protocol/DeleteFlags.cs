@@ -18,7 +18,7 @@ using System;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Flags used in a <see cref="DeleteMessageBuilder"/>.
+    /// Flags used in a <see cref="DeleteMessage"/>.
     /// </summary>
     [Flags]
     public enum DeleteFlags

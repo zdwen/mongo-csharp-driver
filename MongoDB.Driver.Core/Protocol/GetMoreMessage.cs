@@ -13,14 +13,15 @@
 * limitations under the License.
 */
 
+using System.IO;
 using MongoDB.Bson.IO;
 
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Builds a <see cref="BsonBufferedRequestMessage" /> to get more documents.
+    /// Represents a GetMore message.
     /// </summary>
-    public sealed class GetMoreMessageBuilder : BsonBufferedRequestMessageBuilder
+    public sealed class GetMoreMessage : RequestMessage
     {
         // private fields
         private readonly long _cursorId;
@@ -29,12 +30,12 @@ namespace MongoDB.Driver.Core.Protocol
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetMoreMessageBuilder" /> class.
+        /// Initializes a new instance of the <see cref="GetMoreMessage" /> class.
         /// </summary>
         /// <param name="namespace">The namespace.</param>
-        /// <param name="numberToReturn">The number to return.</param>
         /// <param name="cursorId">The cursor id.</param>
-        public GetMoreMessageBuilder(MongoNamespace @namespace, int numberToReturn, long cursorId)
+        /// <param name="numberToReturn">The number to return.</param>
+        public GetMoreMessage(MongoNamespace @namespace, long cursorId, int numberToReturn)
             : base(OpCode.GetMore)
         {
             _namespace = @namespace;
@@ -44,15 +45,15 @@ namespace MongoDB.Driver.Core.Protocol
 
         // protected methods
         /// <summary>
-        /// Writes the message to the specified buffer.
+        /// Writes the body of the message a stream.
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        protected override void Write(BsonBuffer buffer)
+        /// <param name="streamWriter">The stream.</param>
+        protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            buffer.WriteInt32(0); // ZERO
-            buffer.WriteCString(__encoding, _namespace.FullName); // fullCollectionName
-            buffer.WriteInt32(_numberToReturn); // numberToReturn
-            buffer.WriteInt64(_cursorId); // cursorID
+            streamWriter.WriteBsonInt32(0); // reserved
+            streamWriter.WriteBsonCString(_namespace.FullName);
+            streamWriter.WriteBsonInt32(_numberToReturn);
+            streamWriter.WriteBsonInt64(_cursorId);
         }
     }
 }

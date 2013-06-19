@@ -20,9 +20,9 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Builds a <see cref="BsonBufferedRequestMessage"/> for a query.
+    /// Represents a Query message.
     /// </summary>
-    public sealed class QueryMessageBuilder : BsonBufferedRequestMessageBuilder
+    public sealed class QueryMessage : RequestMessage
     {
         // private fields
         private readonly QueryFlags _flags;
@@ -35,16 +35,16 @@ namespace MongoDB.Driver.Core.Protocol
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryMessageBuilder" /> class.
+        /// Initializes a new instance of the <see cref="QueryMessage" /> class.
         /// </summary>
         /// <param name="namespace">The namespace.</param>
+        /// <param name="query">The query.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="numberToSkip">The number to skip.</param>
         /// <param name="numberToReturn">The number to return.</param>
-        /// <param name="query">The query.</param>
         /// <param name="returnFieldSelector">The return field selector.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public QueryMessageBuilder(MongoNamespace @namespace, QueryFlags flags, int numberToSkip, int numberToReturn, object query, object returnFieldSelector, BsonBinaryWriterSettings writerSettings)
+        public QueryMessage(MongoNamespace @namespace, object query, QueryFlags flags, int numberToSkip, int numberToReturn, object returnFieldSelector, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Query)
         {
             Ensure.IsNotNull("@namespace", @namespace);
@@ -63,23 +63,25 @@ namespace MongoDB.Driver.Core.Protocol
 
         // protected methods
         /// <summary>
-        /// Writes the message to the specified buffer.
+        /// Writes the body of the message a stream.
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        protected override void Write(BsonBuffer buffer)
+        /// <param name="streamWriter">The stream.</param>
+        protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            buffer.WriteInt32((int)_flags); // flags
-            buffer.WriteCString(__encoding, _namespace.FullName); // fullCollectionName
-            buffer.WriteInt32(_numberToSkip); // numberToSkip
-            buffer.WriteInt32(_numberToReturn); // numberToReturn
+            streamWriter.WriteBsonInt32((int)_flags);
+            streamWriter.WriteBsonCString(_namespace.FullName);
+            streamWriter.WriteBsonInt32(_numberToSkip);
+            streamWriter.WriteBsonInt32(_numberToReturn);
 
-            using (var writer = new BsonBinaryWriter(buffer, false, _writerSettings))
+            using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, _writerSettings))
             {
-                // TODO: pass in serializers for these guys?
-                BsonSerializer.Serialize(writer, _query.GetType(), _query, null); // query
+                // TODO: pass in a serializer?
+                BsonSerializer.Serialize(bsonWriter, _query.GetType(), _query, null);
+
                 if (_returnFieldSelector != null)
                 {
-                    BsonSerializer.Serialize(writer, _returnFieldSelector.GetType(), _returnFieldSelector, null); // returnFieldSelector
+                    // TODO: pass in a serializer?
+                    BsonSerializer.Serialize(bsonWriter, _returnFieldSelector.GetType(), _returnFieldSelector, null); // returnFieldSelector
                 }
             }
         }

@@ -44,6 +44,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>bin\.NET 4.5 - Debug\MongoDB.Driver.Core.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '.NET 4.5 - Release|AnyCPU'">
     <OutputPath>bin\.NET 4.5 - Release\</OutputPath>
@@ -87,17 +88,17 @@
     <Compile Include="MongoDriverException.cs" />
     <Compile Include="Connections\MongoSocketException.cs" />
     <Compile Include="Connections\IRequestMessage.cs" />
-    <Compile Include="Protocol\BsonBufferedRequestMessage.cs" />
-    <Compile Include="Protocol\InsertMessageBuilder.cs" />
+    <Compile Include="Protocol\BufferedRequestMessage.cs" />
+    <Compile Include="Protocol\InsertMessage.cs" />
     <Compile Include="Protocol\OpCode.cs" />
-    <Compile Include="Protocol\UpdateMessageBuilders.cs" />
-    <Compile Include="Protocol\QueryMessageBuilder.cs" />
-    <Compile Include="Protocol\KillCursorsMessageBuilder.cs" />
-    <Compile Include="Protocol\DeleteMessageBuilder.cs" />
-    <Compile Include="Protocol\GetMoreMessageBuilder.cs" />
+    <Compile Include="Protocol\UpdateMessage.cs" />
+    <Compile Include="Protocol\QueryMessage.cs" />
+    <Compile Include="Protocol\KillCursorsMessage.cs" />
+    <Compile Include="Protocol\DeleteMessage.cs" />
+    <Compile Include="Protocol\GetMoreMessage.cs" />
     <Compile Include="Protocol\MongoCursorNotFoundException.cs" />
     <Compile Include="Protocol\ReplyMessage.cs" />
-    <Compile Include="Protocol\BsonBufferedRequestMessageBuilder.cs" />
+    <Compile Include="Protocol\RequestMessage.cs" />
     <Compile Include="Security\AuthenticatedConnection.cs" />
     <Compile Include="Security\AuthenticatedConnectionFactory.cs" />
     <Compile Include="Diagnostics\PerformanceCounterEventListeners.cs" />

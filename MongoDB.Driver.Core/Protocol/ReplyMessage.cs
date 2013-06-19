@@ -22,7 +22,7 @@ using MongoDB.Bson.Serialization;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// A reply message from the server.
+    /// Represents a Reply message from the server.
     /// </summary>
     public sealed class ReplyMessage : IDisposable
     {
@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Core.Protocol
         private readonly long _cursorId;
         private readonly int _startingFrom;
         private readonly int _numberReturned;
-        private readonly BsonBuffer _documentsBuffer;
+        private readonly Stream _stream;
 
         // constructors
         /// <summary>
@@ -49,8 +49,9 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="cursorId">The cursor id.</param>
         /// <param name="startingFrom">The starting from.</param>
         /// <param name="numberReturned">The number returned.</param>
-        /// <param name="documentsBuffer">The documents buffer.</param>
-        public ReplyMessage(int length, 
+        /// <param name="stream">The Stream.</param>
+        public ReplyMessage(
+            int length, 
             int requestId, 
             int responseTo, 
             OpCode opCode, 
@@ -58,7 +59,7 @@ namespace MongoDB.Driver.Core.Protocol
             long cursorId,
             int startingFrom,
             int numberReturned,
-            BsonBuffer documentsBuffer)
+            Stream stream)
         {
             _length = length;
             _requestId = requestId;
@@ -68,7 +69,7 @@ namespace MongoDB.Driver.Core.Protocol
             _cursorId = cursorId;
             _startingFrom = startingFrom;
             _numberReturned = numberReturned;
-            _documentsBuffer = documentsBuffer;
+            _stream = stream;
         }
 
         // public properties
@@ -138,26 +139,30 @@ namespace MongoDB.Driver.Core.Protocol
 
         // public static methods
         /// <summary>
-        /// Reads the specified stream.
+        /// Reads a ReplyMessage from a stream.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        /// <returns></returns>
-        public static ReplyMessage Read(Stream stream)
+        /// <returns>A ReplyMessage.</returns>
+        public static ReplyMessage ReadFrom(Stream stream)
         {
-            var messageLength = ReadMessageLength(stream);
-            var byteBuffer = ByteBufferFactory.Create(BsonChunkPool.Default, messageLength);
-            var buffer = new BsonBuffer(byteBuffer, true);
-            buffer.WriteInt32(messageLength);
-            buffer.LoadFrom(stream, messageLength - 4); // 4 is the size of the message length
-            buffer.Position = 4;
+            var streamReader = new BsonStreamReader(stream);
+            var messageLength = streamReader.ReadBsonInt32();
 
-            var requestId = buffer.ReadInt32();
-            var responseTo = buffer.ReadInt32();
-            var opCode = (OpCode)buffer.ReadInt32();
-            var responseFlags = (ReplyFlags)buffer.ReadInt32();
-            var cursorId = buffer.ReadInt64();
-            var startingFrom = buffer.ReadInt32();
-            var numberReturned = buffer.ReadInt32();
+            var byteBuffer = ByteBufferFactory.Create(BsonChunkPool.Default, messageLength);
+            var byteBufferStream = new ByteBufferStream(byteBuffer, ownsByteBuffer: true);
+            var byteBufferStreamWriter = new BsonStreamWriter(byteBufferStream);
+            byteBufferStreamWriter.WriteBsonInt32(messageLength);
+            byteBufferStream.LoadFrom(stream, messageLength - 4); // 4 is the size of the message length
+            byteBufferStream.Position = 4; // positioned just after the message length field
+
+            var byteBufferStreamReader = new BsonStreamReader(byteBufferStream);
+            var requestId = byteBufferStreamReader.ReadBsonInt32();
+            var responseTo = byteBufferStreamReader.ReadBsonInt32();
+            var opCode = (OpCode)byteBufferStreamReader.ReadBsonInt32();
+            var responseFlags = (ReplyFlags)byteBufferStreamReader.ReadBsonInt32();
+            var cursorId = byteBufferStreamReader.ReadBsonInt64();
+            var startingFrom = byteBufferStreamReader.ReadBsonInt32();
+            var numberReturned = byteBufferStreamReader.ReadBsonInt32();
 
             return new ReplyMessage(
                 messageLength,
@@ -168,7 +173,7 @@ namespace MongoDB.Driver.Core.Protocol
                 cursorId,
                 startingFrom,
                 numberReturned,
-                buffer); // this is primed to the starting point of the documents
+                byteBufferStream); // the stream is positioned at the first result document
         }
 
         // public methods
@@ -177,46 +182,27 @@ namespace MongoDB.Driver.Core.Protocol
         /// </summary>
         public void Dispose()
         {
-            _documentsBuffer.Dispose();
+            _stream.Dispose();
             GC.SuppressFinalize(this);
         }
 
         /// <summary>
-        /// Reads the documents.
+        /// Deserializes the documents.
         /// </summary>
         /// <typeparam name="TDocument">The type of the document.</typeparam>
-        /// <param name="readerSettings">The reader settings.</param>
         /// <param name="serializer">The serializer.</param>
         /// <param name="serializationOptions">The serialization options.</param>
+        /// <param name="readerSettings">The reader settings.</param>
         /// <returns></returns>
-        public IEnumerable<TDocument> ReadDocuments<TDocument>(BsonBinaryReaderSettings readerSettings, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions)
+        public IEnumerable<TDocument> DeserializeDocuments<TDocument>(IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, BsonBinaryReaderSettings readerSettings)
         {
-            using (var reader = new BsonBinaryReader(_documentsBuffer, false, readerSettings))
+            using (var bsonReader = new BsonBinaryReader(_stream, readerSettings))
             {
                 for (int i = 0; i < _numberReturned; i++)
                 {
-                    yield return (TDocument)serializer.Deserialize(reader, typeof(TDocument), serializationOptions);
+                    yield return (TDocument)serializer.Deserialize(bsonReader, typeof(TDocument), serializationOptions);
                 }
             }
-        }
-
-        // private static methods
-        private static int ReadMessageLength(Stream stream)
-        {
-            var bytes = new byte[4];
-            var offset = 0;
-            var count = 4;
-            while (count > 0)
-            {
-                var bytesRead = stream.Read(bytes, offset, count);
-                if (bytesRead == 0)
-                {
-                    throw new EndOfStreamException();
-                }
-                offset += bytesRead;
-                count -= bytesRead;
-            }
-            return BitConverter.ToInt32(bytes, 0);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using MongoDB.Bson;
@@ -14,26 +15,26 @@ namespace MongoDB.Driver.Core
     {
         public static IRequestMessage BuildRequestMessage(string commandName)
         {
-            var request = new BsonBufferedRequestMessage();
+            var request = new BufferedRequestMessage();
 
-            var builder = new QueryMessageBuilder(
+            var queryMessage = new QueryMessage(
                 new MongoNamespace("test", MongoNamespace.CommandCollectionName),
+                new BsonDocument(commandName, 1),
                 QueryFlags.AwaitData,
                 0,
                 1,
-                new BsonDocument(commandName, 1),
                 null,
                 new BsonBinaryWriterSettings());
 
-            builder.AddToRequest(request);
+            request.AddMessage(queryMessage);
             return request;
         }
 
         public static ReplyMessage BuildReplyMessage(IEnumerable<BsonDocument> documents, int responseTo = 0)
         {
-            var buffer = new BsonBuffer();
+            var stream = new MemoryStream();
             int docCount = 0;
-            using (var writer = BsonWriter.Create(buffer))
+            using (var writer = BsonWriter.Create(stream))
             {
                 foreach (var document in documents)
                 {
@@ -42,9 +43,9 @@ namespace MongoDB.Driver.Core
                 }
             }
 
-            buffer.Position = 0;
+            stream.Position = 0;
             return new ReplyMessage(
-                4 + 4 + 4 + 4 + 4 + 8 + 4 + 4 + buffer.Length,
+                (int)(4 + 4 + 4 + 4 + 4 + 8 + 4 + 4 + stream.Length),
                 0,
                 responseTo,
                 OpCode.Reply,
@@ -52,30 +53,33 @@ namespace MongoDB.Driver.Core
                 0,
                 0,
                 docCount,
-                buffer);
+                stream);
         }
 
-        public static BsonDocument ReadQueryMessage(BsonBufferedRequestMessage request)
+        public static BsonDocument ReadQueryMessage(BufferedRequestMessage request)
         {
+            var stream = request.Stream;
+            var streamReader = new BsonStreamReader(stream);
+
             // assuming the query message started at buffer position 0...
-            var oldPosition = request.Buffer.Position;
-            request.Buffer.Position = 0;
-            var length = request.Buffer.ReadInt32();
-            var requestId = request.Buffer.ReadInt32();
-            var responseTo = request.Buffer.ReadInt32();
-            var opCode = (OpCode)request.Buffer.ReadInt32();
-            var queryFlags = (QueryFlags)request.Buffer.ReadInt32();
-            var collectionFullName = request.Buffer.ReadCString(new UTF8Encoding(false, true));
-            var numToSkip = request.Buffer.ReadInt32();
-            var numToLimit = request.Buffer.ReadInt32();
+            var currentPosition = stream.Position;
+            stream.Position = 0;
+            var length = streamReader.ReadBsonInt32();
+            var requestId = streamReader.ReadBsonInt32();
+            var responseTo = streamReader.ReadBsonInt32();
+            var opCode = (OpCode)streamReader.ReadBsonInt32();
+            var queryFlags = (QueryFlags)streamReader.ReadBsonInt32();
+            var collectionFullName = streamReader.ReadBsonCString();
+            var numToSkip = streamReader.ReadBsonInt32();
+            var numToLimit = streamReader.ReadBsonInt32();
 
             BsonDocument query;
-            using (var reader = BsonReader.Create(request.Buffer))
+            using (var reader = BsonReader.Create(stream))
             {
                 query = BsonSerializer.Deserialize<BsonDocument>(reader);
             }
 
-            request.Buffer.Position = oldPosition;
+            stream.Position = currentPosition;
 
             return query;
         }
@@ -101,7 +105,7 @@ namespace MongoDB.Driver.Core
                 get { return _requestId; }
             }
 
-            public void Write(System.IO.Stream stream)
+            public void WriteTo(System.IO.Stream stream)
             {
                 // do nothing...
             }

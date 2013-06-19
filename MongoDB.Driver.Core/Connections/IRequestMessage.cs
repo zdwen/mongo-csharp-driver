@@ -36,6 +36,6 @@ namespace MongoDB.Driver.Core.Connections
         /// Writes the message to the stream.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        void Write(Stream stream);
+        void WriteTo(Stream stream);
     }
 }

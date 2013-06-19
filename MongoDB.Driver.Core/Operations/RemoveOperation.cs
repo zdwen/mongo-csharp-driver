@@ -21,7 +21,7 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Operations
 {
     /// <summary>
-    /// Performs the removal of a document or documents.
+    /// Represents a Remove operation.
     /// </summary>
     public class RemoveOperation : WriteOperation
     {
@@ -54,10 +54,10 @@ namespace MongoDB.Driver.Core.Operations
 
         // public methods
         /// <summary>
-        /// Executes the specified connection.
+        /// Executes the Remove operation.
         /// </summary>
-        /// <param name="channel">The connection.</param>
-        /// <returns></returns>
+        /// <param name="channel">The channel.</param>
+        /// <returns>A WriteConcern result (or null if WriteConcern was not enabled).</returns>
         public WriteConcernResult Execute(IServerChannel channel)
         {
             Ensure.IsNotNull("channel", channel);
@@ -65,17 +65,16 @@ namespace MongoDB.Driver.Core.Operations
             var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
             var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
 
-            var deleteMessage = new DeleteMessageBuilder(
-                Namespace,
-                _flags,
-                _query,
-                writerSettings);
+            var deleteMessage = new DeleteMessage(Namespace, _query, _flags, writerSettings);
 
-            using (var request = new BsonBufferedRequestMessage())
+            SendMessageWithWriteConcernResult sendMessageResult;
+            using (var request = new BufferedRequestMessage())
             {
-                deleteMessage.AddToRequest(request);
-                return SendMessageWithWriteConcern(channel, request, readerSettings, writerSettings, WriteConcern);
+                request.AddMessage(deleteMessage);
+                sendMessageResult = SendMessageWithWriteConcern(channel, request, WriteConcern, writerSettings);
             }
+
+            return ReadWriteConcernResult(channel, sendMessageResult, readerSettings);
         }
     }
 }

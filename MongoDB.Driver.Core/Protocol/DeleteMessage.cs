@@ -20,25 +20,25 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Builds a <see cref="BsonBufferedRequestMessage"/> to delete documents.
+    /// Represents a Delete message.
     /// </summary>
-    public sealed class DeleteMessageBuilder : BsonBufferedRequestMessageBuilder
+    public sealed class DeleteMessage : RequestMessage
     {
         // private fields
-        private readonly BsonBinaryWriterSettings _writerSettings;
         private readonly DeleteFlags _flags;
         private readonly MongoNamespace _namespace;
         private readonly object _selector;
+        private readonly BsonBinaryWriterSettings _writerSettings;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeleteMessageBuilder" /> class.
+        /// Initializes a new instance of the <see cref="DeleteMessage" /> class.
         /// </summary>
         /// <param name="namespace">The namespace.</param>
-        /// <param name="flags">The flags.</param>
         /// <param name="selector">The selector.</param>
+        /// <param name="flags">The flags.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public DeleteMessageBuilder(MongoNamespace @namespace, DeleteFlags flags, object selector, BsonBinaryWriterSettings writerSettings)
+        public DeleteMessage(MongoNamespace @namespace, object selector, DeleteFlags flags, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Delete)
         {
             Ensure.IsNotNull("@namespace", @namespace);
@@ -53,19 +53,19 @@ namespace MongoDB.Driver.Core.Protocol
 
         // protected methods
         /// <summary>
-        /// Writes the message to the specified buffer.
+        /// Writes the body of the message a stream.
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        protected override void Write(BsonBuffer buffer)
+        /// <param name="streamWriter">The stream.</param>
+        protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            buffer.WriteInt32(0); // ZERO
-            buffer.WriteCString(__encoding, _namespace.FullName); // fullCollectionName
-            buffer.WriteInt32((int)_flags); // flags
+            streamWriter.WriteBsonInt32(0); // reserved
+            streamWriter.WriteBsonCString(_namespace.FullName);
+            streamWriter.WriteBsonInt32((int)_flags);
             
-            using (var writer = new BsonBinaryWriter(buffer, false, _writerSettings))
+            using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, _writerSettings))
             {
-                // TODO: pass in a serializer for this guy
-                BsonSerializer.Serialize(writer, _selector.GetType(), _selector, null); // selector
+                // TODO: pass in a serializer for this guy?
+                BsonSerializer.Serialize(bsonWriter, _selector.GetType(), _selector, null);
             }
         }
     }

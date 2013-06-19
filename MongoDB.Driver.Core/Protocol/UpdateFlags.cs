@@ -18,7 +18,7 @@ using System;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Flags used in a <see cref="UpdateMessageBuilders"/>.
+    /// Flags used in a <see cref="UpdateMessage"/>.
     /// </summary>
     [Flags]
     public enum UpdateFlags

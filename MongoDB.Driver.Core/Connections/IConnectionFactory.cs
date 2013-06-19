@@ -26,7 +26,6 @@ namespace MongoDB.Driver.Core.Connections
         /// Creates a connection for the specified address.
         /// </summary>
         /// <param name="dnsEndPoint">The DNS end point.</param>
-        /// <param name="ipEndPoint">The ip end point.</param>
         /// <returns>A connection.</returns>
         IConnection Create(DnsEndPoint dnsEndPoint);
     }

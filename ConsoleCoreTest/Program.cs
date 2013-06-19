@@ -221,7 +221,8 @@ namespace MongoDB.DriverUnitTests.Jira
                 false,
                 typeof(BsonDocument),
                 new[] { document },
-                InsertFlags.None);
+                InsertFlags.None,
+                0);
 
             insertOp.Execute(connection);
         }

@@ -18,7 +18,7 @@ using System;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Flags used in a <see cref="QueryMessageBuilder"/>.
+    /// Flags used in a <see cref="QueryMessage"/>.
     /// </summary>
     [Flags]
     public enum QueryFlags

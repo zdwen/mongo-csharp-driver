@@ -69,9 +69,9 @@ namespace MongoDB.Driver.Core.Mocks
                 throw new SocketException();
             }
 
-            if (message is BsonBufferedRequestMessage)
+            if (message is BufferedRequestMessage)
             {
-                var doc = ProtocolHelper.ReadQueryMessage((BsonBufferedRequestMessage)message);
+                var doc = ProtocolHelper.ReadQueryMessage((BufferedRequestMessage)message);
                 // get the last one here in case a response is changed 
                 var registeredResponse = _responses.LastOrDefault(x => x.Item1(doc));
                 if (registeredResponse != null)

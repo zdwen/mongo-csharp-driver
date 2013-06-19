@@ -80,7 +80,8 @@ namespace MongoDB.Driver.Core.Protocol
                 true,
                 typeof(BsonDocument),
                 CreateDocumentBatch(numBatches),
-                flags);
+                flags,
+                0);
         }
 
         private ReplyMessage CreateWriteConcernResult(bool ok, string err)

@@ -65,63 +65,30 @@ namespace MongoDB.Driver.Core.Operations
 
         // protected methods
         /// <summary>
-        /// Sends the message with write concern.
+        /// Reads the write concern result.
         /// </summary>
         /// <param name="channel">The channel.</param>
-        /// <param name="message">The message.</param>
+        /// <param name="sendMessageResult">The send message result.</param>
         /// <param name="readerSettings">The reader settings.</param>
-        /// <param name="writerSettings">The writer settings.</param>
-        /// <param name="writeConcern">The write concern.</param>
-        /// <returns>A result containing the results of a getLastError call if one was issued.</returns>
-        protected WriteConcernResult SendMessageWithWriteConcern(
+        /// <returns>
+        /// A WriteConcern result (or null if sendMessageResult is null).
+        /// </returns>
+        /// <exception cref="MongoOperationException">Command 'getLastError' failed. No response returned.</exception>
+        /// <exception cref="MongoWriteConcernException">
+        /// </exception>
+        protected WriteConcernResult ReadWriteConcernResult(
             IServerChannel channel,
-            BsonBufferedRequestMessage request,
-            BsonBinaryReaderSettings readerSettings,
-            BsonBinaryWriterSettings writerSettings,
-            WriteConcern writeConcern)
+            SendMessageWithWriteConcernResult sendMessageResult,
+            BsonBinaryReaderSettings readerSettings)
         {
             Ensure.IsNotNull("channel", channel);
-            Ensure.IsNotNull("request", request);
+            Ensure.IsNotNull("sendMessageResult", sendMessageResult);
             Ensure.IsNotNull("readerSettings", readerSettings);
-            Ensure.IsNotNull("writerSettings", writerSettings);
-            Ensure.IsNotNull("writeConcern", writeConcern);
-
-            BsonDocument getLastErrorCommand = null;
-            if (writeConcern.Enabled)
-            {
-                var fsync = (writeConcern.FSync == null) ? null : (BsonValue)writeConcern.FSync;
-                var journal = (writeConcern.Journal == null) ? null : (BsonValue)writeConcern.Journal;
-                var w = (writeConcern.W == null) ? null : writeConcern.W.ToGetLastErrorWValue();
-                var wTimeout = (writeConcern.WTimeout == null) ? null : (BsonValue)(int)writeConcern.WTimeout.Value.TotalMilliseconds;
-
-                getLastErrorCommand = new BsonDocument
-                {
-                    { "getlasterror", 1 }, // use all lowercase for backward compatibility
-                    { "fsync", fsync, fsync != null },
-                    { "j", journal, journal != null },
-                    { "w", w, w != null },
-                    { "wtimeout", wTimeout, wTimeout != null }
-                };
-
-                // piggy back on network transmission for message
-                var queryMessage = new QueryMessageBuilder(
-                    Namespace.CommandCollection,
-                    QueryFlags.None,
-                    0,
-                    1,
-                    getLastErrorCommand,
-                    null, 
-                    writerSettings);
-
-                queryMessage.AddToRequest(request);
-            }
-                
-            channel.SendMessage(request);
 
             WriteConcernResult writeConcernResult = null;
-            if (writeConcern.Enabled)
+            if (sendMessageResult.GetLastErrorRequestId.HasValue)
             {
-                var receiveParameters = new ReceiveMessageParameters(request.RequestId);
+                var receiveParameters = new ReceiveMessageParameters(sendMessageResult.GetLastErrorRequestId.Value);
                 using (var reply = channel.ReceiveMessage(receiveParameters))
                 {
                     if (reply.NumberReturned == 0)
@@ -130,8 +97,8 @@ namespace MongoDB.Driver.Core.Operations
                     }
 
                     var serializer = BsonSerializer.LookupSerializer(typeof(WriteConcernResult));
-                    writeConcernResult = reply.ReadDocuments<WriteConcernResult>(readerSettings, serializer, null).Single();
-                    writeConcernResult.Command = getLastErrorCommand;
+                    writeConcernResult = reply.DeserializeDocuments<WriteConcernResult>(serializer, null, readerSettings).Single();
+                    writeConcernResult.Command = sendMessageResult.GetLastErrorCommand;
 
                     if (!writeConcernResult.Ok)
                     {
@@ -151,6 +118,80 @@ namespace MongoDB.Driver.Core.Operations
             }
 
             return writeConcernResult;
+        }
+
+        /// <summary>
+        /// Sends the message with write concern.
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="request">The message.</param>
+        /// <param name="writeConcern">The write concern.</param>
+        /// <param name="writerSettings">The writer settings.</param>
+        /// <returns>A SendMessageWithWriteConcernResult.</returns>
+        protected SendMessageWithWriteConcernResult SendMessageWithWriteConcern(
+            IServerChannel channel,
+            BufferedRequestMessage request,
+            WriteConcern writeConcern,
+            BsonBinaryWriterSettings writerSettings)
+        {
+            Ensure.IsNotNull("channel", channel);
+            Ensure.IsNotNull("request", request);
+            Ensure.IsNotNull("writerSettings", writerSettings);
+            Ensure.IsNotNull("writeConcern", writeConcern);
+
+            var result = new SendMessageWithWriteConcernResult();
+            if (writeConcern.Enabled)
+            {
+                var fsync = (writeConcern.FSync == null) ? null : (BsonValue)writeConcern.FSync;
+                var journal = (writeConcern.Journal == null) ? null : (BsonValue)writeConcern.Journal;
+                var w = (writeConcern.W == null) ? null : writeConcern.W.ToGetLastErrorWValue();
+                var wTimeout = (writeConcern.WTimeout == null) ? null : (BsonValue)(int)writeConcern.WTimeout.Value.TotalMilliseconds;
+
+                var getLastErrorCommand = new BsonDocument
+                {
+                    { "getlasterror", 1 }, // use all lowercase for backward compatibility
+                    { "fsync", fsync, fsync != null },
+                    { "j", journal, journal != null },
+                    { "w", w, w != null },
+                    { "wtimeout", wTimeout, wTimeout != null }
+                };
+
+                // piggy back on network transmission for message
+                var getLastErrorMessage = new QueryMessage(
+                    Namespace.CommandCollection,
+                    getLastErrorCommand,
+                    QueryFlags.None,
+                    0,
+                    1,
+                    null,
+                    writerSettings);
+
+                request.AddMessage(getLastErrorMessage);
+
+                result.GetLastErrorCommand = getLastErrorCommand;
+                result.GetLastErrorRequestId = getLastErrorMessage.RequestId;
+            }
+
+            channel.SendMessage(request);
+
+            return result;
+        }
+
+        // nested classes
+        /// <summary>
+        /// Represents the result of the SendMessageWithWriteConcern method.
+        /// </summary>
+        protected class SendMessageWithWriteConcernResult
+        {
+            /// <summary>
+            /// The GetLastErrorCommand.
+            /// </summary>
+            public BsonDocument GetLastErrorCommand;
+
+            /// <summary>
+            /// The GetLastErrorRequestId.
+            /// </summary>
+            public int? GetLastErrorRequestId;
         }
     }
 }

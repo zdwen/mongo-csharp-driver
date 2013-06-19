@@ -136,7 +136,7 @@ namespace MongoDB.Driver.Core.Connections
 
             try
             {
-                var reply = ReplyMessage.Read(_stream);
+                var reply = ReplyMessage.ReadFrom(_stream);
                 _traceSource.TraceVerbose("{0}: received message#{1} with {2} bytes.", _toStringDescription, reply.ResponseTo, reply.Length);
                 _events.Publish(new ConnectionMessageReceivedEvent(this, reply));
 
@@ -184,7 +184,7 @@ namespace MongoDB.Driver.Core.Connections
 
             try
             {
-                message.Write(_stream);
+                message.WriteTo(_stream);
                 _traceSource.TraceVerbose("{0}: sent message#{1} with {2} bytes.", _toStringDescription, message.RequestId, message.Length);
                 _events.Publish(new ConnectionMessageSendingEvent(this, message));
             }

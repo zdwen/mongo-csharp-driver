@@ -26,7 +26,7 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Operations
 {
     /// <summary>
-    /// Performs a query.
+    /// Represents a Query operation.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     public class QueryOperation<TDocument> : ReadOperation
@@ -99,50 +99,61 @@ namespace MongoDB.Driver.Core.Operations
 
         // public methods
         /// <summary>
-        /// Executes the specified connection provider.
+        /// Executes the Query operation.
         /// </summary>
-        /// <param name="channelProvider">The connection provider.</param>
+        /// <param name="channelProvider">The channel provider.</param>
         /// <returns>An enumerator to enumerate over the results.</returns>
         public IEnumerator<TDocument> Execute(ICursorChannelProvider channelProvider)
         {
             Ensure.IsNotNull("channelProvider", channelProvider);
 
+            var count = 0;
+            var limit = (_limit >= 0) ? _limit : -_limit;
+
+            foreach (var document in DeserializeDocuments(channelProvider))
+            {
+                if (limit != 0 && count == limit)
+                {
+                    yield break;
+                }
+                yield return document;
+                count++;
+            }
+        }
+
+        // private methods
+        private IEnumerable<TDocument> DeserializeDocuments(ICursorChannelProvider channelProvider)
+        {
             var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
-            ReplyMessage reply = null;
+
+            long cursorId = 0;
             try
             {
-                var count = 0;
-                var limit = (_limit >= 0) ? _limit : -_limit;
-
-                reply = GetFirstBatch(channelProvider);
-                foreach (var document in GetDocuments(reply, readerSettings))
+                using (var reply = GetFirstBatch(channelProvider))
                 {
-                    if (limit != 0 && count == limit)
+                    cursorId = reply.CursorId;
+                    foreach (var document in reply.DeserializeDocuments<TDocument>(_serializer, _serializationOptions, readerSettings))
                     {
-                        yield break;
+                        yield return document;
                     }
-                    yield return document;
-                    count++;
                 }
 
-                while (reply.CursorId != 0)
+                while (cursorId != 0)
                 {
-                    var cursorId = reply.CursorId;
-                    reply.Dispose();
-                    reply = GetNextBatch(channelProvider, cursorId);
-                    foreach (var document in GetDocuments(reply, readerSettings))
+                    ReplyFlags replyFlags = 0;
+                    using (var reply = GetNextBatch(channelProvider, cursorId))
                     {
-                        if (limit != 0 && count == limit)
+                        cursorId = reply.CursorId;
+                        replyFlags = reply.Flags;
+                        foreach (var document in reply.DeserializeDocuments<TDocument>(_serializer, _serializationOptions, readerSettings))
                         {
-                            yield break;
+                            yield return document;
                         }
-                        yield return document;
-                        count++;
                     }
 
-                    if (reply.CursorId != 0 && (_flags & QueryFlags.TailableCursor) != 0)
+                    if (cursorId != 0 && (_flags & QueryFlags.TailableCursor) != 0)
                     {
-                        if ((reply.Flags & ReplyFlags.AwaitCapable) == 0)
+                        if ((replyFlags & ReplyFlags.AwaitCapable) == 0)
                         {
                             Thread.Sleep(TimeSpan.FromMilliseconds(100));
                         }
@@ -151,22 +162,11 @@ namespace MongoDB.Driver.Core.Operations
             }
             finally
             {
-                if (reply != null)
+                if (cursorId != 0)
                 {
-                    var cursorId = reply.CursorId;
-                    reply.Dispose();
-                    if (cursorId != 0)
-                    {
-                        KillCursor(channelProvider, cursorId);
-                    }
+                    KillCursor(channelProvider, cursorId);
                 }
             }
-        }
-
-        // private methods
-        private IEnumerable<TDocument> GetDocuments(ReplyMessage message, BsonBinaryReaderSettings settings)
-        {
-            return message.ReadDocuments<TDocument>(settings, _serializer, _serializationOptions);
         }
 
         private ReplyMessage GetFirstBatch(ICursorChannelProvider channelProvider)
@@ -199,24 +199,23 @@ namespace MongoDB.Driver.Core.Operations
             {
                 var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
                 var wrappedQuery = WrapQuery(channel.Server, _query, _options, _readPreference);
-                var queryMessage = new QueryMessageBuilder(
+
+                var queryMessage = new QueryMessage(
                     Namespace,
+                    wrappedQuery,
                     _flags,
                     _skip,
                     numberToReturn,
-                    _query,
                     _fields,
                     writerSettings);
 
-                int requestId;
-                using(var request = new BsonBufferedRequestMessage())
+                using(var request = new BufferedRequestMessage())
                 {
-                    queryMessage.AddToRequest(request);
+                    request.AddMessage(queryMessage);
                     channel.SendMessage(request);
-                    requestId = request.RequestId;
                 }
 
-                var receiveParameters = new ReceiveMessageParameters(requestId);
+                var receiveParameters = new ReceiveMessageParameters(queryMessage.RequestId);
                 return channel.ReceiveMessage(receiveParameters);
             }
         }
@@ -226,20 +225,15 @@ namespace MongoDB.Driver.Core.Operations
             using (var channel = channelProvider.GetChannel())
             {
                 var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
-                var getMoreMessage = new GetMoreMessageBuilder(
-                    Namespace,
-                    _limit,
-                    cursorId);
+                var getMoreMessage = new GetMoreMessage(Namespace, cursorId, _batchSize);
 
-                int requestId;
-                using (var request = new BsonBufferedRequestMessage())
+                using (var request = new BufferedRequestMessage())
                 {
-                    getMoreMessage.AddToRequest(request);
+                    request.AddMessage(getMoreMessage);
                     channel.SendMessage(request);
-                    requestId = request.RequestId;
                 }
 
-                var receiveParameters = new ReceiveMessageParameters(requestId);
+                var receiveParameters = new ReceiveMessageParameters(getMoreMessage.RequestId);
                 return channel.ReceiveMessage(receiveParameters);
             }
         }
@@ -248,10 +242,11 @@ namespace MongoDB.Driver.Core.Operations
         {
             using (var channel = channelProvider.GetChannel())
             {
-                var killCursorsMessage = new KillCursorsMessageBuilder(new[] { cursorId });
-                using (var request = new BsonBufferedRequestMessage())
+                var killCursorsMessage = new KillCursorsMessage(new[] { cursorId });
+
+                using (var request = new BufferedRequestMessage())
                 {
-                    killCursorsMessage.AddToRequest(request);
+                    request.AddMessage(killCursorsMessage);
                     channel.SendMessage(request);
                 }
             }

@@ -23,8 +23,19 @@ namespace MongoDB.Driver.Core.Protocol
     [Flags]
     public enum ReplyFlags
     {
+        /// <summary>
+        /// The cursor was not found.
+        /// </summary>
         CursorNotFound = 1,
+
+        /// <summary>
+        /// The query failed.
+        /// </summary>
         QueryFailure = 2,
+
+        /// <summary>
+        /// The server is await capable.
+        /// </summary>
         AwaitCapable = 8
     }
 }

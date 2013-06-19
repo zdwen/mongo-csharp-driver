@@ -21,13 +21,44 @@ namespace MongoDB.Driver.Core.Protocol
     /// </summary>
     public enum OpCode
     {
+        /// <summary>
+        /// OpCode for a Reply message.
+        /// </summary>
         Reply = 1,
+
+        /// <summary>
+        /// OpCode for a Message message.
+        /// </summary>
         Message = 1000,
+
+        /// <summary>
+        /// OpCode for a Update message.
+        /// </summary>
         Update = 2001,
+
+        /// <summary>
+        /// OpCode for a Insert message.
+        /// </summary>
         Insert = 2002,
+
+        /// <summary>
+        /// OpCode for a Query message.
+        /// </summary>
         Query = 2004,
+
+        /// <summary>
+        /// OpCode for a GetMore message.
+        /// </summary>
         GetMore = 2005,
+
+        /// <summary>
+        /// OpCode for a Delete message.
+        /// </summary>
         Delete = 2006,
+
+        /// <summary>
+        /// OpCode for a KillCursors message.
+        /// </summary>
         KillCursors = 2007
     }
 }

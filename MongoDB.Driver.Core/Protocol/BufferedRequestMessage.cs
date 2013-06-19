@@ -15,43 +15,44 @@
 
 using System;
 using System.IO;
-using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// An <see cref="IRequestMessage"/> backed by a <see cref="BsonBuffer"/>.
+    /// Represents an <see cref="IRequestMessage"/> that contains one or more Messages that have been written to a backing Stream.
     /// </summary>
-    public sealed class BsonBufferedRequestMessage : IRequestMessage, IDisposable
+    public sealed class BufferedRequestMessage : IRequestMessage, IDisposable
     {
         // private fields
-        private readonly BsonBuffer _buffer;
+        private readonly Stream _stream;
         private int _requestId;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="BsonBufferedRequestMessage" /> class.
+        /// Initializes a new instance of the <see cref="BufferedRequestMessage" /> class.
         /// </summary>
-        public BsonBufferedRequestMessage()
+        public BufferedRequestMessage()
+            : this(new MemoryStream())
         {
-            _buffer = new BsonBuffer();
         }
 
         /// <summary>
-        /// Gets the buffer.
+        /// Initializes a new instance of the <see cref="BufferedRequestMessage"/> class.
         /// </summary>
-        public BsonBuffer Buffer
+        /// <param name="stream">The stream.</param>
+        public BufferedRequestMessage(Stream stream)
         {
-            get { return _buffer; }
+            _stream = stream;
         }
 
+        // public properties
         /// <summary>
         /// Gets the length of the message.
         /// </summary>
         public int Length
         {
-            get { return _buffer.Length; }
+            get { return (int)_stream.Length; }
         }
 
         /// <summary>
@@ -60,7 +61,25 @@ namespace MongoDB.Driver.Core.Protocol
         public int RequestId
         {
             get { return _requestId; }
-            set { _requestId = value; }
+        }
+
+        /// <summary>
+        /// Gets the buffer.
+        /// </summary>
+        public Stream Stream
+        {
+            get { return _stream; }
+        }
+
+        // public methods
+        /// <summary>
+        /// Adds a message to the request.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public void AddMessage(RequestMessage message)
+        {
+            message.WriteTo(_stream);
+            _requestId = message.RequestId;
         }
 
         /// <summary>
@@ -68,16 +87,17 @@ namespace MongoDB.Driver.Core.Protocol
         /// </summary>
         public void Dispose()
         {
-            _buffer.Dispose();
+            _stream.Dispose();
         }
 
         /// <summary>
-        /// Writes the message to the stream.
+        /// Writes the buffered message to another stream.
         /// </summary>
-        /// <param name="stream">The stream.</param>
-        public void Write(Stream stream)
+        /// <param name="destination">The destination stream.</param>
+        public void WriteTo(Stream destination)
         {
-            _buffer.WriteTo(stream);
+            _stream.Position = 0;
+            _stream.CopyTo(destination);
         }
     }
 }

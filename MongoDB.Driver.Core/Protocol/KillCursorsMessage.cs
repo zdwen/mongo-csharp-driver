@@ -18,19 +18,19 @@ using MongoDB.Bson.IO;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Builds a <see cref="BsonBufferedRequestMessage"/> to kill cursors.
+    /// Represents a KillCursors message.
     /// </summary>
-    public sealed class KillCursorsMessageBuilder : BsonBufferedRequestMessageBuilder
+    public sealed class KillCursorsMessage : RequestMessage
     {
         // private fields
         private readonly long[] _cursorIds;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="KillCursorsMessageBuilder" /> class.
+        /// Initializes a new instance of the <see cref="KillCursorsMessage" /> class.
         /// </summary>
         /// <param name="cursorIds">The cursor ids.</param>
-        public KillCursorsMessageBuilder(long[] cursorIds)
+        public KillCursorsMessage(long[] cursorIds)
             : base(OpCode.KillCursors)
         {
             _cursorIds = cursorIds;
@@ -38,16 +38,16 @@ namespace MongoDB.Driver.Core.Protocol
         
         // protected methods
         /// <summary>
-        /// Writes the message to the specified buffer.
+        /// Writes the body of the message a stream.
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        protected override void Write(BsonBuffer buffer)
+        /// <param name="streamWriter">The stream.</param>
+        protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            buffer.WriteInt32(0); // ZERO
-            buffer.WriteInt32(_cursorIds.Length); // numberOfCursorIDs
+            streamWriter.WriteBsonInt32(0); // reserved
+            streamWriter.WriteBsonInt32(_cursorIds.Length); // numberOfCursorIDs
             for (int i = 0; i < _cursorIds.Length; i++)
             {
-                buffer.WriteInt64(_cursorIds[i]); // cursorIDs
+                streamWriter.WriteBsonInt64(_cursorIds[i]);
             }
         }
     }

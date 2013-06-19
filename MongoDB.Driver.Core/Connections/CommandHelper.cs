@@ -70,18 +70,18 @@ namespace MongoDB.Driver.Core.Connections
             Ensure.IsNotNull("command", command);
             Ensure.IsNotNull("connection", connection);
 
-            var queryMessage = new QueryMessageBuilder(
+            var queryMessage = new QueryMessage(
                 new MongoNamespace(databaseName, MongoNamespace.CommandCollectionName),
+                command,
                 QueryFlags.SlaveOk,
                 0,
                 1,
-                command,
                 null,
                 new BsonBinaryWriterSettings());
 
-            using(var request = new BsonBufferedRequestMessage())
+            using(var request = new BufferedRequestMessage())
             {
-                queryMessage.AddToRequest(request);
+                request.AddMessage(queryMessage);
                 connection.SendMessage(request);
             }
 
@@ -93,7 +93,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
 
                 var serializer = BsonDocumentSerializer.Instance;
-                return replyMessage.ReadDocuments<BsonDocument>(new BsonBinaryReaderSettings(), serializer, null).Single();
+                return replyMessage.DeserializeDocuments<BsonDocument>(serializer, null, new BsonBinaryReaderSettings()).Single();
             }
         }
     }

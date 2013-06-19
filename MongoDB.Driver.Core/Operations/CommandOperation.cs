@@ -24,7 +24,7 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Operations
 {
     /// <summary>
-    /// Executes a command.
+    /// Represents a Command operation.
     /// </summary>
     /// <typeparam name="TCommandResult">The type of the command result.</typeparam>
     public class CommandOperation<TCommandResult> : ReadOperation where TCommandResult : CommandResult
@@ -75,11 +75,10 @@ namespace MongoDB.Driver.Core.Operations
 
         // public methods
         /// <summary>
-        /// Executes the specified connection.
+        /// Executes the Command operation.
         /// </summary>
-        /// <param name="channel">The connection.</param>
-        /// <returns></returns>
-        /// <exception cref="MongoCommandException"></exception>
+        /// <param name="channel">The channel.</param>
+        /// <returns>The command result.</returns>
         public TCommandResult Execute(IServerChannel channel)
         {
             Ensure.IsNotNull("connection", channel);
@@ -88,24 +87,22 @@ namespace MongoDB.Driver.Core.Operations
             var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
             var wrappedQuery = WrapQuery(channel.Server, _command, _options, _readPreference);
 
-            var queryMessage = new QueryMessageBuilder(
-                    Namespace,
-                    _flags,
-                    0,
-                    -1,
-                    _command,
-                    null,
-                    writerSettings);
+            var queryMessage = new QueryMessage(
+                Namespace,
+                wrappedQuery,
+                _flags,
+                0,
+                -1,
+                null,
+                writerSettings);
 
-            int requestId;
-            using (var request = new BsonBufferedRequestMessage())
+            using (var request = new BufferedRequestMessage())
             {
-                queryMessage.AddToRequest(request);
+                request.AddMessage(queryMessage);
                 channel.SendMessage(request);
-                requestId = request.RequestId;
             }
 
-            var receiveParameters = new ReceiveMessageParameters(requestId);
+            var receiveParameters = new ReceiveMessageParameters(queryMessage.RequestId);
             using (var reply = channel.ReceiveMessage(receiveParameters))
             {
                 if (reply.NumberReturned == 0)
@@ -116,7 +113,7 @@ namespace MongoDB.Driver.Core.Operations
                     throw new MongoOperationException(message);
                 }
 
-                var commandResult = reply.ReadDocuments<TCommandResult>(readerSettings, _serializer, _serializationOptions).Single();
+                var commandResult = reply.DeserializeDocuments<TCommandResult>(_serializer, _serializationOptions, readerSettings).Single();
                 commandResult.Command = _command;
 
                 if (!commandResult.Ok)

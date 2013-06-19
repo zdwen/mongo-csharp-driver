@@ -21,12 +21,12 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Operations
 {
     /// <summary>
-    /// Performs the update of updates of documents.
+    /// Represents an Update operation.
     /// </summary>
     public class UpdateOperation : WriteOperation
     {
         // private fields
-        private readonly bool _checkElementNames;
+        private readonly bool _checkUpdateDocument;
         private readonly UpdateFlags _flags;
         private readonly object _query;
         private readonly object _update;
@@ -42,7 +42,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="query">The query.</param>
         /// <param name="update">The update.</param>
         /// <param name="flags">The flags.</param>
-        /// <param name="checkElementNames">checks the element names if <c>true</c>.</param>
+        /// <param name="checkUpdateDocument">Set to true if the update document should be checked for invalid element names.</param>
         public UpdateOperation(
             MongoNamespace @namespace,
             BsonBinaryReaderSettings readerSettings,
@@ -51,21 +51,21 @@ namespace MongoDB.Driver.Core.Operations
             object query,
             object update,
             UpdateFlags flags,
-            bool checkElementNames)
+            bool checkUpdateDocument)
             : base(@namespace, readerSettings, writerSettings, writeConcern)
         {
             _query = query;
             _update = update;
             _flags = flags;
-            _checkElementNames = checkElementNames;
+            _checkUpdateDocument = checkUpdateDocument;
         }
 
         // public methods
         /// <summary>
-        /// Executes the specified connection.
+        /// Executes the Update operation.
         /// </summary>
-        /// <param name="channel">The connection.</param>
-        /// <returns>The result of a getLastError call if one was issued.</returns>
+        /// <param name="channel">The channel.</param>
+        /// <returns>A WriteConcern result (or null if WriteConcern was not enabled).</returns>
         public WriteConcernResult Execute(IServerChannel channel)
         {
             Ensure.IsNotNull("channel", channel);
@@ -73,17 +73,22 @@ namespace MongoDB.Driver.Core.Operations
             var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
             var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
 
-            var updateMessage = new UpdateMessageBuilders(
-                Namespace,
-                _flags,
-                _query,
-                _update,
+            var updateMessage = new UpdateMessage(
+                Namespace, 
+                _query, 
+                _update, 
+                _flags, 
+                _checkUpdateDocument,
                 writerSettings);
-            using(var request = new BsonBufferedRequestMessage())
+
+            SendMessageWithWriteConcernResult sendMessageResult;
+            using (var request = new BufferedRequestMessage())
             {
-                updateMessage.AddToRequest(request);
-                return SendMessageWithWriteConcern(channel, request, readerSettings, writerSettings, WriteConcern);
+                request.AddMessage(updateMessage);
+                sendMessageResult = SendMessageWithWriteConcern(channel, request, WriteConcern, writerSettings);
             }
+
+            return ReadWriteConcernResult(channel, sendMessageResult, readerSettings);
         }
     }
 }

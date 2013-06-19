@@ -26,9 +26,6 @@ namespace MongoDB.Driver.Core
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoCursorNotFoundException" /> class.
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="response">The response.</param>
-        /// <param name="cursorId">The cursor id.</param>
         public MongoCursorNotFoundException() 
             : base("Cursor not found.")
         {
