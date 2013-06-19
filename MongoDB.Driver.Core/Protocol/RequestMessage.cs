@@ -101,7 +101,7 @@ namespace MongoDB.Driver.Core.Protocol
             var currentPosition = (int)stream.Position;
             _messageLength = currentPosition - _messageStartPosition;
             stream.Position = _messageStartPosition;
-            streamWriter.WriteBsonInt32(_messageLength);
+            streamWriter.WriteInt32(_messageLength);
             stream.Position = currentPosition;
         }
 
@@ -114,10 +114,10 @@ namespace MongoDB.Driver.Core.Protocol
         // private methods
         private void WriteMessageHeaderTo(BsonStreamWriter streamWriter)
         {
-            streamWriter.WriteBsonInt32(0); // messageLength (will be backpatched later)
-            streamWriter.WriteBsonInt32(_requestId);
-            streamWriter.WriteBsonInt32(0); // responseTo not used in requests sent by the client
-            streamWriter.WriteBsonInt32((int)_opCode);
+            streamWriter.WriteInt32(0); // messageLength (will be backpatched later)
+            streamWriter.WriteInt32(_requestId);
+            streamWriter.WriteInt32(0); // responseTo not used in requests sent by the client
+            streamWriter.WriteInt32((int)_opCode);
         }
     }
 }

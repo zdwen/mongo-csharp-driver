@@ -64,14 +64,14 @@ namespace MongoDB.Driver.Core
             // assuming the query message started at buffer position 0...
             var currentPosition = stream.Position;
             stream.Position = 0;
-            var length = streamReader.ReadBsonInt32();
-            var requestId = streamReader.ReadBsonInt32();
-            var responseTo = streamReader.ReadBsonInt32();
-            var opCode = (OpCode)streamReader.ReadBsonInt32();
-            var queryFlags = (QueryFlags)streamReader.ReadBsonInt32();
-            var collectionFullName = streamReader.ReadBsonCString();
-            var numToSkip = streamReader.ReadBsonInt32();
-            var numToLimit = streamReader.ReadBsonInt32();
+            var length = streamReader.ReadInt32();
+            var requestId = streamReader.ReadInt32();
+            var responseTo = streamReader.ReadInt32();
+            var opCode = (OpCode)streamReader.ReadInt32();
+            var queryFlags = (QueryFlags)streamReader.ReadInt32();
+            var collectionFullName = streamReader.ReadCString();
+            var numToSkip = streamReader.ReadInt32();
+            var numToLimit = streamReader.ReadInt32();
 
             BsonDocument query;
             using (var reader = BsonReader.Create(stream))

@@ -76,7 +76,7 @@ namespace MongoDB.Driver.Internal
             var streamWriter = new BsonStreamWriter(stream);
             var currentPosition = stream.Position;
             stream.Position = position;
-            streamWriter.WriteBsonInt32(value);
+            streamWriter.WriteInt32(value);
             stream.Position = currentPosition;
         }
     }

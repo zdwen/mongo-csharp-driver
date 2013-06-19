@@ -66,160 +66,9 @@ namespace MongoDB.Bson.IO
         /// </summary>
         /// <param name="value">The value.</param>
         /// <exception cref="System.ArgumentNullException">stream</exception>
-        public void WriteBsonBoolean(bool value)
+        public void WriteBoolean(bool value)
         {
             _stream.WriteByte((byte)(value ? 1 : 0));
-        }
-
-        /// <summary>
-        /// Writes a BSON CString to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <exception cref="System.ArgumentNullException">
-        /// stream
-        /// or
-        /// encoding
-        /// </exception>
-        /// <exception cref="System.ArgumentException">UTF8 representation cannot contain null bytes when writing a BSON CString.;value</exception>
-        public void WriteBsonCString(string value)
-        {
-            if (value == null)
-            {
-                throw new ArgumentNullException("value");
-            }
-
-            if (_bsonStream != null)
-            {
-                _bsonStream.WriteBsonCString(value);
-            }
-            else
-            {
-                var bytes = Utf8Helper.StrictUtf8Encoding.GetBytes(value);
-                if (bytes.Contains<byte>(0))
-                {
-                    throw new ArgumentException("UTF8 representation cannot contain null bytes when writing a BSON CString.", "value");
-                }
-                _stream.Write(bytes, 0, bytes.Length);
-                _stream.WriteByte(0);
-            }
-        }
-
-        /// <summary>
-        /// Writes a BSON double to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <exception cref="System.ArgumentNullException">stream</exception>
-        public void WriteBsonDouble(double value)
-        {
-            if (_bsonStream != null)
-            {
-                _bsonStream.WriteBsonDouble(value);
-            }
-            else
-            {
-                var bytes = BitConverter.GetBytes(value);
-                _stream.Write(bytes, 0, 8);
-            }
-        }
-
-        /// <summary>
-        /// Writes a 32-bit BSON integer to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <exception cref="System.ArgumentNullException">stream</exception>
-        public void WriteBsonInt32(int value)
-        {
-            if (_bsonStream != null)
-            {
-                _bsonStream.WriteBsonInt32(value);
-            }
-            else
-            {
-                var bytes = new byte[4];
-                bytes[0] = (byte)value;
-                bytes[1] = (byte)(value >> 8);
-                bytes[2] = (byte)(value >> 16);
-                bytes[3] = (byte)(value >> 24);
-                _stream.Write(bytes, 0, 4);
-            }
-        }
-
-        /// <summary>
-        /// Writes a 64-bit BSON integer to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <exception cref="System.ArgumentNullException">stream</exception>
-        public void WriteBsonInt64(long value)
-        {
-            if (_bsonStream != null)
-            {
-                _bsonStream.WriteBsonInt64(value);
-            }
-            else
-            {
-                var bytes = new byte[8];
-                bytes[0] = (byte)value;
-                bytes[1] = (byte)(value >> 8);
-                bytes[2] = (byte)(value >> 16);
-                bytes[3] = (byte)(value >> 24);
-                bytes[4] = (byte)(value >> 32);
-                bytes[5] = (byte)(value >> 40);
-                bytes[6] = (byte)(value >> 48);
-                bytes[7] = (byte)(value >> 56);
-                _stream.Write(bytes, 0, 8);
-            }
-        }
-
-        /// <summary>
-        /// Writes a BSON ObjectId to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <exception cref="System.ArgumentNullException">stream</exception>
-        public void WriteBsonObjectId(ObjectId value)
-        {
-            if (_bsonStream != null)
-            {
-                _bsonStream.WriteBsonObjectId(value);
-            }
-            else
-            {
-                var bytes = value.ToByteArray();
-                _stream.Write(bytes, 0, 12);
-            }
-        }
-
-        /// <summary>
-        /// Writes a BSON string to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="encoding">The encoding.</param>
-        /// <exception cref="System.ArgumentNullException">
-        /// stream
-        /// or
-        /// encoding
-        /// </exception>
-        public void WriteBsonString(string value, UTF8Encoding encoding)
-        {
-            if (value == null)
-            {
-                throw new ArgumentNullException("value");
-            }
-            if (encoding == null)
-            {
-                throw new ArgumentNullException("encoding");
-            }
-
-            if (_bsonStream != null)
-            {
-                _bsonStream.WriteBsonString(value, encoding);
-            }
-            else
-            {
-                var bytes = encoding.GetBytes(value);
-                WriteBsonInt32(bytes.Length + 1);
-                WriteBytes(bytes);
-                WriteByte(0);
-            }
         }
 
         /// <summary>
@@ -248,6 +97,157 @@ namespace MongoDB.Bson.IO
         public void WriteBytes(byte[] value)
         {
             _stream.Write(value, 0, value.Length);
+        }
+        
+        /// <summary>
+        /// Writes a BSON CString to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.ArgumentNullException">
+        /// stream
+        /// or
+        /// encoding
+        /// </exception>
+        /// <exception cref="System.ArgumentException">UTF8 representation cannot contain null bytes when writing a BSON CString.;value</exception>
+        public void WriteCString(string value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException("value");
+            }
+
+            if (_bsonStream != null)
+            {
+                _bsonStream.WriteBsonCString(value);
+            }
+            else
+            {
+                var bytes = Utf8Helper.StrictUtf8Encoding.GetBytes(value);
+                if (bytes.Contains<byte>(0))
+                {
+                    throw new ArgumentException("UTF8 representation cannot contain null bytes when writing a BSON CString.", "value");
+                }
+                _stream.Write(bytes, 0, bytes.Length);
+                _stream.WriteByte(0);
+            }
+        }
+
+        /// <summary>
+        /// Writes a BSON double to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.ArgumentNullException">stream</exception>
+        public void WriteDouble(double value)
+        {
+            if (_bsonStream != null)
+            {
+                _bsonStream.WriteBsonDouble(value);
+            }
+            else
+            {
+                var bytes = BitConverter.GetBytes(value);
+                _stream.Write(bytes, 0, 8);
+            }
+        }
+
+        /// <summary>
+        /// Writes a 32-bit BSON integer to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.ArgumentNullException">stream</exception>
+        public void WriteInt32(int value)
+        {
+            if (_bsonStream != null)
+            {
+                _bsonStream.WriteBsonInt32(value);
+            }
+            else
+            {
+                var bytes = new byte[4];
+                bytes[0] = (byte)value;
+                bytes[1] = (byte)(value >> 8);
+                bytes[2] = (byte)(value >> 16);
+                bytes[3] = (byte)(value >> 24);
+                _stream.Write(bytes, 0, 4);
+            }
+        }
+
+        /// <summary>
+        /// Writes a 64-bit BSON integer to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.ArgumentNullException">stream</exception>
+        public void WriteInt64(long value)
+        {
+            if (_bsonStream != null)
+            {
+                _bsonStream.WriteBsonInt64(value);
+            }
+            else
+            {
+                var bytes = new byte[8];
+                bytes[0] = (byte)value;
+                bytes[1] = (byte)(value >> 8);
+                bytes[2] = (byte)(value >> 16);
+                bytes[3] = (byte)(value >> 24);
+                bytes[4] = (byte)(value >> 32);
+                bytes[5] = (byte)(value >> 40);
+                bytes[6] = (byte)(value >> 48);
+                bytes[7] = (byte)(value >> 56);
+                _stream.Write(bytes, 0, 8);
+            }
+        }
+
+        /// <summary>
+        /// Writes a BSON ObjectId to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.ArgumentNullException">stream</exception>
+        public void WriteObjectId(ObjectId value)
+        {
+            if (_bsonStream != null)
+            {
+                _bsonStream.WriteBsonObjectId(value);
+            }
+            else
+            {
+                var bytes = value.ToByteArray();
+                _stream.Write(bytes, 0, 12);
+            }
+        }
+
+        /// <summary>
+        /// Writes a BSON string to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="encoding">The encoding.</param>
+        /// <exception cref="System.ArgumentNullException">
+        /// stream
+        /// or
+        /// encoding
+        /// </exception>
+        public void WriteString(string value, UTF8Encoding encoding)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException("value");
+            }
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
+            if (_bsonStream != null)
+            {
+                _bsonStream.WriteBsonString(value, encoding);
+            }
+            else
+            {
+                var bytes = encoding.GetBytes(value);
+                WriteInt32(bytes.Length + 1);
+                WriteBytes(bytes);
+                WriteByte(0);
+            }
         }
     }
 }

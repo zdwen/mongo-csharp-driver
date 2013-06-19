@@ -50,6 +50,10 @@ namespace MongoDB.Bson.IO
             {
                 throw new ArgumentNullException("stream");
             }
+            if (!stream.CanSeek)
+            {
+                throw new ArgumentException("The stream must be capable of seeking.", "stream");
+            }
 
             _streamWriter = new BsonStreamWriter(stream);
             _settings = settings; // already frozen by base class
@@ -149,13 +153,13 @@ namespace MongoDB.Bson.IO
             if (subType == BsonBinarySubType.OldBinary)
             {
                 // sub type OldBinary has two sizes (for historical reasons)
-                _streamWriter.WriteBsonInt32(bytes.Length + 4);
+                _streamWriter.WriteInt32(bytes.Length + 4);
                 _streamWriter.WriteByte((byte)subType);
-                _streamWriter.WriteBsonInt32(bytes.Length);
+                _streamWriter.WriteInt32(bytes.Length);
             }
             else
             {
-                _streamWriter.WriteBsonInt32(bytes.Length);
+                _streamWriter.WriteInt32(bytes.Length);
                 _streamWriter.WriteByte((byte)subType);
             }
             _streamWriter.WriteBytes(bytes);
@@ -178,7 +182,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.Boolean);
             WriteNameHelper();
-            _streamWriter.WriteBsonBoolean(value);
+            _streamWriter.WriteBoolean(value);
 
             State = GetNextState();
         }
@@ -197,7 +201,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.Binary);
             WriteNameHelper();
-            _streamWriter.WriteBsonInt32(bytes.Length);
+            _streamWriter.WriteInt32(bytes.Length);
             _streamWriter.WriteByte((byte)BsonBinarySubType.Binary);
             _streamWriter.WriteBytes(bytes);
 
@@ -218,7 +222,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.DateTime);
             WriteNameHelper();
-            _streamWriter.WriteBsonInt64(value);
+            _streamWriter.WriteInt64(value);
 
             State = GetNextState();
         }
@@ -237,7 +241,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.Double);
             WriteNameHelper();
-            _streamWriter.WriteBsonDouble(value);
+            _streamWriter.WriteDouble(value);
 
             State = GetNextState();
         }
@@ -314,7 +318,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.Int32);
             WriteNameHelper();
-            _streamWriter.WriteBsonInt32(value);
+            _streamWriter.WriteInt32(value);
 
             State = GetNextState();
         }
@@ -333,7 +337,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.Int64);
             WriteNameHelper();
-            _streamWriter.WriteBsonInt64(value);
+            _streamWriter.WriteInt64(value);
 
             State = GetNextState();
         }
@@ -352,7 +356,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.JavaScript);
             WriteNameHelper();
-            _streamWriter.WriteBsonString(code, _settings.Encoding);
+            _streamWriter.WriteString(code, _settings.Encoding);
 
             State = GetNextState();
         }
@@ -372,8 +376,8 @@ namespace MongoDB.Bson.IO
             _streamWriter.WriteBsonType(BsonType.JavaScriptWithScope);
             WriteNameHelper();
             _context = new BsonBinaryWriterContext(_context, ContextType.JavaScriptWithScope, _streamWriter.BaseStream.Position);
-            _streamWriter.WriteBsonInt32(0); // reserve space for size of JavaScript with scope value
-            _streamWriter.WriteBsonString(code, _settings.Encoding);
+            _streamWriter.WriteInt32(0); // reserve space for size of JavaScript with scope value
+            _streamWriter.WriteString(code, _settings.Encoding);
 
             State = BsonWriterState.ScopeDocument;
         }
@@ -443,7 +447,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.ObjectId);
             WriteNameHelper();
-            _streamWriter.WriteBsonObjectId(objectId);
+            _streamWriter.WriteObjectId(objectId);
 
             State = GetNextState();
         }
@@ -515,8 +519,8 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.RegularExpression);
             WriteNameHelper();
-            _streamWriter.WriteBsonCString(regex.Pattern);
-            _streamWriter.WriteBsonCString(regex.Options);
+            _streamWriter.WriteCString(regex.Pattern);
+            _streamWriter.WriteCString(regex.Options);
 
             State = GetNextState();
         }
@@ -536,7 +540,7 @@ namespace MongoDB.Bson.IO
             _streamWriter.WriteBsonType(BsonType.Array);
             WriteNameHelper();
             _context = new BsonBinaryWriterContext(_context, ContextType.Array, _streamWriter.BaseStream.Position);
-            _streamWriter.WriteBsonInt32(0); // reserve space for size
+            _streamWriter.WriteInt32(0); // reserve space for size
 
             State = BsonWriterState.Value;
         }
@@ -560,7 +564,7 @@ namespace MongoDB.Bson.IO
             }
             var contextType = (State == BsonWriterState.ScopeDocument) ? ContextType.ScopeDocument : ContextType.Document;
             _context = new BsonBinaryWriterContext(_context, ContextType.Document, _streamWriter.BaseStream.Position);
-            _streamWriter.WriteBsonInt32(0); // reserve space for size
+            _streamWriter.WriteInt32(0); // reserve space for size
 
             State = BsonWriterState.Name;
         }
@@ -579,7 +583,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.String);
             WriteNameHelper();
-            _streamWriter.WriteBsonString(value, _settings.Encoding);
+            _streamWriter.WriteString(value, _settings.Encoding);
 
             State = GetNextState();
         }
@@ -598,7 +602,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.Symbol);
             WriteNameHelper();
-            _streamWriter.WriteBsonString(value, _settings.Encoding);
+            _streamWriter.WriteString(value, _settings.Encoding);
 
             State = GetNextState();
         }
@@ -617,7 +621,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.Timestamp);
             WriteNameHelper();
-            _streamWriter.WriteBsonInt64(value);
+            _streamWriter.WriteInt64(value);
 
             State = GetNextState();
         }
@@ -655,7 +659,7 @@ namespace MongoDB.Bson.IO
         {
             var currentPosition = _streamWriter.BaseStream.Position;
             _streamWriter.BaseStream.Position = backpatchPosition;
-            _streamWriter.WriteBsonInt32(value);
+            _streamWriter.WriteInt32(value);
             _streamWriter.BaseStream.Position = currentPosition;
         }
 
@@ -694,7 +698,7 @@ namespace MongoDB.Bson.IO
                 name = Name;
             }
 
-            _streamWriter.WriteBsonCString(name);
+            _streamWriter.WriteCString(name);
         }
     }
 }

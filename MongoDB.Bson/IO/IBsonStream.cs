@@ -11,7 +11,7 @@ namespace MongoDB.Bson.IO
     /// that implement Stream can choose to also implement this interface to improve performance when
     /// reading and writing BSON values.
     /// </summary>
-    public interface IBsonStream
+    internal interface IBsonStream
     {
         /// <summary>
         /// Reads a BSON CString from the stream.

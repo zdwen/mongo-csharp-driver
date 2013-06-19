@@ -80,10 +80,10 @@ namespace MongoDB.Driver.Internal
 
             var streamReader = new BsonStreamReader(stream);
             ReadMessageHeaderFrom(streamReader);
-            _responseFlags = (ResponseFlags)streamReader.ReadBsonInt32();
-            _cursorId = streamReader.ReadBsonInt64();
-            _startingFrom = streamReader.ReadBsonInt32();
-            _numberReturned = streamReader.ReadBsonInt32();
+            _responseFlags = (ResponseFlags)streamReader.ReadInt32();
+            _cursorId = streamReader.ReadInt64();
+            _startingFrom = streamReader.ReadInt32();
+            _numberReturned = streamReader.ReadInt32();
 
             if ((_responseFlags & ResponseFlags.CursorNotFound) != 0)
             {

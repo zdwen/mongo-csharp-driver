@@ -43,11 +43,11 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="streamWriter">The stream.</param>
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            streamWriter.WriteBsonInt32(0); // reserved
-            streamWriter.WriteBsonInt32(_cursorIds.Length); // numberOfCursorIDs
+            streamWriter.WriteInt32(0); // reserved
+            streamWriter.WriteInt32(_cursorIds.Length); // numberOfCursorIDs
             for (int i = 0; i < _cursorIds.Length; i++)
             {
-                streamWriter.WriteBsonInt64(_cursorIds[i]);
+                streamWriter.WriteInt64(_cursorIds[i]);
             }
         }
     }

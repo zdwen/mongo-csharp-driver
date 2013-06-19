@@ -53,10 +53,10 @@ namespace MongoDB.Driver.Internal
         // protected methods
         protected void ReadMessageHeaderFrom(BsonStreamReader streamReader)
         {
-            _messageLength = streamReader.ReadBsonInt32();
-            _requestId = streamReader.ReadBsonInt32();
-            _responseTo = streamReader.ReadBsonInt32();
-            if ((MessageOpcode)streamReader.ReadBsonInt32() != _opcode)
+            _messageLength = streamReader.ReadInt32();
+            _requestId = streamReader.ReadInt32();
+            _responseTo = streamReader.ReadInt32();
+            if ((MessageOpcode)streamReader.ReadInt32() != _opcode)
             {
                 throw new FileFormatException("Message header opcode is not the expected one.");
             }
@@ -64,10 +64,10 @@ namespace MongoDB.Driver.Internal
 
         protected void WriteMessageHeaderTo(BsonStreamWriter streamWriter)
         {
-            streamWriter.WriteBsonInt32(0); // messageLength will be backpatched later
-            streamWriter.WriteBsonInt32(_requestId);
-            streamWriter.WriteBsonInt32(0); // responseTo not used in requests sent by client
-            streamWriter.WriteBsonInt32((int)_opcode);
+            streamWriter.WriteInt32(0); // messageLength will be backpatched later
+            streamWriter.WriteInt32(_requestId);
+            streamWriter.WriteInt32(0); // responseTo not used in requests sent by client
+            streamWriter.WriteInt32((int)_opcode);
         }
     }
 }

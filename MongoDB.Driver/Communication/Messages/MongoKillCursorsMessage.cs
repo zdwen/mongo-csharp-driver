@@ -32,11 +32,11 @@ namespace MongoDB.Driver.Internal
         // protected methods
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            streamWriter.WriteBsonInt32(0); // reserved
-            streamWriter.WriteBsonInt32(_cursorIds.Length);
+            streamWriter.WriteInt32(0); // reserved
+            streamWriter.WriteInt32(_cursorIds.Length);
             foreach (long cursorId in _cursorIds)
             {
-                streamWriter.WriteBsonInt64(cursorId);
+                streamWriter.WriteInt64(cursorId);
             }
         }
     }

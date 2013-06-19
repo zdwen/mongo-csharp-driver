@@ -44,9 +44,9 @@ namespace MongoDB.Driver.Internal
         // protected methods
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            streamWriter.WriteBsonInt32(0); // reserved
-            streamWriter.WriteBsonCString(_collectionFullName);
-            streamWriter.WriteBsonInt32((int)_flags);
+            streamWriter.WriteInt32(0); // reserved
+            streamWriter.WriteCString(_collectionFullName);
+            streamWriter.WriteInt32((int)_flags);
 
             using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, WriterSettings))
             {

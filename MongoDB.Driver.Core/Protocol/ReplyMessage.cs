@@ -146,23 +146,23 @@ namespace MongoDB.Driver.Core.Protocol
         public static ReplyMessage ReadFrom(Stream stream)
         {
             var streamReader = new BsonStreamReader(stream);
-            var messageLength = streamReader.ReadBsonInt32();
+            var messageLength = streamReader.ReadInt32();
 
             var byteBuffer = ByteBufferFactory.Create(BsonChunkPool.Default, messageLength);
             var byteBufferStream = new ByteBufferStream(byteBuffer, ownsByteBuffer: true);
             var byteBufferStreamWriter = new BsonStreamWriter(byteBufferStream);
-            byteBufferStreamWriter.WriteBsonInt32(messageLength);
+            byteBufferStreamWriter.WriteInt32(messageLength);
             byteBufferStream.LoadFrom(stream, messageLength - 4); // 4 is the size of the message length
             byteBufferStream.Position = 4; // positioned just after the message length field
 
             var byteBufferStreamReader = new BsonStreamReader(byteBufferStream);
-            var requestId = byteBufferStreamReader.ReadBsonInt32();
-            var responseTo = byteBufferStreamReader.ReadBsonInt32();
-            var opCode = (OpCode)byteBufferStreamReader.ReadBsonInt32();
-            var responseFlags = (ReplyFlags)byteBufferStreamReader.ReadBsonInt32();
-            var cursorId = byteBufferStreamReader.ReadBsonInt64();
-            var startingFrom = byteBufferStreamReader.ReadBsonInt32();
-            var numberReturned = byteBufferStreamReader.ReadBsonInt32();
+            var requestId = byteBufferStreamReader.ReadInt32();
+            var responseTo = byteBufferStreamReader.ReadInt32();
+            var opCode = (OpCode)byteBufferStreamReader.ReadInt32();
+            var responseFlags = (ReplyFlags)byteBufferStreamReader.ReadInt32();
+            var cursorId = byteBufferStreamReader.ReadInt64();
+            var startingFrom = byteBufferStreamReader.ReadInt32();
+            var numberReturned = byteBufferStreamReader.ReadInt32();
 
             return new ReplyMessage(
                 messageLength,

@@ -379,164 +379,6 @@ namespace MongoDB.Bson.IO
         }
 
         /// <summary>
-        /// Reads a BSON CString from the stream.
-        /// </summary>
-        /// <returns>
-        /// A string.
-        /// </returns>
-        /// <exception cref="System.ArgumentNullException">encoding</exception>
-        public string ReadBsonCString()
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-
-            var nullPosition = FindNullByte();
-            var position = _position;
-            var length = nullPosition - position + 1; // read null byte also
-            _position = nullPosition + 1;
-
-            return Utf8Helper.DecodeUtf8String(_buffer, position, length - 1, Utf8Helper.StrictUtf8Encoding); // don't decode null byte
-        }
-
-        /// <summary>
-        /// Reads a BSON double from the stream.
-        /// </summary>
-        /// <returns>
-        /// A double.
-        /// </returns>
-        /// <exception cref="System.IO.EndOfStreamException"></exception>
-        public double ReadBsonDouble()
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-
-            var position = _position;
-            if ((_position += 8) > _length)
-            {
-                _position = _length;
-                throw new EndOfStreamException();
-            }
-
-            return BitConverter.ToDouble(_buffer, position);
-        }
-
-        /// <summary>
-        /// Reads a 32-bit BSON integer from the stream.
-        /// </summary>
-        /// <returns>
-        /// An int.
-        /// </returns>
-        /// <exception cref="System.IO.EndOfStreamException"></exception>
-        public int ReadBsonInt32()
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-
-            var position = _position;
-            if ((_position += 4) > _length)
-            {
-                _position = _length;
-                throw new EndOfStreamException();
-            }
-
-            return _buffer[position] | (_buffer[position + 1] << 8) | (_buffer[position + 2] << 16) | (_buffer[position + 3] << 24);
-        }
-
-        /// <summary>
-        /// Reads a 64-bit BSON integer from the stream.
-        /// </summary>
-        /// <returns>
-        /// A long.
-        /// </returns>
-        /// <exception cref="System.IO.EndOfStreamException"></exception>
-        public long ReadBsonInt64()
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-
-            var position = _position;
-            if ((_position += 8) > _length)
-            {
-                _position = _length;
-                throw new EndOfStreamException();
-            }
-
-            var lo = (uint)(_buffer[position] | (_buffer[position + 1] << 8) | (_buffer[position + 2] << 16) | (_buffer[position + 3] << 24));
-            var hi = (uint)(_buffer[position + 4] | (_buffer[position + 5] << 8) | (_buffer[position + 6] << 16) | (_buffer[position + 7] << 24));
-            return (long)(((ulong)hi << 32) | (ulong)lo);
-        }
-
-        /// <summary>
-        /// Reads a BSON ObjectId from the stream.
-        /// </summary>
-        /// <returns>
-        /// An ObjectId.
-        /// </returns>
-        /// <exception cref="System.IO.EndOfStreamException"></exception>
-        public ObjectId ReadBsonObjectId()
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-
-            var position = _position;
-            if ((_position += 12) > _length)
-            {
-                _position = _length;
-                throw new EndOfStreamException();
-            }
-
-            return new ObjectId(_buffer, position);
-        }
-
-        /// <summary>
-        /// Reads a BSON string from the stream.
-        /// </summary>
-        /// <param name="encoding">The encoding.</param>
-        /// <returns>
-        /// A string.
-        /// </returns>
-        /// <exception cref="System.ArgumentNullException">encoding</exception>
-        /// <exception cref="System.FormatException"></exception>
-        /// <exception cref="System.IO.EndOfStreamException"></exception>
-        public string ReadBsonString(UTF8Encoding encoding)
-        {
-            if (encoding == null)
-            {
-                throw new ArgumentNullException("encoding");
-            }
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-
-            var length = ReadBsonInt32();
-            if (length <= 0)
-            {
-                var message = string.Format("Invalid string length: {0}.", length);
-                throw new FormatException(message);
-            }
-
-            var position = _position;
-            if ((_position += length) > _length)
-            {
-                _position = _length;
-                throw new EndOfStreamException();
-            }
-
-            return Utf8Helper.DecodeUtf8String(_buffer, position, length - 1, encoding);
-        }
-
-        /// <summary>
         /// Reads a byte from the stream and advances the position within the stream by one byte, or returns -1 if at the end of the stream.
         /// </summary>
         /// <returns>
@@ -646,20 +488,6 @@ namespace MongoDB.Bson.IO
         }
 
         /// <summary>
-        /// Skips over a BSON CString leaving the stream positioned just after the terminating null byte.
-        /// </summary>
-        public void SkipBsonCString()
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-
-            var nullPosition = FindNullByte();
-            _position = nullPosition + 1;
-        }
-
-        /// <summary>
         /// Writes the stream contents to a byte array, regardless of the Position property.
         /// </summary>
         /// <returns>A byte array.</returns>
@@ -725,154 +553,6 @@ namespace MongoDB.Bson.IO
             }
 
             _position = newPosition;
-        }
-
-        /// <summary>
-        /// Writes a BSON CString to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public void WriteBsonCString(string value)
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-            EnsureWriteable();
-
-            var maxLength = Utf8Helper.StrictUtf8Encoding.GetMaxByteCount(value.Length) + 1;
-            var maxNewPosition = _position + maxLength;
-            EnsurePosition(maxNewPosition);
-
-            var length = Utf8Helper.StrictUtf8Encoding.GetBytes(value, 0, value.Length, _buffer, _position);
-            _buffer[_position + length] = 0;
-
-            _position += length + 1;
-        }
-
-        /// <summary>
-        /// Writes a BSON double to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public void WriteBsonDouble(double value)
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-            EnsureWriteable();
-
-            var newPosition = _position + 8;
-            EnsurePosition(newPosition);
-
-            var bytes = BitConverter.GetBytes(value);
-            _buffer[_position] = bytes[0];
-            _buffer[_position + 1] = bytes[1];
-            _buffer[_position + 2] = bytes[2];
-            _buffer[_position + 3] = bytes[3];
-            _buffer[_position + 4] = bytes[4];
-            _buffer[_position + 5] = bytes[5];
-            _buffer[_position + 6] = bytes[6];
-            _buffer[_position + 7] = bytes[7];
-
-            _position = newPosition;
-        }
-
-        /// <summary>
-        /// Writes a 32-bit BSON integer to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public void WriteBsonInt32(int value)
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-            EnsureWriteable();
-
-            var newPosition = _position + 4;
-            EnsurePosition(newPosition);
-
-            _buffer[_position] = (byte)value;
-            _buffer[_position + 1] = (byte)(value >> 8);
-            _buffer[_position + 2] = (byte)(value >> 16);
-            _buffer[_position + 3] = (byte)(value >> 24);
-
-            _position = newPosition;
-        }
-
-        /// <summary>
-        /// Writes a 64-bit BSON integer to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public void WriteBsonInt64(long value)
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-            EnsureWriteable();
-
-            var newPosition = _position + 8;
-            EnsurePosition(newPosition);
-
-            _buffer[_position] = (byte)value;
-            _buffer[_position + 1] = (byte)(value >> 8);
-            _buffer[_position + 2] = (byte)(value >> 16);
-            _buffer[_position + 3] = (byte)(value >> 24);
-            _buffer[_position + 4] = (byte)(value >> 32);
-            _buffer[_position + 5] = (byte)(value >> 40);
-            _buffer[_position + 6] = (byte)(value >> 48);
-            _buffer[_position + 7] = (byte)(value >> 56);
-
-            _position = newPosition;
-        }
-
-        /// <summary>
-        /// Writes a BSON ObjectId to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public void WriteBsonObjectId(ObjectId value)
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-            EnsureWriteable();
-
-            var newPosition = _position + 12;
-            EnsurePosition(newPosition);
-
-            value.GetBytes(_buffer, _position);
-
-            _position = newPosition;
-        }
-
-        /// <summary>
-        /// Writes a BSON string to the stream.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="encoding">The encoding.</param>
-        public void WriteBsonString(string value, UTF8Encoding encoding)
-        {
-            if (!_isOpen)
-            {
-                StreamIsClosed();
-            }
-            EnsureWriteable();
-
-            var maxLength = encoding.GetMaxByteCount(value.Length) + 5;
-            var maxNewPosition = _position + maxLength;
-            EnsurePosition(maxNewPosition);
-
-            var length = encoding.GetBytes(value, 0, value.Length, _buffer, _position + 4);
-            var lengthPlusOne = length + 1;
-            _buffer[_position] = (byte)lengthPlusOne;
-            _buffer[_position + 1] = (byte)(lengthPlusOne >> 8);
-            _buffer[_position + 2] = (byte)(lengthPlusOne >> 16);
-            _buffer[_position + 3] = (byte)(lengthPlusOne >> 24);
-            _buffer[_position + 4 + length] = 0;
-
-            _position += length + 5;
         }
 
         /// <summary>
@@ -994,6 +674,327 @@ namespace MongoDB.Bson.IO
         private void StreamIsClosed()
         {
             throw new ObjectDisposedException("BsonMemoryStream");
+        }
+
+        // explicit interface implementations
+        /// <summary>
+        /// Reads a BSON CString from the stream.
+        /// </summary>
+        /// <returns>
+        /// A string.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">encoding</exception>
+        string IBsonStream.ReadBsonCString()
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+
+            var nullPosition = FindNullByte();
+            var position = _position;
+            var length = nullPosition - position + 1; // read null byte also
+            _position = nullPosition + 1;
+
+            return Utf8Helper.DecodeUtf8String(_buffer, position, length - 1, Utf8Helper.StrictUtf8Encoding); // don't decode null byte
+        }
+
+        /// <summary>
+        /// Reads a BSON double from the stream.
+        /// </summary>
+        /// <returns>
+        /// A double.
+        /// </returns>
+        /// <exception cref="System.IO.EndOfStreamException"></exception>
+        double IBsonStream.ReadBsonDouble()
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+
+            var position = _position;
+            if ((_position += 8) > _length)
+            {
+                _position = _length;
+                throw new EndOfStreamException();
+            }
+
+            return BitConverter.ToDouble(_buffer, position);
+        }
+
+        /// <summary>
+        /// Reads a 32-bit BSON integer from the stream.
+        /// </summary>
+        /// <returns>
+        /// An int.
+        /// </returns>
+        /// <exception cref="System.IO.EndOfStreamException"></exception>
+        int IBsonStream.ReadBsonInt32()
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+
+            var position = _position;
+            if ((_position += 4) > _length)
+            {
+                _position = _length;
+                throw new EndOfStreamException();
+            }
+
+            return _buffer[position] | (_buffer[position + 1] << 8) | (_buffer[position + 2] << 16) | (_buffer[position + 3] << 24);
+        }
+
+        /// <summary>
+        /// Reads a 64-bit BSON integer from the stream.
+        /// </summary>
+        /// <returns>
+        /// A long.
+        /// </returns>
+        /// <exception cref="System.IO.EndOfStreamException"></exception>
+        long IBsonStream.ReadBsonInt64()
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+
+            var position = _position;
+            if ((_position += 8) > _length)
+            {
+                _position = _length;
+                throw new EndOfStreamException();
+            }
+
+            var lo = (uint)(_buffer[position] | (_buffer[position + 1] << 8) | (_buffer[position + 2] << 16) | (_buffer[position + 3] << 24));
+            var hi = (uint)(_buffer[position + 4] | (_buffer[position + 5] << 8) | (_buffer[position + 6] << 16) | (_buffer[position + 7] << 24));
+            return (long)(((ulong)hi << 32) | (ulong)lo);
+        }
+
+        /// <summary>
+        /// Reads a BSON ObjectId from the stream.
+        /// </summary>
+        /// <returns>
+        /// An ObjectId.
+        /// </returns>
+        /// <exception cref="System.IO.EndOfStreamException"></exception>
+        ObjectId IBsonStream.ReadBsonObjectId()
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+
+            var position = _position;
+            if ((_position += 12) > _length)
+            {
+                _position = _length;
+                throw new EndOfStreamException();
+            }
+
+            return new ObjectId(_buffer, position);
+        }
+
+        /// <summary>
+        /// Reads a BSON string from the stream.
+        /// </summary>
+        /// <param name="encoding">The encoding.</param>
+        /// <returns>
+        /// A string.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">encoding</exception>
+        /// <exception cref="System.FormatException"></exception>
+        /// <exception cref="System.IO.EndOfStreamException"></exception>
+        string IBsonStream.ReadBsonString(UTF8Encoding encoding)
+        {
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+
+            var length = ((IBsonStream)this).ReadBsonInt32();
+            if (length <= 0)
+            {
+                var message = string.Format("Invalid string length: {0}.", length);
+                throw new FormatException(message);
+            }
+
+            var position = _position;
+            if ((_position += length) > _length)
+            {
+                _position = _length;
+                throw new EndOfStreamException();
+            }
+
+            return Utf8Helper.DecodeUtf8String(_buffer, position, length - 1, encoding);
+        }
+
+        /// <summary>
+        /// Skips over a BSON CString leaving the stream positioned just after the terminating null byte.
+        /// </summary>
+        void IBsonStream.SkipBsonCString()
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+
+            var nullPosition = FindNullByte();
+            _position = nullPosition + 1;
+        }
+
+        /// <summary>
+        /// Writes a BSON CString to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        void IBsonStream.WriteBsonCString(string value)
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+            EnsureWriteable();
+
+            var maxLength = Utf8Helper.StrictUtf8Encoding.GetMaxByteCount(value.Length) + 1;
+            var maxNewPosition = _position + maxLength;
+            EnsurePosition(maxNewPosition);
+
+            var length = Utf8Helper.StrictUtf8Encoding.GetBytes(value, 0, value.Length, _buffer, _position);
+            _buffer[_position + length] = 0;
+
+            _position += length + 1;
+        }
+
+        /// <summary>
+        /// Writes a BSON double to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        void IBsonStream.WriteBsonDouble(double value)
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+            EnsureWriteable();
+
+            var newPosition = _position + 8;
+            EnsurePosition(newPosition);
+
+            var bytes = BitConverter.GetBytes(value);
+            _buffer[_position] = bytes[0];
+            _buffer[_position + 1] = bytes[1];
+            _buffer[_position + 2] = bytes[2];
+            _buffer[_position + 3] = bytes[3];
+            _buffer[_position + 4] = bytes[4];
+            _buffer[_position + 5] = bytes[5];
+            _buffer[_position + 6] = bytes[6];
+            _buffer[_position + 7] = bytes[7];
+
+            _position = newPosition;
+        }
+
+        /// <summary>
+        /// Writes a 32-bit BSON integer to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        void IBsonStream.WriteBsonInt32(int value)
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+            EnsureWriteable();
+
+            var newPosition = _position + 4;
+            EnsurePosition(newPosition);
+
+            _buffer[_position] = (byte)value;
+            _buffer[_position + 1] = (byte)(value >> 8);
+            _buffer[_position + 2] = (byte)(value >> 16);
+            _buffer[_position + 3] = (byte)(value >> 24);
+
+            _position = newPosition;
+        }
+
+        /// <summary>
+        /// Writes a 64-bit BSON integer to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        void IBsonStream.WriteBsonInt64(long value)
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+            EnsureWriteable();
+
+            var newPosition = _position + 8;
+            EnsurePosition(newPosition);
+
+            _buffer[_position] = (byte)value;
+            _buffer[_position + 1] = (byte)(value >> 8);
+            _buffer[_position + 2] = (byte)(value >> 16);
+            _buffer[_position + 3] = (byte)(value >> 24);
+            _buffer[_position + 4] = (byte)(value >> 32);
+            _buffer[_position + 5] = (byte)(value >> 40);
+            _buffer[_position + 6] = (byte)(value >> 48);
+            _buffer[_position + 7] = (byte)(value >> 56);
+
+            _position = newPosition;
+        }
+
+        /// <summary>
+        /// Writes a BSON ObjectId to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        void IBsonStream.WriteBsonObjectId(ObjectId value)
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+            EnsureWriteable();
+
+            var newPosition = _position + 12;
+            EnsurePosition(newPosition);
+
+            value.GetBytes(_buffer, _position);
+
+            _position = newPosition;
+        }
+
+        /// <summary>
+        /// Writes a BSON string to the stream.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="encoding">The encoding.</param>
+        void IBsonStream.WriteBsonString(string value, UTF8Encoding encoding)
+        {
+            if (!_isOpen)
+            {
+                StreamIsClosed();
+            }
+            EnsureWriteable();
+
+            var maxLength = encoding.GetMaxByteCount(value.Length) + 5;
+            var maxNewPosition = _position + maxLength;
+            EnsurePosition(maxNewPosition);
+
+            var length = encoding.GetBytes(value, 0, value.Length, _buffer, _position + 4);
+            var lengthPlusOne = length + 1;
+            _buffer[_position] = (byte)lengthPlusOne;
+            _buffer[_position + 1] = (byte)(lengthPlusOne >> 8);
+            _buffer[_position + 2] = (byte)(lengthPlusOne >> 16);
+            _buffer[_position + 3] = (byte)(lengthPlusOne >> 24);
+            _buffer[_position + 4 + length] = 0;
+
+            _position += length + 5;
         }
     }
 }

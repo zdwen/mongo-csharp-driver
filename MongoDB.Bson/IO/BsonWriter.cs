@@ -551,7 +551,7 @@ namespace MongoDB.Bson.IO
             {
                 // wrap the array in a fake document so we can deserialize it
                 var streamWriter = new BsonStreamWriter(memoryStream);
-                streamWriter.WriteBsonInt32(documentLength);
+                streamWriter.WriteInt32(documentLength);
                 streamWriter.WriteBsonType(BsonType.Array);
                 streamWriter.WriteByte((byte)'x');
                 streamWriter.WriteByte(0);

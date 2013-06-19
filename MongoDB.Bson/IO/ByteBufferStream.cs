@@ -130,170 +130,6 @@ namespace MongoDB.Bson.IO
         }
 
         /// <summary>
-        /// Reads a BSON CString from the stream.
-        /// </summary>
-        /// <returns>
-        /// A string.
-        /// </returns>
-        /// <exception cref="System.ArgumentNullException">encoding</exception>
-        /// <exception cref="System.FormatException">CString is missing terminating null byte.</exception>
-        public string ReadBsonCString()
-        {
-            var nullPosition = _byteBuffer.FindNullByte();
-            if (nullPosition == -1)
-            {
-                throw new FormatException("CString is missing terminating null byte.");
-            }
-
-            var length = nullPosition - _byteBuffer.Position + 1; // read null byte also
-            var segment = _byteBuffer.ReadBackingBytes(length);
-            if (segment.Count >= length)
-            {
-                return Utf8Helper.DecodeUtf8String(segment.Array, segment.Offset, length - 1, Utf8Helper.StrictUtf8Encoding); // don't decode null byte
-            }
-            else
-            {
-                var bytes = _byteBuffer.ReadBytes(length);
-                return Utf8Helper.DecodeUtf8String(bytes, 0, length - 1, Utf8Helper.StrictUtf8Encoding); // don't decode null byte
-            }
-        }
-
-        /// <summary>
-        /// Reads a BSON double from the stream.
-        /// </summary>
-        /// <returns>
-        /// A double.
-        /// </returns>
-        public double ReadBsonDouble()
-        {
-            var segment = _byteBuffer.ReadBackingBytes(8);
-            if (segment.Count >= 8)
-            {
-                return BitConverter.ToDouble(segment.Array, segment.Offset);
-            }
-            else
-            {
-                var bytes = _byteBuffer.ReadBytes(8);
-                return BitConverter.ToDouble(bytes, 0);
-            }
-        }
-
-        /// <summary>
-        /// Reads a 32-bit BSON integer from the stream.
-        /// </summary>
-        /// <returns>
-        /// An int.
-        /// </returns>
-        public int ReadBsonInt32()
-        {
-            var segment = _byteBuffer.ReadBackingBytes(4);
-            if (segment.Count >= 4)
-            {
-                var bytes = segment.Array;
-                var offset = segment.Offset;
-                return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24);
-            }
-            else
-            {
-                var bytes = _byteBuffer.ReadBytes(4);
-                return bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
-            }
-        }
-
-        /// <summary>
-        /// Reads a 64-bit BSON integer from the stream.
-        /// </summary>
-        /// <returns>
-        /// A long.
-        /// </returns>
-        public long ReadBsonInt64()
-        {
-            var segment = _byteBuffer.ReadBackingBytes(8);
-            if (segment.Count >= 8)
-            {
-                var bytes = segment.Array;
-                var offset = segment.Offset;
-                var lo = (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24));
-                var hi = (uint)(bytes[offset + 4] | (bytes[offset + 5] << 8) | (bytes[offset + 6] << 16) | (bytes[offset + 7] << 24));
-                return (long)(((ulong)hi << 32) | (ulong)lo);
-            }
-            else
-            {
-                var bytes = _byteBuffer.ReadBytes(8);
-                var lo = (uint)(bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24));
-                var hi = (uint)(bytes[4] | (bytes[5] << 8) | (bytes[6] << 16) | (bytes[7] << 24));
-                return (long)(((ulong)hi << 32) | (ulong)lo);
-            }
-        }
-
-        /// <summary>
-        /// Reads a BSON ObjectId from the stream.
-        /// </summary>
-        /// <returns>
-        /// An ObjectId.
-        /// </returns>
-        public ObjectId ReadBsonObjectId()
-        {
-            var segment = _byteBuffer.ReadBackingBytes(12);
-            if (segment.Count >= 12)
-            {
-                return new ObjectId(segment.Array, segment.Offset);
-            }
-            else
-            {
-                var bytes = _byteBuffer.ReadBytes(12);
-                return new ObjectId(bytes);
-            }
-        }
-
-        /// <summary>
-        /// Reads a BSON string from the stream.
-        /// </summary>
-        /// <param name="encoding">The encoding.</param>
-        /// <returns>
-        /// A string.
-        /// </returns>
-        /// <exception cref="System.ArgumentNullException">encoding</exception>
-        /// <exception cref="System.FormatException">
-        /// String is missing terminating null byte.
-        /// or
-        /// String is missing terminating null byte.
-        /// </exception>
-        public string ReadBsonString(UTF8Encoding encoding)
-        {
-            if (encoding == null)
-            {
-                throw new ArgumentNullException("encoding");
-            }
-
-            var length = ReadBsonInt32();
-            if (length <= 0)
-            {
-                var message = string.Format("Invalid string length: {0}.", length);
-                throw new FormatException(message);
-            }
-
-            var segment = _byteBuffer.ReadBackingBytes(length);
-            if (segment.Count >= length)
-            {
-                if (segment.Array[segment.Offset + length - 1] != 0)
-                {
-                    throw new FormatException("String is missing terminating null byte.");
-                }
-                return Utf8Helper.DecodeUtf8String(segment.Array, segment.Offset, length - 1, encoding);
-            }
-            else
-            {
-                var bytes = _byteBuffer.ReadBytes(length);
-                if (bytes[length - 1] != 0)
-                {
-                    throw new FormatException("String is missing terminating null byte.");
-                }
-                return Utf8Helper.DecodeUtf8String(bytes, 0, length - 1, encoding);
-            }
-        }
-
-        /// <summary>
         /// When overridden in a derived class, sets the position within the current stream.
         /// </summary>
         /// <param name="offset">A byte offset relative to the <paramref name="origin" /> parameter.</param>
@@ -326,20 +162,6 @@ namespace MongoDB.Bson.IO
         }
 
         /// <summary>
-        /// Skips over a BSON CString leaving the stream positioned just after the terminating null byte.
-        /// </summary>
-        /// <exception cref="System.IO.EndOfStreamException"></exception>
-        public void SkipBsonCString()
-        {
-            var nullPosition = _byteBuffer.FindNullByte();
-            if (nullPosition == -1)
-            {
-                throw new EndOfStreamException();
-            }
-            _byteBuffer.Position = nullPosition + 1;
-        }
-
-        /// <summary>
         /// When overridden in a derived class, writes a sequence of bytes to the current stream and advances the current position within this stream by the number of bytes written.
         /// </summary>
         /// <param name="buffer">An array of bytes. This method copies <paramref name="count" /> bytes from <paramref name="buffer" /> to the current stream.</param>
@@ -348,6 +170,203 @@ namespace MongoDB.Bson.IO
         public override void Write(byte[] buffer, int offset, int count)
         {
             _byteBuffer.WriteBytes(buffer, offset, count);
+        }
+
+        // protected methods
+        /// <summary>
+        /// Releases the unmanaged resources used by the <see cref="T:System.IO.Stream" /> and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (_ownsByteBuffer)
+                {
+                    _byteBuffer.Dispose();
+                }
+                _disposed = true;
+            }
+            base.Dispose(disposing);
+        }
+
+        // explicit interface implementations
+        /// <summary>
+        /// Reads a BSON CString from the stream.
+        /// </summary>
+        /// <returns>
+        /// A string.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">encoding</exception>
+        /// <exception cref="System.FormatException">CString is missing terminating null byte.</exception>
+        string IBsonStream.ReadBsonCString()
+        {
+            var nullPosition = _byteBuffer.FindNullByte();
+            if (nullPosition == -1)
+            {
+                throw new FormatException("CString is missing terminating null byte.");
+            }
+
+            var length = nullPosition - _byteBuffer.Position + 1; // read null byte also
+            var segment = _byteBuffer.ReadBackingBytes(length);
+            if (segment.Count >= length)
+            {
+                return Utf8Helper.DecodeUtf8String(segment.Array, segment.Offset, length - 1, Utf8Helper.StrictUtf8Encoding); // don't decode null byte
+            }
+            else
+            {
+                var bytes = _byteBuffer.ReadBytes(length);
+                return Utf8Helper.DecodeUtf8String(bytes, 0, length - 1, Utf8Helper.StrictUtf8Encoding); // don't decode null byte
+            }
+        }
+
+        /// <summary>
+        /// Reads a BSON double from the stream.
+        /// </summary>
+        /// <returns>
+        /// A double.
+        /// </returns>
+        double IBsonStream.ReadBsonDouble()
+        {
+            var segment = _byteBuffer.ReadBackingBytes(8);
+            if (segment.Count >= 8)
+            {
+                return BitConverter.ToDouble(segment.Array, segment.Offset);
+            }
+            else
+            {
+                var bytes = _byteBuffer.ReadBytes(8);
+                return BitConverter.ToDouble(bytes, 0);
+            }
+        }
+
+        /// <summary>
+        /// Reads a 32-bit BSON integer from the stream.
+        /// </summary>
+        /// <returns>
+        /// An int.
+        /// </returns>
+        int IBsonStream.ReadBsonInt32()
+        {
+            var segment = _byteBuffer.ReadBackingBytes(4);
+            if (segment.Count >= 4)
+            {
+                var bytes = segment.Array;
+                var offset = segment.Offset;
+                return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24);
+            }
+            else
+            {
+                var bytes = _byteBuffer.ReadBytes(4);
+                return bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
+            }
+        }
+
+        /// <summary>
+        /// Reads a 64-bit BSON integer from the stream.
+        /// </summary>
+        /// <returns>
+        /// A long.
+        /// </returns>
+        long IBsonStream.ReadBsonInt64()
+        {
+            var segment = _byteBuffer.ReadBackingBytes(8);
+            if (segment.Count >= 8)
+            {
+                var bytes = segment.Array;
+                var offset = segment.Offset;
+                var lo = (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24));
+                var hi = (uint)(bytes[offset + 4] | (bytes[offset + 5] << 8) | (bytes[offset + 6] << 16) | (bytes[offset + 7] << 24));
+                return (long)(((ulong)hi << 32) | (ulong)lo);
+            }
+            else
+            {
+                var bytes = _byteBuffer.ReadBytes(8);
+                var lo = (uint)(bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24));
+                var hi = (uint)(bytes[4] | (bytes[5] << 8) | (bytes[6] << 16) | (bytes[7] << 24));
+                return (long)(((ulong)hi << 32) | (ulong)lo);
+            }
+        }
+
+        /// <summary>
+        /// Reads a BSON ObjectId from the stream.
+        /// </summary>
+        /// <returns>
+        /// An ObjectId.
+        /// </returns>
+        ObjectId IBsonStream.ReadBsonObjectId()
+        {
+            var segment = _byteBuffer.ReadBackingBytes(12);
+            if (segment.Count >= 12)
+            {
+                return new ObjectId(segment.Array, segment.Offset);
+            }
+            else
+            {
+                var bytes = _byteBuffer.ReadBytes(12);
+                return new ObjectId(bytes);
+            }
+        }
+
+        /// <summary>
+        /// Reads a BSON string from the stream.
+        /// </summary>
+        /// <param name="encoding">The encoding.</param>
+        /// <returns>
+        /// A string.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">encoding</exception>
+        /// <exception cref="System.FormatException">
+        /// String is missing terminating null byte.
+        /// or
+        /// String is missing terminating null byte.
+        /// </exception>
+        string IBsonStream.ReadBsonString(UTF8Encoding encoding)
+        {
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
+            var length = ((IBsonStream)this).ReadBsonInt32();
+            if (length <= 0)
+            {
+                var message = string.Format("Invalid string length: {0}.", length);
+                throw new FormatException(message);
+            }
+
+            var segment = _byteBuffer.ReadBackingBytes(length);
+            if (segment.Count >= length)
+            {
+                if (segment.Array[segment.Offset + length - 1] != 0)
+                {
+                    throw new FormatException("String is missing terminating null byte.");
+                }
+                return Utf8Helper.DecodeUtf8String(segment.Array, segment.Offset, length - 1, encoding);
+            }
+            else
+            {
+                var bytes = _byteBuffer.ReadBytes(length);
+                if (bytes[length - 1] != 0)
+                {
+                    throw new FormatException("String is missing terminating null byte.");
+                }
+                return Utf8Helper.DecodeUtf8String(bytes, 0, length - 1, encoding);
+            }
+        }
+
+        /// <summary>
+        /// Skips over a BSON CString leaving the stream positioned just after the terminating null byte.
+        /// </summary>
+        /// <exception cref="System.IO.EndOfStreamException"></exception>
+        void IBsonStream.SkipBsonCString()
+        {
+            var nullPosition = _byteBuffer.FindNullByte();
+            if (nullPosition == -1)
+            {
+                throw new EndOfStreamException();
+            }
+            _byteBuffer.Position = nullPosition + 1;
         }
 
         /// <summary>
@@ -359,7 +378,7 @@ namespace MongoDB.Bson.IO
         /// or
         /// UTF8 representation of a CString cannot contain null bytes.
         /// </exception>
-        public void WriteBsonCString(string value)
+        void IBsonStream.WriteBsonCString(string value)
         {
             var maxLength = Utf8Helper.StrictUtf8Encoding.GetMaxByteCount(value.Length) + 1;
             var segment = _byteBuffer.WriteBackingBytes(maxLength);
@@ -390,7 +409,7 @@ namespace MongoDB.Bson.IO
         /// Writes a BSON double to the stream.
         /// </summary>
         /// <param name="value">The value.</param>
-        public void WriteBsonDouble(double value)
+        void IBsonStream.WriteBsonDouble(double value)
         {
             var bytes = BitConverter.GetBytes(value);
 
@@ -417,7 +436,7 @@ namespace MongoDB.Bson.IO
         /// Writes a 32-bit BSON integer to the stream.
         /// </summary>
         /// <param name="value">The value.</param>
-        public void WriteBsonInt32(int value)
+        void IBsonStream.WriteBsonInt32(int value)
         {
             var segment = _byteBuffer.WriteBackingBytes(4);
             if (segment.Count >= 4)
@@ -443,7 +462,7 @@ namespace MongoDB.Bson.IO
         /// Writes a 64-bit BSON integer to the stream.
         /// </summary>
         /// <param name="value">The value.</param>
-        public void WriteBsonInt64(long value)
+        void IBsonStream.WriteBsonInt64(long value)
         {
             var segment = _byteBuffer.WriteBackingBytes(8);
             if (segment.Count >= 8)
@@ -477,7 +496,7 @@ namespace MongoDB.Bson.IO
         /// Writes a BSON ObjectId to the stream.
         /// </summary>
         /// <param name="value">The value.</param>
-        public void WriteBsonObjectId(ObjectId value)
+        void IBsonStream.WriteBsonObjectId(ObjectId value)
         {
 
             var segment = _byteBuffer.WriteBackingBytes(12);
@@ -503,7 +522,7 @@ namespace MongoDB.Bson.IO
         /// or
         /// UTF8 representation of a CString cannot contain null bytes.
         /// </exception>
-        public void WriteBsonString(string value, UTF8Encoding encoding)
+        void IBsonStream.WriteBsonString(string value, UTF8Encoding encoding)
         {
             var maxLength = encoding.GetMaxByteCount(value.Length) + 5;
             var segment = _byteBuffer.WriteBackingBytes(maxLength);
@@ -533,24 +552,6 @@ namespace MongoDB.Bson.IO
                 _byteBuffer.WriteBytes(bytes, 0, bytes.Length);
                 _byteBuffer.WriteByte(0);
             }
-        }
-
-        // protected methods
-        /// <summary>
-        /// Releases the unmanaged resources used by the <see cref="T:System.IO.Stream" /> and optionally releases the managed resources.
-        /// </summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (_ownsByteBuffer)
-                {
-                    _byteBuffer.Dispose();
-                }
-                _disposed = true;
-            }
-            base.Dispose(disposing);
         }
     }
 }

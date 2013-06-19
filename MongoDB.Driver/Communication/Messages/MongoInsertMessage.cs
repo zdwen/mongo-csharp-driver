@@ -79,8 +79,8 @@ namespace MongoDB.Driver.Internal
         // protected methods
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            streamWriter.WriteBsonInt32((int)_flags);
-            streamWriter.WriteBsonCString(_collectionFullName);
+            streamWriter.WriteInt32((int)_flags);
+            streamWriter.WriteCString(_collectionFullName);
             _firstDocumentStartPosition = (int)streamWriter.BaseStream.Position;
             // documents to be added later by calling AddDocument
         }

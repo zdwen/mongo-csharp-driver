@@ -89,6 +89,7 @@ namespace MongoDB.Driver.Core.Connections
         public void Send_should_throw_a_MongoSocketWriteTimeoutException_if_a_timeout_socket_exception_is_encountered()
         {
             var stream = Substitute.For<Stream>();
+            stream.CanWrite.Returns(true);
             stream.WhenForAnyArgs(x => x.Write(null, 0, 0))
                 .Do(c => { throw new SocketException((int)SocketError.TimedOut); });
 

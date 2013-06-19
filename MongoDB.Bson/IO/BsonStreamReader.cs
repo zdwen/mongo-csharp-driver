@@ -77,7 +77,7 @@ namespace MongoDB.Bson.IO
         /// <returns>A bool.</returns>
         /// <exception cref="System.ArgumentNullException">stream</exception>
         /// <exception cref="System.IO.EndOfStreamException"></exception>
-        public bool ReadBsonBoolean()
+        public bool ReadBoolean()
         {
             var b = _stream.ReadByte();
             if (b == -1)
@@ -86,6 +86,29 @@ namespace MongoDB.Bson.IO
             }
 
             return (b != 0);
+        }
+
+        /// <summary>
+        /// Reads a BSON type code from the stream.
+        /// </summary>
+        /// <returns>A BsonType.</returns>
+        /// <exception cref="System.ArgumentNullException">stream</exception>
+        /// <exception cref="System.IO.EndOfStreamException"></exception>
+        /// <exception cref="System.FormatException"></exception>
+        public BsonType ReadBsonType()
+        {
+            var b = ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+            if (!__validBsonTypes[b])
+            {
+                string message = string.Format("Invalid BsonType: {0}.", b);
+                throw new FormatException(message);
+            }
+
+            return (BsonType)b;
         }
 
         /// <summary>
@@ -98,7 +121,7 @@ namespace MongoDB.Bson.IO
         /// encoding
         /// </exception>
         /// <exception cref="System.IO.EndOfStreamException"></exception>
-        public string ReadBsonCString()
+        public string ReadCString()
         {
             if (_bsonStream != null)
             {
@@ -132,7 +155,7 @@ namespace MongoDB.Bson.IO
         /// </summary>
         /// <returns>A double.</returns>
         /// <exception cref="System.ArgumentNullException">stream</exception>
-        public double ReadBsonDouble()
+        public double ReadDouble()
         {
             if (_bsonStream != null)
             {
@@ -150,7 +173,7 @@ namespace MongoDB.Bson.IO
         /// </summary>
         /// <returns>An int.</returns>
         /// <exception cref="System.ArgumentNullException">stream</exception>
-        public int ReadBsonInt32()
+        public int ReadInt32()
         {
             if (_bsonStream != null)
             {
@@ -168,7 +191,7 @@ namespace MongoDB.Bson.IO
         /// </summary>
         /// <returns>A long.</returns>
         /// <exception cref="System.ArgumentNullException">stream</exception>
-        public long ReadBsonInt64()
+        public long ReadInt64()
         {
             if (_bsonStream != null)
             {
@@ -188,7 +211,7 @@ namespace MongoDB.Bson.IO
         /// </summary>
         /// <returns>An ObjectId.</returns>
         /// <exception cref="System.ArgumentNullException">stream</exception>
-        public ObjectId ReadBsonObjectId()
+        public ObjectId ReadObjectId()
         {
             if (_bsonStream != null)
             {
@@ -214,7 +237,7 @@ namespace MongoDB.Bson.IO
         /// <exception cref="System.FormatException">
         /// String is missing null terminator byte.
         /// </exception>
-        public string ReadBsonString(UTF8Encoding encoding)
+        public string ReadString(UTF8Encoding encoding)
         {
             if (encoding == null)
             {
@@ -227,7 +250,7 @@ namespace MongoDB.Bson.IO
             }
             else
             {
-                var length = ReadBsonInt32();
+                var length = ReadInt32();
                 if (length < 1)
                 {
                     var message = string.Format("Invalid string length: {0}.", length);
@@ -242,29 +265,6 @@ namespace MongoDB.Bson.IO
 
                 return Utf8Helper.DecodeUtf8String(bytes, 0, length - 1, encoding); // don't decode the null byte
             }
-        }
-
-        /// <summary>
-        /// Reads a BSON type code from the stream.
-        /// </summary>
-        /// <returns>A BsonType.</returns>
-        /// <exception cref="System.ArgumentNullException">stream</exception>
-        /// <exception cref="System.IO.EndOfStreamException"></exception>
-        /// <exception cref="System.FormatException"></exception>
-        public BsonType ReadBsonType()
-        {
-            var b = ReadByte();
-            if (b == -1)
-            {
-                throw new EndOfStreamException();
-            }
-            if (!__validBsonTypes[b])
-            {
-                string message = string.Format("Invalid BsonType: {0}.", b);
-                throw new FormatException(message);
-            }
-
-            return (BsonType)b;
         }
 
         /// <summary>
@@ -338,7 +338,7 @@ namespace MongoDB.Bson.IO
         /// Skips over a BSON CString positioning the stream to just after the terminating null byte.
         /// </summary>
         /// <exception cref="System.ArgumentNullException">stream</exception>
-        public void SkipBsonCString()
+        public void SkipCString()
         {
             if (_bsonStream != null)
             {
