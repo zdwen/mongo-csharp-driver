@@ -258,10 +258,9 @@ namespace MongoDB.Driver.Internal
                         networkStream.ReadTimeout = readTimeout;
                     }
 
-                    using (var byteBuffer = ByteBufferFactory.LoadFrom(networkStream))
+                    using (var byteBuffer = ByteBufferFactory.LoadLengthPrefixedDataFrom(networkStream))
                     using (var stream = new ByteBufferStream(byteBuffer, ownsByteBuffer: true))
                     {
-                        byteBuffer.MakeReadOnly();
                         var reply = new MongoReplyMessage<TDocument>(readerSettings, serializer);
                         reply.ReadFrom(stream, serializationOptions);
                         return reply;

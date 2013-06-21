@@ -65,7 +65,7 @@ namespace MongoDB.Bson.IO
         /// <param name="stream">The stream.</param>
         /// <returns>A buffer.</returns>
         /// <exception cref="System.ArgumentNullException">stream</exception>
-        public static IByteBuffer LoadFrom(Stream stream)
+        public static IByteBuffer LoadLengthPrefixedDataFrom(Stream stream)
         {
             if (stream == null)
             {
@@ -79,6 +79,7 @@ namespace MongoDB.Bson.IO
             byteBuffer.Length = length;
             byteBuffer.WriteBytes(0, BitConverter.GetBytes(length), 0, 4);
             byteBuffer.LoadFrom(stream, 4, length - 4);
+            byteBuffer.MakeReadOnly();
 
             return byteBuffer;
         }

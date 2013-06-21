@@ -145,7 +145,7 @@ namespace MongoDB.Driver.Core.Protocol
         /// <returns>A ReplyMessage.</returns>
         public static ReplyMessage ReadFrom(Stream stream)
         {
-            var byteBuffer = ByteBufferFactory.LoadFrom(stream);
+            var byteBuffer = ByteBufferFactory.LoadLengthPrefixedDataFrom(stream);
             var byteBufferStream = new ByteBufferStream(byteBuffer, ownsByteBuffer: true);
             var byteBufferStreamReader = new BsonStreamReader(byteBufferStream, Utf8Helper.StrictUtf8Encoding);
 
