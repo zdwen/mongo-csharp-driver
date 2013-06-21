@@ -34,9 +34,10 @@ namespace MongoDB.Bson.IO
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="BsonStreamWriter"/> class.
+        /// Initializes a new instance of the <see cref="BsonStreamWriter" /> class.
         /// </summary>
         /// <param name="stream">The stream.</param>
+        /// <param name="encoding">The encoding.</param>
         /// <exception cref="System.ArgumentNullException">stream</exception>
         public BsonStreamWriter(Stream stream, UTF8Encoding encoding)
         {
