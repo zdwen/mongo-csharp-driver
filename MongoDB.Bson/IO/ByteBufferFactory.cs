@@ -72,7 +72,7 @@ namespace MongoDB.Bson.IO
                 throw new ArgumentNullException("stream");
             }
 
-            var streamReader = new BsonStreamReader(stream);
+            var streamReader = new BsonStreamReader(stream, Utf8Helper.StrictUtf8Encoding);
             var length = streamReader.ReadInt32();
 
             var byteBuffer = Create(BsonChunkPool.Default, length);

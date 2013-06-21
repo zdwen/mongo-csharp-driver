@@ -147,7 +147,7 @@ namespace MongoDB.Driver.Core.Protocol
         {
             var byteBuffer = ByteBufferFactory.LoadFrom(stream);
             var byteBufferStream = new ByteBufferStream(byteBuffer, ownsByteBuffer: true);
-            var byteBufferStreamReader = new BsonStreamReader(byteBufferStream);
+            var byteBufferStreamReader = new BsonStreamReader(byteBufferStream, Utf8Helper.StrictUtf8Encoding);
 
             var messageLength = byteBufferStreamReader.ReadInt32();
             var requestId = byteBufferStreamReader.ReadInt32();

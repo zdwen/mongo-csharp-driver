@@ -22,7 +22,7 @@ namespace MongoDB.Bson.IO
     {
         // private fields
         private BsonBinaryReaderContext _context;
-        private long _position;
+        private int _position;
 
         // constructors
         internal BsonBinaryReaderBookmark(
@@ -30,7 +30,7 @@ namespace MongoDB.Bson.IO
             BsonType currentBsonType,
             string currentName,
             BsonBinaryReaderContext context,
-            long position)
+            int position)
             : base(state, currentBsonType, currentName)
         {
             _context = context.Clone();
@@ -38,7 +38,7 @@ namespace MongoDB.Bson.IO
         }
 
         // internal properties
-        internal long Position
+        internal int Position
         {
             get { return _position; }
         }

@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using MongoDB.Bson;
@@ -38,6 +39,15 @@ namespace MongoDB.Driver.Internal
         internal MongoReplyMessage(BsonBinaryReaderSettings readerSettings, IBsonSerializer serializer)
             : base(MessageOpcode.Reply)
         {
+            if (readerSettings == null)
+            {
+                throw new ArgumentNullException("readerSettings");
+            }
+            if (serializer == null)
+            {
+                throw new ArgumentNullException("serializer");
+            }
+
             _readerSettings = readerSettings;
             _serializer = serializer;
         }
@@ -78,7 +88,7 @@ namespace MongoDB.Driver.Internal
 
             var messageStartPosition = stream.Position;
 
-            var streamReader = new BsonStreamReader(stream);
+            var streamReader = new BsonStreamReader(stream, _readerSettings.Encoding);
             ReadMessageHeaderFrom(streamReader);
             _responseFlags = (ResponseFlags)streamReader.ReadInt32();
             _cursorId = streamReader.ReadInt64();

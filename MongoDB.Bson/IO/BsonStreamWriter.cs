@@ -28,8 +28,9 @@ namespace MongoDB.Bson.IO
     public class BsonStreamWriter
     {
         // private fields
-        private readonly IBsonStream _bsonStream;
         private readonly Stream _stream;
+        private readonly IBsonStream _bsonStream;
+        private readonly UTF8Encoding _encoding;
 
         // constructors
         /// <summary>
@@ -37,15 +38,20 @@ namespace MongoDB.Bson.IO
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <exception cref="System.ArgumentNullException">stream</exception>
-        public BsonStreamWriter(Stream stream)
+        public BsonStreamWriter(Stream stream, UTF8Encoding encoding)
         {
             if (stream == null)
             {
                 throw new ArgumentNullException("stream");
             }
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
 
-            _bsonStream = stream as IBsonStream;
             _stream = stream;
+            _bsonStream = stream as IBsonStream;
+            _encoding = encoding;
         }
 
         // public properties
@@ -58,6 +64,18 @@ namespace MongoDB.Bson.IO
         public Stream BaseStream
         {
             get { return _stream; }
+        }
+
+        /// <summary>
+        /// Gets or sets the position.
+        /// </summary>
+        /// <value>
+        /// The position.
+        /// </value>
+        public long Position
+        {
+            get { return _stream.Position; }
+            set { _stream.Position = value; }
         }
 
         // public methods
@@ -220,30 +238,26 @@ namespace MongoDB.Bson.IO
         /// Writes a BSON string to the stream.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <param name="encoding">The encoding.</param>
+        /// 
         /// <exception cref="System.ArgumentNullException">
         /// stream
         /// or
         /// encoding
         /// </exception>
-        public void WriteString(string value, UTF8Encoding encoding)
+        public void WriteString(string value)
         {
             if (value == null)
             {
                 throw new ArgumentNullException("value");
             }
-            if (encoding == null)
-            {
-                throw new ArgumentNullException("encoding");
-            }
 
             if (_bsonStream != null)
             {
-                _bsonStream.WriteBsonString(value, encoding);
+                _bsonStream.WriteBsonString(value, _encoding);
             }
             else
             {
-                var bytes = encoding.GetBytes(value);
+                var bytes = _encoding.GetBytes(value);
                 WriteInt32(bytes.Length + 1);
                 WriteBytes(bytes);
                 WriteByte(0);

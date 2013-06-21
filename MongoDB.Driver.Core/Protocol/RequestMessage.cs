@@ -83,7 +83,7 @@ namespace MongoDB.Driver.Core.Protocol
         {
             _messageStartPosition = (int)stream.Position;
 
-            var streamWriter = new BsonStreamWriter(stream);
+            var streamWriter = new BsonStreamWriter(stream, Utf8Helper.StrictUtf8Encoding);
             WriteMessageHeaderTo(streamWriter);
             WriteBodyTo(streamWriter);
 
@@ -97,7 +97,7 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="stream">The stream.</param>
         protected void BackpatchMessageLength(Stream stream)
         {
-            var streamWriter = new BsonStreamWriter(stream);
+            var streamWriter = new BsonStreamWriter(stream, Utf8Helper.StrictUtf8Encoding);
             var currentPosition = (int)stream.Position;
             _messageLength = currentPosition - _messageStartPosition;
             stream.Position = _messageStartPosition;

@@ -24,9 +24,6 @@ namespace MongoDB.Bson.IO
     /// </summary>
     public class BsonBinaryReader : BsonReader
     {
-        // private static fields
-        private static readonly UTF8Encoding __strictUTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
         // private fields
         private readonly BsonStreamReader _streamReader;
         private readonly BsonBinaryReaderSettings _settings; // same value as in base class just declared as derived class
@@ -55,7 +52,7 @@ namespace MongoDB.Bson.IO
                 throw new ArgumentException("The stream must be capable of seeking.", "stream");
             }
 
-            _streamReader = new BsonStreamReader(stream);
+            _streamReader = new BsonStreamReader(stream, settings.Encoding);
             _settings = settings; // already frozen by base class
 
             _context = new BsonBinaryReaderContext(null, ContextType.TopLevel, 0, 0);
@@ -81,7 +78,7 @@ namespace MongoDB.Bson.IO
         /// <returns>A bookmark.</returns>
         public override BsonReaderBookmark GetBookmark()
         {
-            return new BsonBinaryReaderBookmark(State, CurrentBsonType, CurrentName, _context, _streamReader.BaseStream.Position);
+            return new BsonBinaryReaderBookmark(State, CurrentBsonType, CurrentName, _context, (int)_streamReader.Position);
         }
 
         /// <summary>
@@ -288,7 +285,7 @@ namespace MongoDB.Bson.IO
                 ThrowInvalidState("ReadEndArray", BsonReaderState.EndOfArray);
             }
 
-            _context = _context.PopContext(_streamReader.BaseStream.Position);
+            _context = _context.PopContext(_streamReader.Position);
             switch (_context.ContextType)
             {
                 case ContextType.Array: State = BsonReaderState.Type; break;
@@ -317,10 +314,10 @@ namespace MongoDB.Bson.IO
                 ThrowInvalidState("ReadEndDocument", BsonReaderState.EndOfDocument);
             }
 
-            _context = _context.PopContext(_streamReader.BaseStream.Position);
+            _context = _context.PopContext(_streamReader.Position);
             if (_context.ContextType == ContextType.JavaScriptWithScope)
             {
-                _context = _context.PopContext(_streamReader.BaseStream.Position); // JavaScriptWithScope
+                _context = _context.PopContext(_streamReader.Position); // JavaScriptWithScope
             }
             switch (_context.ContextType)
             {
@@ -364,7 +361,7 @@ namespace MongoDB.Bson.IO
             if (Disposed) { ThrowObjectDisposedException(); }
             VerifyBsonType("ReadJavaScript", BsonType.JavaScript);
             State = GetNextState();
-            return _streamReader.ReadString(_settings.Encoding);
+            return _streamReader.ReadString();
         }
 
         /// <summary>
@@ -376,10 +373,10 @@ namespace MongoDB.Bson.IO
             if (Disposed) { ThrowObjectDisposedException(); }
             VerifyBsonType("ReadJavaScriptWithScope", BsonType.JavaScriptWithScope);
 
-            var startPosition = _streamReader.BaseStream.Position; // position of size field
+            var startPosition = _streamReader.Position; // position of size field
             var size = ReadSize();
             _context = new BsonBinaryReaderContext(_context, ContextType.JavaScriptWithScope, startPosition, size);
-            var code = _streamReader.ReadString(_settings.Encoding);
+            var code = _streamReader.ReadString();
 
             State = BsonReaderState.ScopeDocument;
             return code;
@@ -466,7 +463,7 @@ namespace MongoDB.Bson.IO
 
             if (_context.ContextType == ContextType.JavaScriptWithScope)
             {
-                _context = _context.PopContext(_streamReader.BaseStream.Position); // JavaScriptWithScope
+                _context = _context.PopContext(_streamReader.Position); // JavaScriptWithScope
             }
             switch (_context.ContextType)
             {
@@ -501,7 +498,7 @@ namespace MongoDB.Bson.IO
             if (Disposed) { ThrowObjectDisposedException(); }
             VerifyBsonType("ReadStartArray", BsonType.Array);
 
-            var startPosition = _streamReader.BaseStream.Position; // position of size field
+            var startPosition = _streamReader.Position; // position of size field
             var size = ReadSize();
             _context = new BsonBinaryReaderContext(_context, ContextType.Array, startPosition, size);
             State = BsonReaderState.Type;
@@ -516,7 +513,7 @@ namespace MongoDB.Bson.IO
             VerifyBsonType("ReadStartDocument", BsonType.Document);
 
             var contextType = (State == BsonReaderState.ScopeDocument) ? ContextType.ScopeDocument : ContextType.Document;
-            var startPosition = _streamReader.BaseStream.Position; // position of size field
+            var startPosition = _streamReader.Position; // position of size field
             var size = ReadSize();
             _context = new BsonBinaryReaderContext(_context, contextType, startPosition, size);
             State = BsonReaderState.Type;
@@ -531,7 +528,7 @@ namespace MongoDB.Bson.IO
             if (Disposed) { ThrowObjectDisposedException(); }
             VerifyBsonType("ReadString", BsonType.String);
             State = GetNextState();
-            return _streamReader.ReadString(_settings.Encoding);
+            return _streamReader.ReadString();
         }
 
         /// <summary>
@@ -543,7 +540,7 @@ namespace MongoDB.Bson.IO
             if (Disposed) { ThrowObjectDisposedException(); }
             VerifyBsonType("ReadSymbol", BsonType.Symbol);
             State = GetNextState();
-            return _streamReader.ReadString(_settings.Encoding);
+            return _streamReader.ReadString();
         }
 
         /// <summary>
@@ -579,7 +576,7 @@ namespace MongoDB.Bson.IO
             CurrentBsonType = binaryReaderBookmark.CurrentBsonType;
             CurrentName = binaryReaderBookmark.CurrentName;
             _context = binaryReaderBookmark.CloneContext();
-            _streamReader.BaseStream.Position = binaryReaderBookmark.Position;
+            _streamReader.Position = binaryReaderBookmark.Position;
         }
 
         /// <summary>
@@ -684,7 +681,7 @@ namespace MongoDB.Bson.IO
                 return _streamReader.ReadCString();
             }
 
-            var savedPosition = _streamReader.BaseStream.Position;
+            var savedPosition = _streamReader.Position;
             var bsonTrieNode = bsonTrie.Root;
             while (true)
             {
@@ -703,7 +700,7 @@ namespace MongoDB.Bson.IO
                     }
                     else
                     {
-                        _streamReader.BaseStream.Position = savedPosition;
+                        _streamReader.Position = savedPosition;
                         return _streamReader.ReadCString();
                     }
                 }
@@ -711,7 +708,7 @@ namespace MongoDB.Bson.IO
                 bsonTrieNode = bsonTrieNode.GetChild((byte)keyByte);
                 if (bsonTrieNode == null)
                 {
-                    _streamReader.BaseStream.Position = savedPosition;
+                    _streamReader.Position = savedPosition;
                     return _streamReader.ReadCString();
                 }
             }
@@ -735,19 +732,19 @@ namespace MongoDB.Bson.IO
 
         private IByteBuffer ReadSlice()
         {
-            var position = (int)_streamReader.BaseStream.Position;
+            var position = (int)_streamReader.Position;
             var length = ReadSize();
 
             var sliceableStream = _streamReader.BaseStream as ISliceableStream;
             if (sliceableStream != null && !_streamReader.BaseStream.CanWrite)
             {
-                _streamReader.BaseStream.Position = position + length;
+                _streamReader.Position = position + length;
                 return sliceableStream.GetSlice(position, length);
             }
             else
             {
                 var bytes = new byte[length];
-                _streamReader.BaseStream.Position = position;
+                _streamReader.Position = position;
                 _streamReader.ReadBytes(bytes, 0, length);
                 return new ByteArrayBuffer(bytes, 0, length, isReadOnly: true);
             }

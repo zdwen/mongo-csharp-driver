@@ -87,7 +87,7 @@ namespace MongoDB.Driver.Core.Protocol
         /// <returns>The last document that was added to the message (in already serialized form).</returns>
         public byte[] RemoveLastDocument(Stream stream)
         {
-            var streamReader = new BsonStreamReader(stream);
+            var streamReader = new BsonStreamReader(stream, _writerSettings.Encoding);
             var lastDocumentLength = (int)(stream.Position - _lastDocumentStartPosition);
 
             stream.Position = _lastDocumentStartPosition;

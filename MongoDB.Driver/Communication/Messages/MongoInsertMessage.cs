@@ -58,7 +58,7 @@ namespace MongoDB.Driver.Internal
 
         internal byte[] RemoveLastDocument(Stream stream)
         {
-            var streamReader = new BsonStreamReader(stream);
+            var streamReader = new BsonStreamReader(stream, WriterSettings.Encoding);
             var lastDocumentLength = (int)(stream.Position - _lastDocumentStartPosition);
             stream.Position = _lastDocumentStartPosition;
             var lastDocument = streamReader.ReadBytes(lastDocumentLength);
@@ -81,7 +81,7 @@ namespace MongoDB.Driver.Internal
         {
             streamWriter.WriteInt32((int)_flags);
             streamWriter.WriteCString(_collectionFullName);
-            _firstDocumentStartPosition = (int)streamWriter.BaseStream.Position;
+            _firstDocumentStartPosition = (int)streamWriter.Position;
             // documents to be added later by calling AddDocument
         }
     }

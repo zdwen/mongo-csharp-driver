@@ -24,7 +24,7 @@ namespace MongoDB.Driver.Internal
 
         // constructors
         internal MongoKillCursorsMessage(params long[] cursorIds)
-            : base(MessageOpcode.KillCursors, null)
+            : base(MessageOpcode.KillCursors, BsonBinaryWriterSettings.Defaults)
         {
             _cursorIds = cursorIds;
         }

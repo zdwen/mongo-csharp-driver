@@ -29,8 +29,9 @@ namespace MongoDB.Bson.IO
         private static readonly bool[] __validBsonTypes = new bool[256];
 
         // private fields
-        private readonly IBsonStream _bsonStream;
         private readonly Stream _stream;
+        private readonly IBsonStream _bsonStream;
+        private readonly UTF8Encoding _encoding;
         private readonly byte[] _buffer = new byte[32];
 
         // static constructor
@@ -48,15 +49,20 @@ namespace MongoDB.Bson.IO
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <exception cref="System.ArgumentNullException">stream</exception>
-        public BsonStreamReader(Stream stream)
+        public BsonStreamReader(Stream stream, UTF8Encoding encoding)
         {
             if (stream == null)
             {
                 throw new ArgumentNullException("stream");
             }
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
 
-            _bsonStream = stream as IBsonStream;
             _stream = stream;
+            _bsonStream = stream as IBsonStream;
+            _encoding = encoding;
         }
 
         // public properties
@@ -69,6 +75,18 @@ namespace MongoDB.Bson.IO
         public Stream BaseStream
         {
             get { return _stream; }
+        }
+
+        /// <summary>
+        /// Gets or sets the position.
+        /// </summary>
+        /// <value>
+        /// The position.
+        /// </value>
+        public long Position
+        {
+            get { return _stream.Position; }
+            set { _stream.Position = value; }
         }
 
         // public methods
@@ -228,7 +246,7 @@ namespace MongoDB.Bson.IO
         /// <summary>
         /// Reads a BSON string from the stream.
         /// </summary>
-        /// <param name="encoding">The encoding.</param>
+        /// 
         /// <returns>A string.</returns>
         /// <exception cref="System.ArgumentNullException">
         /// stream
@@ -238,16 +256,11 @@ namespace MongoDB.Bson.IO
         /// <exception cref="System.FormatException">
         /// String is missing null terminator byte.
         /// </exception>
-        public string ReadString(UTF8Encoding encoding)
+        public string ReadString()
         {
-            if (encoding == null)
-            {
-                throw new ArgumentNullException("encoding");
-            }
-
             if (_bsonStream != null)
             {
-                return _bsonStream.ReadBsonString(encoding);
+                return _bsonStream.ReadBsonString(_encoding);
             }
             else
             {
@@ -264,7 +277,7 @@ namespace MongoDB.Bson.IO
                     throw new FormatException("String is missing terminating null byte.");
                 }
 
-                return Utf8Helper.DecodeUtf8String(bytes, 0, length - 1, encoding); // don't decode the null byte
+                return Utf8Helper.DecodeUtf8String(bytes, 0, length - 1, _encoding); // don't decode the null byte
             }
         }
 

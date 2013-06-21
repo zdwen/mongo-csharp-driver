@@ -35,6 +35,11 @@ namespace MongoDB.Driver.Internal
             BsonBinaryWriterSettings writerSettings)
             : base(opcode)
         {
+            if (writerSettings == null)
+            {
+                throw new ArgumentNullException("writerSettings");
+            }
+
             _writerSettings = writerSettings;
             RequestId = Interlocked.Increment(ref __lastRequestId);
         }
@@ -53,7 +58,7 @@ namespace MongoDB.Driver.Internal
             // therefore we need the if statement to ignore subsequent calls from SendMessage
             if (_messageStartPosition == -1)
             {
-                var streamWriter = new BsonStreamWriter(stream);
+                var streamWriter = new BsonStreamWriter(stream, WriterSettings.Encoding);
                 _messageStartPosition = (int)stream.Position;
                 WriteMessageHeaderTo(streamWriter);
                 WriteBodyTo(streamWriter);
@@ -73,7 +78,7 @@ namespace MongoDB.Driver.Internal
         // private methods
         private void Backpatch(Stream stream, int position, int value)
         {
-            var streamWriter = new BsonStreamWriter(stream);
+            var streamWriter = new BsonStreamWriter(stream, Utf8Helper.StrictUtf8Encoding);
             var currentPosition = stream.Position;
             stream.Position = position;
             streamWriter.WriteInt32(value);

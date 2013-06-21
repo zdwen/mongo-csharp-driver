@@ -59,7 +59,7 @@ namespace MongoDB.Driver.Core
         public static BsonDocument ReadQueryMessage(BufferedRequestMessage request)
         {
             var stream = request.Stream;
-            var streamReader = new BsonStreamReader(stream);
+            var streamReader = new BsonStreamReader(stream, Utf8Helper.StrictUtf8Encoding);
 
             // assuming the query message started at buffer position 0...
             var currentPosition = stream.Position;

@@ -550,7 +550,7 @@ namespace MongoDB.Bson.IO
             using (var memoryStream = new MemoryStream(documentLength))
             {
                 // wrap the array in a fake document so we can deserialize it
-                var streamWriter = new BsonStreamWriter(memoryStream);
+                var streamWriter = new BsonStreamWriter(memoryStream, Utf8Helper.StrictUtf8Encoding);
                 streamWriter.WriteInt32(documentLength);
                 streamWriter.WriteBsonType(BsonType.Array);
                 streamWriter.WriteByte((byte)'x');
@@ -591,16 +591,11 @@ namespace MongoDB.Bson.IO
             // overridden in BsonBinaryWriter to write the raw bytes to the stream
             // for all other streams, deserialize the raw bytes and serialize the resulting document instead
 
-            using (var memoryStream = new MemoryStream(slice.Length))
+            using (var stream = new ByteBufferStream(slice, ownsByteBuffer: false))
+            using (var bsonReader = new BsonBinaryReader(stream, BsonBinaryReaderSettings.Defaults))
             {
-                slice.WriteTo(memoryStream);
-
-                memoryStream.Position = 0;
-                using (var bsonReader = new BsonBinaryReader(memoryStream, BsonBinaryReaderSettings.Defaults))
-                {
-                    var document = BsonSerializer.Deserialize<BsonDocument>(bsonReader);
-                    BsonDocumentSerializer.Instance.Serialize(this, typeof(BsonDocument), document, null);
-                }
+                var document = BsonSerializer.Deserialize<BsonDocument>(bsonReader);
+                BsonDocumentSerializer.Instance.Serialize(this, typeof(BsonDocument), document, null);
             }
         }
 

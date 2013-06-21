@@ -24,9 +24,6 @@ namespace MongoDB.Bson.IO
     /// </summary>
     public class BsonBinaryWriter : BsonWriter
     {
-        // private static fields
-        private static readonly UTF8Encoding __strictUTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
         // private fields
         private BsonStreamWriter _streamWriter;
         private BsonBinaryWriterSettings _settings; // same value as in base class just declared as derived class
@@ -55,7 +52,7 @@ namespace MongoDB.Bson.IO
                 throw new ArgumentException("The stream must be capable of seeking.", "stream");
             }
 
-            _streamWriter = new BsonStreamWriter(stream);
+            _streamWriter = new BsonStreamWriter(stream, settings.Encoding);
             _settings = settings; // already frozen by base class
 
             _context = null;
@@ -74,10 +71,6 @@ namespace MongoDB.Bson.IO
                 if (State == BsonWriterState.Done)
                 {
                     Flush();
-                }
-                if (_settings.CloseOutput)
-                {
-                    _streamWriter.BaseStream.Close();
                 }
                 _context = null;
                 State = BsonWriterState.Closed;
@@ -356,7 +349,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.JavaScript);
             WriteNameHelper();
-            _streamWriter.WriteString(code, _settings.Encoding);
+            _streamWriter.WriteString(code);
 
             State = GetNextState();
         }
@@ -375,9 +368,9 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.JavaScriptWithScope);
             WriteNameHelper();
-            _context = new BsonBinaryWriterContext(_context, ContextType.JavaScriptWithScope, _streamWriter.BaseStream.Position);
+            _context = new BsonBinaryWriterContext(_context, ContextType.JavaScriptWithScope, (int)_streamWriter.Position);
             _streamWriter.WriteInt32(0); // reserve space for size of JavaScript with scope value
-            _streamWriter.WriteString(code, _settings.Encoding);
+            _streamWriter.WriteString(code);
 
             State = BsonWriterState.ScopeDocument;
         }
@@ -539,7 +532,7 @@ namespace MongoDB.Bson.IO
             base.WriteStartArray();
             _streamWriter.WriteBsonType(BsonType.Array);
             WriteNameHelper();
-            _context = new BsonBinaryWriterContext(_context, ContextType.Array, _streamWriter.BaseStream.Position);
+            _context = new BsonBinaryWriterContext(_context, ContextType.Array, (int)_streamWriter.Position);
             _streamWriter.WriteInt32(0); // reserve space for size
 
             State = BsonWriterState.Value;
@@ -563,7 +556,7 @@ namespace MongoDB.Bson.IO
                 WriteNameHelper();
             }
             var contextType = (State == BsonWriterState.ScopeDocument) ? ContextType.ScopeDocument : ContextType.Document;
-            _context = new BsonBinaryWriterContext(_context, ContextType.Document, _streamWriter.BaseStream.Position);
+            _context = new BsonBinaryWriterContext(_context, ContextType.Document, (int)_streamWriter.Position);
             _streamWriter.WriteInt32(0); // reserve space for size
 
             State = BsonWriterState.Name;
@@ -583,7 +576,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.String);
             WriteNameHelper();
-            _streamWriter.WriteString(value, _settings.Encoding);
+            _streamWriter.WriteString(value);
 
             State = GetNextState();
         }
@@ -602,7 +595,7 @@ namespace MongoDB.Bson.IO
 
             _streamWriter.WriteBsonType(BsonType.Symbol);
             WriteNameHelper();
-            _streamWriter.WriteString(value, _settings.Encoding);
+            _streamWriter.WriteString(value);
 
             State = GetNextState();
         }
@@ -650,28 +643,34 @@ namespace MongoDB.Bson.IO
         /// <param name="disposing">True if called from Dispose.</param>
         protected override void Dispose(bool disposing)
         {
-            // don't Close or Dispose the _stream because we don't own it
+            if (disposing)
+            {
+                if (_settings.CloseOutput)
+                {
+                    try
+                    {
+                        Close();
+                    }
+                    catch { } // ignore exceptions
+                }
+            }
             base.Dispose(disposing);
         }
 
         // private methods
-        private void Backpatch(long backpatchPosition, int value)
-        {
-            var currentPosition = _streamWriter.BaseStream.Position;
-            _streamWriter.BaseStream.Position = backpatchPosition;
-            _streamWriter.WriteInt32(value);
-            _streamWriter.BaseStream.Position = currentPosition;
-        }
-
         private void BackpatchSize()
         {
-            int size = (int)(_streamWriter.BaseStream.Position - _context.StartPosition);
+            int size = (int)(_streamWriter.Position - _context.StartPosition);
             if (size > _settings.MaxDocumentSize)
             {
                 var message = string.Format("Size {0} is larger than MaxDocumentSize {1}.", size, _settings.MaxDocumentSize);
                 throw new FileFormatException(message);
             }
-            Backpatch(_context.StartPosition, size);
+
+            var currentPosition = _streamWriter.Position;
+            _streamWriter.Position = _context.StartPosition;
+            _streamWriter.WriteInt32(size);
+            _streamWriter.Position = currentPosition;
         }
 
         private BsonWriterState GetNextState()

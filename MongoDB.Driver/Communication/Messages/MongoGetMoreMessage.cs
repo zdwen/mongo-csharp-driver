@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Internal
 
         // constructors
         internal MongoGetMoreMessage(string collectionFullName, int numberToReturn, long cursorId)
-            : base(MessageOpcode.GetMore, null)
+            : base(MessageOpcode.GetMore, BsonBinaryWriterSettings.Defaults)
         {
             _collectionFullName = collectionFullName;
             _numberToReturn = numberToReturn;
