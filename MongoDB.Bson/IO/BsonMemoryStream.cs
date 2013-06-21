@@ -12,7 +12,7 @@ namespace MongoDB.Bson.IO
     /// Represents a Stream backed by memory. Similar to MemoryStream but has a configurable buffer
     /// provider and also implements the IBsonStream interface for higher performance BSON I/O.
     /// </summary>
-    public class BsonMemoryStream : Stream, IBsonStream
+    public class BsonMemoryStream : Stream, IBsonStream, ISliceableStream
     {
         // private fields
         private byte[] _buffer;
@@ -314,6 +314,41 @@ namespace MongoDB.Bson.IO
                 throw new UnauthorizedAccessException("Buffer is not publicly visible.");
             }
             return _buffer;
+        }
+
+        /// <summary>
+        /// Gets the slice.
+        /// </summary>
+        /// <param name="position">The position.</param>
+        /// <param name="length">The length.</param>
+        /// <returns></returns>
+        /// <exception cref="System.ArgumentOutOfRangeException">position;Position is outside of the buffer.</exception>
+        /// <exception cref="System.ArgumentException">
+        /// Length is negative.;length
+        /// or
+        /// Length extends beyond the end of the buffer.;length
+        /// </exception>
+        /// <exception cref="System.NotSupportedException">GetSlice is not supported for writeable streams.</exception>
+        public IByteBuffer GetSlice(int position, int length)
+        {
+            if (position < 0 || position > _length)
+            {
+                throw new ArgumentOutOfRangeException("position", "Position is outside of the buffer.");
+            }
+            if (length < 0)
+            {
+                throw new ArgumentException("Length is negative.", "length");
+            }
+            if (position + length > _length)
+            {
+                throw new ArgumentException("Length extends beyond the end of the buffer.", "length");
+            }
+            if (_writeable)
+            {
+                throw new NotSupportedException("GetSlice is not supported for writeable streams.");
+            }
+
+            return new ByteArrayBuffer(_buffer, _origin + position, length, isReadOnly: true);
         }
 
         /// <summary>

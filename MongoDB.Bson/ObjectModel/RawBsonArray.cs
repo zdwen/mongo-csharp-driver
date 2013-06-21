@@ -79,7 +79,7 @@ namespace MongoDB.Bson
             get
             {
                 ThrowIfDisposed();
-                using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+                using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
                 using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
                     var count = 0;
@@ -107,7 +107,7 @@ namespace MongoDB.Bson
             get
             {
                 ThrowIfDisposed();
-                using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+                using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
                 using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
                     bsonReader.ReadStartDocument();
@@ -140,7 +140,7 @@ namespace MongoDB.Bson
             get
             {
                 ThrowIfDisposed();
-                using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+                using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
                 using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
                     bsonReader.ReadStartDocument();
@@ -170,7 +170,7 @@ namespace MongoDB.Bson
                 }
                 ThrowIfDisposed();
 
-                using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+                using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
                 using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
                     bsonReader.ReadStartDocument();
@@ -323,7 +323,7 @@ namespace MongoDB.Bson
         public override bool Contains(BsonValue value)
         {
             ThrowIfDisposed();
-            using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+            using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
                 bsonReader.ReadStartDocument();
@@ -349,7 +349,7 @@ namespace MongoDB.Bson
         public override void CopyTo(BsonValue[] array, int arrayIndex)
         {
             ThrowIfDisposed();
-            using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+            using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
                 bsonReader.ReadStartDocument();
@@ -371,7 +371,7 @@ namespace MongoDB.Bson
         public override void CopyTo(object[] array, int arrayIndex)
         {
             ThrowIfDisposed();
-            using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+            using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
                 bsonReader.ReadStartDocument();
@@ -410,7 +410,7 @@ namespace MongoDB.Bson
         public override IEnumerator<BsonValue> GetEnumerator()
         {
             ThrowIfDisposed();
-            using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+            using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
                 bsonReader.ReadStartDocument();
@@ -454,7 +454,7 @@ namespace MongoDB.Bson
         public override int IndexOf(BsonValue value, int index, int count)
         {
             ThrowIfDisposed();
-            using (var stream = new ByteBufferStream(CloneSlice(), ownsByteBuffer: true))
+            using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
                 bsonReader.ReadStartDocument();

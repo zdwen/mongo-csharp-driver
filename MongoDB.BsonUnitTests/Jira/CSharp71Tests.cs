@@ -379,6 +379,7 @@ namespace MongoDB.BsonUnitTests.Jira
                     memoryStream.CopyTo(byteBufferStream);
                 }
                 byteBufferStream.SetLength(byteBufferStream.Length - 20);
+                byteBufferStream.Position = 0;
 
                 using (var bsonReader = BsonReader.Create(byteBufferStream))
                 {

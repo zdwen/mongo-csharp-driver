@@ -145,17 +145,11 @@ namespace MongoDB.Driver.Core.Protocol
         /// <returns>A ReplyMessage.</returns>
         public static ReplyMessage ReadFrom(Stream stream)
         {
-            var streamReader = new BsonStreamReader(stream);
-            var messageLength = streamReader.ReadInt32();
-
-            var byteBuffer = ByteBufferFactory.Create(BsonChunkPool.Default, messageLength);
+            var byteBuffer = ByteBufferFactory.LoadFrom(stream);
             var byteBufferStream = new ByteBufferStream(byteBuffer, ownsByteBuffer: true);
-            var byteBufferStreamWriter = new BsonStreamWriter(byteBufferStream);
-            byteBufferStreamWriter.WriteInt32(messageLength);
-            byteBufferStream.LoadFrom(stream, messageLength - 4); // 4 is the size of the message length
-            byteBufferStream.Position = 4; // positioned just after the message length field
-
             var byteBufferStreamReader = new BsonStreamReader(byteBufferStream);
+
+            var messageLength = byteBufferStreamReader.ReadInt32();
             var requestId = byteBufferStreamReader.ReadInt32();
             var responseTo = byteBufferStreamReader.ReadInt32();
             var opCode = (OpCode)byteBufferStreamReader.ReadInt32();

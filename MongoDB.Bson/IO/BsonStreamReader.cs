@@ -31,6 +31,7 @@ namespace MongoDB.Bson.IO
         // private fields
         private readonly IBsonStream _bsonStream;
         private readonly Stream _stream;
+        private readonly byte[] _buffer = new byte[32];
 
         // static constructor
         static BsonStreamReader()
@@ -85,7 +86,7 @@ namespace MongoDB.Bson.IO
                 throw new EndOfStreamException();
             }
 
-            return (b != 0);
+            return b != 0;
         }
 
         /// <summary>
@@ -129,7 +130,7 @@ namespace MongoDB.Bson.IO
             }
             else
             {
-                var bytes = new List<byte>();
+                var memoryStream = new MemoryStream(32); // override default capacity of zero
                 while (true)
                 {
                     var b = _stream.ReadByte();
@@ -143,10 +144,10 @@ namespace MongoDB.Bson.IO
                     }
                     else
                     {
-                        bytes.Add((byte)b);
+                        memoryStream.WriteByte((byte)b);
                     }
                 }
-                return Utf8Helper.DecodeUtf8String(bytes.ToArray(), 0, bytes.Count, Utf8Helper.StrictUtf8Encoding);
+                return Utf8Helper.DecodeUtf8String(memoryStream.GetBuffer(), 0, (int)memoryStream.Length, Utf8Helper.StrictUtf8Encoding);
             }
         }
 
@@ -163,8 +164,8 @@ namespace MongoDB.Bson.IO
             }
             else
             {
-                var bytes = ReadBytes(8);
-                return BitConverter.ToDouble(bytes, 0);
+                FillBuffer(8);
+                return BitConverter.ToDouble(_buffer, 0);
             }
         }
 
@@ -181,8 +182,8 @@ namespace MongoDB.Bson.IO
             }
             else
             {
-                var bytes = ReadBytes(4);
-                return bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
+                FillBuffer(4);
+                return _buffer[0] | (_buffer[1] << 8) | (_buffer[2] << 16) | (_buffer[3] << 24);
             }
         }
 
@@ -199,9 +200,9 @@ namespace MongoDB.Bson.IO
             }
             else
             {
-                var bytes = ReadBytes(8);
-                var lo = (uint)(bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24));
-                var hi = (uint)(bytes[4] | (bytes[5] << 8) | (bytes[6] << 16) | (bytes[7] << 24));
+                FillBuffer(8);
+                var lo = (uint)(_buffer[0] | (_buffer[1] << 8) | (_buffer[2] << 16) | (_buffer[3] << 24));
+                var hi = (uint)(_buffer[4] | (_buffer[5] << 8) | (_buffer[6] << 16) | (_buffer[7] << 24));
                 return (long)(((ulong)hi << 32) | (ulong)lo);
             }
         }
@@ -219,8 +220,8 @@ namespace MongoDB.Bson.IO
             }
             else
             {
-                var bytes = ReadBytes(12);
-                return new ObjectId(bytes);
+                FillBuffer(12);
+                return new ObjectId(_buffer, 0);
             }
         }
 
@@ -294,7 +295,7 @@ namespace MongoDB.Bson.IO
 
             while (count > 0)
             {
-                var read = _stream.Read(buffer, offset, count - offset);
+                var read = _stream.Read(buffer, offset, count);
                 if (read == 0)
                 {
                     throw new EndOfStreamException();
@@ -358,6 +359,34 @@ namespace MongoDB.Bson.IO
                         break;
                     }
                 }
+            }
+        }
+
+        // private methods
+        private void FillBuffer(int count)
+        {
+            if (count == 1)
+            {
+                var b = _stream.ReadByte();
+                if (b == -1)
+                {
+                    throw new EndOfStreamException();
+                }
+                _buffer[0] = (byte)b;
+            }
+            else
+            {
+                var offset = 0;
+                do
+                {
+                    var read = _stream.Read(_buffer, offset, count - offset);
+                    if (read == 0)
+                    {
+                        throw new EndOfStreamException();
+                    }
+                    offset += read;
+                }
+                while (offset < count);
             }
         }
     }

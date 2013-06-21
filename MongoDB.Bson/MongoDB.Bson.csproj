@@ -127,6 +127,7 @@
     <Compile Include="IO\ByteBufferStream.cs" />
     <Compile Include="IO\IBsonStream.cs" />
     <Compile Include="IO\IByteBuffer.cs" />
+    <Compile Include="IO\ISliceableStream.cs" />
     <Compile Include="IO\MultiChunkBuffer.cs" />
     <Compile Include="IO\SingleChunkBuffer.cs" />
     <Compile Include="IO\Utf8Helper.cs" />

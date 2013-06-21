@@ -438,11 +438,7 @@ namespace MongoDB.Bson.IO
             if (Disposed) { ThrowObjectDisposedException(); }
             VerifyBsonType("ReadRawBsonArray", BsonType.Array);
 
-            var length = ReadSize();
-            var bytes = new byte[length];
-            _streamReader.BaseStream.Position -= 4;
-            _streamReader.ReadBytes(bytes, 0, length);
-            var slice = new ByteArrayBuffer(bytes, 0, length, true).GetSlice(0, length);
+            var slice = ReadSlice();
 
             switch (_context.ContextType)
             {
@@ -466,11 +462,7 @@ namespace MongoDB.Bson.IO
             if (Disposed) { ThrowObjectDisposedException(); }
             VerifyBsonType("ReadRawBsonDocument", BsonType.Document);
 
-            var length = ReadSize();
-            var bytes = new byte[length];
-            _streamReader.BaseStream.Position -= 4;
-            _streamReader.ReadBytes(bytes, 0, length);
-            var slice = new ByteArrayBuffer(bytes, 0, length, true).GetSlice(0, length);
+            var slice = ReadSlice();
 
             if (_context.ContextType == ContextType.JavaScriptWithScope)
             {
@@ -739,6 +731,26 @@ namespace MongoDB.Bson.IO
                 throw new FileFormatException(message);
             }
             return size;
+        }
+
+        private IByteBuffer ReadSlice()
+        {
+            var position = (int)_streamReader.BaseStream.Position;
+            var length = ReadSize();
+
+            var sliceableStream = _streamReader.BaseStream as ISliceableStream;
+            if (sliceableStream != null && !_streamReader.BaseStream.CanWrite)
+            {
+                _streamReader.BaseStream.Position = position + length;
+                return sliceableStream.GetSlice(position, length);
+            }
+            else
+            {
+                var bytes = new byte[length];
+                _streamReader.BaseStream.Position = position;
+                _streamReader.ReadBytes(bytes, 0, length);
+                return new ByteArrayBuffer(bytes, 0, length, isReadOnly: true);
+            }
         }
     }
 }
