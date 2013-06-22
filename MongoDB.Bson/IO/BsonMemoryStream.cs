@@ -598,7 +598,7 @@ namespace MongoDB.Bson.IO
                 Buffer.BlockCopy(buffer, offset, _buffer, _position, count);
             }
 
-            _position = newPosition;
+            SetPositionAfterWrite(newPosition);
         }
 
         /// <summary>
@@ -616,7 +616,8 @@ namespace MongoDB.Bson.IO
             var newPosition = _position + 1;
             EnsurePosition(newPosition);
 
-            _buffer[_position++] = value;
+            _buffer[_position] = value;
+            SetPositionAfterWrite(_position + 1);
         }
 
         /// <summary>
@@ -709,12 +710,21 @@ namespace MongoDB.Bson.IO
 
         private int FindNullByte()
         {
-            var index = Array.IndexOf<byte>(_buffer, 0, _position);
+            var index = Array.IndexOf<byte>(_buffer, 0, _position, _length - _position);
             if (index == -1)
             {
                 throw new EndOfStreamException();
             }
             return index;
+        }
+
+        private void SetPositionAfterWrite(int position)
+        {
+            _position = position;
+            if (_length < position)
+            {
+                _length = position;
+            }
         }
 
         private void StreamIsClosed()
@@ -914,7 +924,7 @@ namespace MongoDB.Bson.IO
             var length = Utf8Helper.StrictUtf8Encoding.GetBytes(value, 0, value.Length, _buffer, _position);
             _buffer[_position + length] = 0;
 
-            _position += length + 1;
+            SetPositionAfterWrite(length + 1);
         }
 
         /// <summary>
@@ -942,7 +952,7 @@ namespace MongoDB.Bson.IO
             _buffer[_position + 6] = bytes[6];
             _buffer[_position + 7] = bytes[7];
 
-            _position = newPosition;
+            SetPositionAfterWrite(newPosition);
         }
 
         /// <summary>
@@ -965,7 +975,7 @@ namespace MongoDB.Bson.IO
             _buffer[_position + 2] = (byte)(value >> 16);
             _buffer[_position + 3] = (byte)(value >> 24);
 
-            _position = newPosition;
+            SetPositionAfterWrite(newPosition);
         }
 
         /// <summary>
@@ -992,7 +1002,7 @@ namespace MongoDB.Bson.IO
             _buffer[_position + 6] = (byte)(value >> 48);
             _buffer[_position + 7] = (byte)(value >> 56);
 
-            _position = newPosition;
+            SetPositionAfterWrite(newPosition);
         }
 
         /// <summary>
@@ -1012,7 +1022,7 @@ namespace MongoDB.Bson.IO
 
             value.GetBytes(_buffer, _position);
 
-            _position = newPosition;
+            SetPositionAfterWrite(newPosition);
         }
 
         /// <summary>
@@ -1040,7 +1050,7 @@ namespace MongoDB.Bson.IO
             _buffer[_position + 3] = (byte)(lengthPlusOne >> 24);
             _buffer[_position + 4 + length] = 0;
 
-            _position += length + 5;
+            SetPositionAfterWrite(length + 5);
         }
     }
 }

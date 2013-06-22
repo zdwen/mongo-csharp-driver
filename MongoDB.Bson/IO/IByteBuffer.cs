@@ -75,15 +75,6 @@ namespace MongoDB.Bson.IO
         void EnsureCapacity(int capacity);
 
         /// <summary>
-        /// Finds the next null byte.
-        /// </summary>
-        /// <param name="position">The starting position.</param>
-        /// <returns>
-        /// The position of the next null byte.
-        /// </returns>
-        int FindNullByte(int position);
-
-        /// <summary>
         /// Gets a slice of this buffer.
         /// </summary>
         /// <param name="position">The position of the start of the slice.</param>

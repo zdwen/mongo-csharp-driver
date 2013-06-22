@@ -249,40 +249,6 @@ namespace MongoDB.Bson.IO
         }
 
         /// <summary>
-        /// Finds the next null byte.
-        /// </summary>
-        /// <returns>
-        /// The position of the next null byte.
-        /// </returns>
-        /// <exception cref="System.ObjectDisposedException">MultiChunkBuffer</exception>
-        public int FindNullByte(int position)
-        {
-            ThrowIfDisposed();
-            if (position < 0 || position > _length)
-            {
-                throw new ArgumentOutOfRangeException("position", "Position is outside of the buffer.");
-            }
-
-            var chunkIndex = (_origin + position) / _chunkSize;
-            var chunkOffset = (_origin + position) % _chunkSize;
-            var remaining = _length - position;
-            while (remaining > 0)
-            {
-                var chunkRemaining = _chunkSize - chunkOffset;
-                var index = Array.IndexOf<byte>(_chunks[chunkIndex].Bytes, 0, chunkOffset, chunkRemaining);
-                if (index != -1)
-                {
-                    return (chunkIndex * _chunkSize + index) - _origin;
-                }
-                chunkIndex += 1;
-                chunkOffset = 0;
-                remaining -= chunkRemaining;
-            }
-
-            return -1;
-        }
-
-        /// <summary>
         /// Gets a slice of this buffer.
         /// </summary>
         /// <param name="position">The position of the start of the slice.</param>

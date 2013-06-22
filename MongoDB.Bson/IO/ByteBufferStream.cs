@@ -353,6 +353,23 @@ namespace MongoDB.Bson.IO
             }
         }
 
+        private int FindNullByte()
+        {
+            var position = _position;
+            while (position < _length)
+            {
+                var segment = _byteBuffer.AccessBackingBytes(position);
+                var index = Array.IndexOf<byte>(segment.Array, 0, segment.Offset, segment.Count);
+                if (index != -1)
+                {
+                    return position + index - segment.Offset;
+                }
+                position += segment.Count;
+            }
+
+            throw new EndOfStreamException();
+        }
+
         private void PrepareToWrite(int count)
         {
             _byteBuffer.EnsureCapacity(_position + count);
@@ -414,11 +431,7 @@ namespace MongoDB.Bson.IO
             ThrowIfDisposed();
             ThrowIfEndOfStream(1);
 
-            var nullPosition = _byteBuffer.FindNullByte(_position);
-            if (nullPosition == -1 || nullPosition >= _length)
-            {
-                throw new EndOfStreamException();
-            }
+            var nullPosition = FindNullByte();
             var length = nullPosition - _position + 1; // read null byte also
 
             var segment = _byteBuffer.AccessBackingBytes(_position);
@@ -583,11 +596,7 @@ namespace MongoDB.Bson.IO
         /// <exception cref="System.IO.EndOfStreamException"></exception>
         void IBsonStream.SkipBsonCString()
         {
-            var nullPosition = _byteBuffer.FindNullByte(_position);
-            if (nullPosition == -1)
-            {
-                throw new EndOfStreamException();
-            }
+            var nullPosition = FindNullByte();
             _position = nullPosition + 1;
         }
 

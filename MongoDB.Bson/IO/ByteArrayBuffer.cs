@@ -222,25 +222,6 @@ namespace MongoDB.Bson.IO
         }
 
         /// <summary>
-        /// Finds the next null byte.
-        /// </summary>
-        /// <returns>
-        /// The position of the next null byte.
-        /// </returns>
-        /// <exception cref="System.ObjectDisposedException">ByteArrayBuffer</exception>
-        public int FindNullByte(int position)
-        {
-            ThrowIfDisposed();
-            if (position < 0 || position > _length)
-            {
-                throw new ArgumentOutOfRangeException("position", "Position is outside of the buffer.");
-            }
-
-            var index = Array.IndexOf<byte>(_bytes, 0, _origin + position, _length - position);
-            return (index == -1) ? -1 : index - _origin;
-        }
-
-        /// <summary>
         /// Gets a slice of this buffer.
         /// </summary>
         /// <param name="position">The position of the start of the slice.</param>
