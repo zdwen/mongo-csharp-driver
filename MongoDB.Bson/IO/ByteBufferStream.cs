@@ -359,10 +359,13 @@ namespace MongoDB.Bson.IO
             while (position < _length)
             {
                 var segment = _byteBuffer.AccessBackingBytes(position);
-                var index = Array.IndexOf<byte>(segment.Array, 0, segment.Offset, segment.Count);
-                if (index != -1)
+                var endOfSegmentIndex = segment.Offset + segment.Count;
+                for (var index = segment.Offset; index < endOfSegmentIndex; index++)
                 {
-                    return position + index - segment.Offset;
+                    if (segment.Array[index] == 0)
+                    {
+                        return position + (index - segment.Offset);
+                    }
                 }
                 position += segment.Count;
             }

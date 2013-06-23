@@ -710,12 +710,15 @@ namespace MongoDB.Bson.IO
 
         private int FindNullByte()
         {
-            var index = Array.IndexOf<byte>(_buffer, 0, _position, _length - _position);
-            if (index == -1)
+            for (var index = _position; index < _length; index++)
             {
-                throw new EndOfStreamException();
+                if (_buffer[index] == 0)
+                {
+                    return index;
+                }
             }
-            return index;
+
+            throw new EndOfStreamException();
         }
 
         private void SetPositionAfterWrite(int position)
