@@ -428,12 +428,12 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            public override ReplyMessage ReceiveMessage(ReceiveMessageParameters parameters)
+            public override ReplyMessage Receive(ChannelReceiveArgs args)
             {
                 ThrowIfDisposed();
                 try
                 {
-                    return _wrapped.ReceiveMessage(parameters);
+                    return _wrapped.Receive(args);
                 }
                 catch (Exception ex)
                 {
@@ -442,12 +442,12 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            public override void SendMessage(IRequestMessage message)
+            public override void Send(IRequestNetworkPacket packet)
             {
                 ThrowIfDisposed();
                 try
                 {
-                    _wrapped.SendMessage(message);
+                    _wrapped.Send(packet);
                 }
                 catch (Exception ex)
                 {

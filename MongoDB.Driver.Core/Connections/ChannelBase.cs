@@ -43,15 +43,15 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Receives a message.
         /// </summary>
-        /// <param name="parameters"></param>
+        /// <param name="args"></param>
         /// <returns>The reply.</returns>
-        public abstract ReplyMessage ReceiveMessage(ReceiveMessageParameters parameters);
+        public abstract ReplyMessage Receive(ChannelReceiveArgs args);
 
         /// <summary>
-        /// Sends the message.
+        /// Sends the packet.
         /// </summary>
-        /// <param name="message">The message.</param>
-        public abstract void SendMessage(IRequestMessage message);
+        /// <param name="packet">The packet.</param>
+        public abstract void Send(IRequestNetworkPacket packet);
 
         // protected methods
         /// <summary>

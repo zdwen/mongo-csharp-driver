@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Core.Connections
         [Test]
         public void ReceiveMessage_should_throw_if_the_connection_has_not_been_opened()
         {
-            Assert.Throws<InvalidOperationException>(() => _subject.ReceiveMessage());
+            Assert.Throws<InvalidOperationException>(() => _subject.Receive());
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace MongoDB.Driver.Core.Connections
 
             _subject.Open();
 
-            Assert.Throws<MongoSocketReadTimeoutException>(() => _subject.ReceiveMessage());
+            Assert.Throws<MongoSocketReadTimeoutException>(() => _subject.Receive());
         }
 
         [Test]
@@ -82,7 +82,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             var request = ProtocolHelper.BuildRequestMessage("dummy_cmd");
 
-            Assert.Throws<InvalidOperationException>(() => _subject.SendMessage(request));
+            Assert.Throws<InvalidOperationException>(() => _subject.Send(request));
         }
 
         [Test]
@@ -99,7 +99,7 @@ namespace MongoDB.Driver.Core.Connections
 
             var request = ProtocolHelper.BuildRequestMessage("dummy_cmd");
 
-            Assert.Throws<MongoSocketWriteTimeoutException>(() => _subject.SendMessage(request));
+            Assert.Throws<MongoSocketWriteTimeoutException>(() => _subject.Send(request));
         }
     }
 }

@@ -58,18 +58,18 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         // private methods
-        private ReplyMessage ReceiveMessage(ReceiveMessageParameters parameters)
+        private ReplyMessage Receive(ChannelReceiveArgs args)
         {
-            var holderIndex = parameters.RequestId % _holders.Length;
+            var holderIndex = args.RequestId % _holders.Length;
             var holder = _holders[holderIndex];
 
             var mre = new ManualResetEventSlim();
-            holder.AddWaiter(parameters.RequestId, mre);
+            holder.AddWaiter(args.RequestId, mre);
 
             mre.Wait();
 
             ReplyMessage message;
-            if (!holder.Replies.TryGetValue(parameters.RequestId, out message))
+            if (!holder.Replies.TryGetValue(args.RequestId, out message))
             {
                 throw new Exception("Big problems 3!");
             }
@@ -77,9 +77,9 @@ namespace MongoDB.Driver.Core.Connections
             return message;
         }
 
-        private void SendMessage(IRequestMessage message)
+        private void Send(IRequestNetworkPacket packet)
         {
-            var holderIndex = message.RequestId % _holders.Length;
+            var holderIndex = packet.LastRequestId % _holders.Length;
             var holder = _holders[holderIndex];
 
             lock (holder.SendLock)
@@ -90,7 +90,7 @@ namespace MongoDB.Driver.Core.Connections
                     holder.Connection.Open();
                 }
                 
-                holder.Connection.SendMessage(message);
+                holder.Connection.Send(packet);
             }
         }
 
@@ -120,16 +120,16 @@ namespace MongoDB.Driver.Core.Connections
 
                 if (oldNumberWaiting == 0)
                 {
-                    ThreadPool.QueueUserWorkItem(_ => ReceiveMessage());
+                    ThreadPool.QueueUserWorkItem(_ => Receive());
                 }
             }
 
-            private void ReceiveMessage()
+            private void Receive()
             {
                 int numberWaiting;
                 do
                 {
-                    var message = Connection.ReceiveMessage();
+                    var message = Connection.Receive();
 
                     lock (_receiveLock)
                     {
@@ -166,14 +166,14 @@ namespace MongoDB.Driver.Core.Connections
                 get { return _provider.DnsEndPoint; }
             }
 
-            public override ReplyMessage ReceiveMessage(ReceiveMessageParameters parameters)
+            public override ReplyMessage Receive(ChannelReceiveArgs args)
             {
-                return _provider.ReceiveMessage(parameters);
+                return _provider.Receive(args);
             }
 
-            public override void SendMessage(IRequestMessage message)
+            public override void Send(IRequestNetworkPacket packet)
             {
-                _provider.SendMessage(message);
+                _provider.Send(packet);
             }
         }
     }

@@ -29,7 +29,7 @@ namespace MongoDB.Driver.Core.Diagnostics
         IEventListener<ConnectionClosedEvent>,
         IEventListener<ConnectionOpenedEvent>,
         IEventListener<ConnectionMessageReceivedEvent>,
-        IEventListener<ConnectionMessageSendingEvent>,
+        IEventListener<ConnectionPacketSendingEvent>,
         IEventListener<ConnectionAddedToPoolEvent>,
         IEventListener<ConnectionCheckedInToPoolEvent>,
         IEventListener<ConnectionCheckedOutOfPoolEvent>,
@@ -113,12 +113,12 @@ namespace MongoDB.Driver.Core.Diagnostics
         /// Applies the specified event.
         /// </summary>
         /// <param name="event">The event.</param>
-        public void Apply(ConnectionMessageSendingEvent @event)
+        public void Apply(ConnectionPacketSendingEvent @event)
         {
             ConnectionPerformanceRecorder recorder;
             if (_connectionRecorders.TryGetValue(@event.Connection, out recorder))
             {
-                recorder.MessageSent(@event.Message.RequestId, @event.Message.Length);
+                recorder.PacketSent(@event.Packet.LastRequestId, @event.Packet.Length);
             }
         }
 

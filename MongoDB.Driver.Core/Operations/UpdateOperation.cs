@@ -81,11 +81,11 @@ namespace MongoDB.Driver.Core.Operations
                 _checkUpdateDocument,
                 writerSettings);
 
-            SendMessageWithWriteConcernResult sendMessageResult;
-            using (var request = new BufferedRequestMessage())
+            SendPacketWithWriteConcernResult sendMessageResult;
+            using (var packet = new BufferedRequestNetworkPacket())
             {
-                request.AddMessage(updateMessage);
-                sendMessageResult = SendMessageWithWriteConcern(channel, request, WriteConcern, writerSettings);
+                packet.AddMessage(updateMessage);
+                sendMessageResult = SendPacketWithWriteConcern(channel, packet, WriteConcern, writerSettings);
             }
 
             return ReadWriteConcernResult(channel, sendMessageResult, readerSettings);

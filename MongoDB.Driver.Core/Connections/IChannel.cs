@@ -33,12 +33,12 @@ namespace MongoDB.Driver.Core.Connections
         /// Receives a message.
         /// </summary>
         /// <returns>The reply.</returns>
-        ReplyMessage ReceiveMessage(ReceiveMessageParameters parameters);
+        ReplyMessage Receive(ChannelReceiveArgs args);
 
         /// <summary>
-        /// Sends the message.
+        /// Sends the packet.
         /// </summary>
-        /// <param name="message">The message.</param>
-        void SendMessage(IRequestMessage message);
+        /// <param name="packet">The packet.</param>
+        void Send(IRequestNetworkPacket packet);
     }
 }

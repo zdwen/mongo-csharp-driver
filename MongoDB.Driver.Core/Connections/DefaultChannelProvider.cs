@@ -510,16 +510,16 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            public override ReplyMessage ReceiveMessage(ReceiveMessageParameters parameters)
+            public override ReplyMessage Receive(ChannelReceiveArgs args)
             {
                 ThrowIfDisposed();
                 try
                 {
                     _info.LastUsedAtUtc = DateTime.UtcNow;
-                    var message = _connection.ReceiveMessage();
-                    if (message.ResponseTo != parameters.RequestId)
+                    var message = _connection.Receive();
+                    if (message.ResponseTo != args.RequestId)
                     {
-                        var formatted = string.Format("Expected a response to '{0}' but got '{1}' instead.", parameters.RequestId, message.ResponseTo);
+                        var formatted = string.Format("Expected a response to '{0}' but got '{1}' instead.", args.RequestId, message.ResponseTo);
                         throw new MongoProtocolException(formatted);
                     }
 
@@ -536,13 +536,13 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            public override void SendMessage(IRequestMessage message)
+            public override void Send(IRequestNetworkPacket packet)
             {
                 ThrowIfDisposed();
                 try
                 {
                     _info.LastUsedAtUtc = DateTime.UtcNow;
-                    _connection.SendMessage(message);
+                    _connection.Send(packet);
                 }
                 catch (Exception ex)
                 {

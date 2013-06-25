@@ -96,11 +96,11 @@ namespace MongoDB.Driver.Core.Operations
             foreach (var batch in GetBatches(maxMessageSize, writerSettings))
             {
                 // Dispose of the Request as soon as possible to release the buffer(s)
-                SendMessageWithWriteConcernResult sendBatchResult;
-                using (batch.Request)
+                SendPacketWithWriteConcernResult sendBatchResult;
+                using (batch.Packet)
                 {
                     sendBatchResult = SendBatchWithWriteConcern(channel, batch, continueOnError, writerSettings);
-                    batch.Request = null;
+                    batch.Packet = null;
                 }
 
                 WriteConcernResult writeConcernResult;
@@ -157,14 +157,14 @@ namespace MongoDB.Driver.Core.Operations
                         _checkInsertDocuments,
                         writerSettings);
 
-                    var request = new BufferedRequestMessage();
+                    var packet = new BufferedRequestNetworkPacket();
                     try
                     {
-                        request.AddMessage(insertMessage);
+                        packet.AddMessage(insertMessage);
 
                         if (overflowDocument != null)
                         {
-                            insertMessage.AddDocument(request.Stream, overflowDocument);
+                            insertMessage.AddDocument(packet.Stream, overflowDocument);
                             overflowDocument = null;
                         }
 
@@ -173,22 +173,22 @@ namespace MongoDB.Driver.Core.Operations
                             var document = enumerator.Current;
                             PrepareDocument(document);
 
-                            insertMessage.AddDocument(request.Stream, _documentType, document);
+                            insertMessage.AddDocument(packet.Stream, _documentType, document);
                             if (insertMessage.MessageLength > maxMessageSize)
                             {
-                                overflowDocument = insertMessage.RemoveLastDocument(request.Stream);
+                                overflowDocument = insertMessage.RemoveLastDocument(packet.Stream);
                                 break;
                             }
                         }
                     }
                     catch
                     {
-                        request.Dispose();
+                        packet.Dispose();
                         throw;
                     }
 
                     // ownership of the Request transfers to the caller and the caller must call Dispose on the Request
-                    yield return new Batch { Request = request, IsLast = overflowDocument == null };
+                    yield return new Batch { Packet = packet, IsLast = overflowDocument == null };
                 }
                 while (overflowDocument != null);
             }
@@ -227,20 +227,20 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
         
-        private SendMessageWithWriteConcernResult SendBatchWithWriteConcern(IServerChannel channel, Batch batch, bool continueOnError, BsonBinaryWriterSettings writerSettings)
+        private SendPacketWithWriteConcernResult SendBatchWithWriteConcern(IServerChannel channel, Batch batch, bool continueOnError, BsonBinaryWriterSettings writerSettings)
         {
             var writeConcern = WriteConcern;
             if (!writeConcern.Enabled && !continueOnError && !batch.IsLast)
             {
                 writeConcern = WriteConcern.Acknowledged;
             }
-            return SendMessageWithWriteConcern(channel, batch.Request, writeConcern, writerSettings);
+            return SendPacketWithWriteConcern(channel, batch.Packet, writeConcern, writerSettings);
         }
 
         // nested classes
         private class Batch
         {
-            public BufferedRequestMessage Request;
+            public BufferedRequestNetworkPacket Packet;
             public bool IsLast;
         }
     }

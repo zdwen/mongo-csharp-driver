@@ -70,20 +70,20 @@ namespace MongoDB.Driver.Core.Security
         /// Receives a message.
         /// </summary>
         /// <returns>The reply.</returns>
-        public override ReplyMessage ReceiveMessage()
+        public override ReplyMessage Receive()
         {
             ThrowIfDisposed();
-            return _wrapped.ReceiveMessage();
+            return _wrapped.Receive();
         }
 
         /// <summary>
-        /// Sends the message.
+        /// Sends the packet.
         /// </summary>
-        /// <param name="message">The message.</param>
-        public override void SendMessage(IRequestMessage message)
+        /// <param name="packet">The packet.</param>
+        public override void Send(IRequestNetworkPacket packet)
         {
             ThrowIfDisposed();
-            _wrapped.SendMessage(message);
+            _wrapped.Send(packet);
         }
 
         // protected methods

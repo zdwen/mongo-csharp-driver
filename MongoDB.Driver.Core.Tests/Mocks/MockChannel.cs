@@ -25,14 +25,14 @@ namespace MongoDB.Driver.Core.Mocks
             get { return _connection.DnsEndPoint; }
         }
 
-        public override ReplyMessage ReceiveMessage(ReceiveMessageParameters parameters)
+        public override ReplyMessage Receive(ChannelReceiveArgs parameters)
         {
-            return _connection.ReceiveMessage();
+            return _connection.Receive();
         }
 
-        public override void SendMessage(IRequestMessage message)
+        public override void Send(IRequestNetworkPacket message)
         {
-            _connection.SendMessage(message);
+            _connection.Send(message);
         }
     }
 }

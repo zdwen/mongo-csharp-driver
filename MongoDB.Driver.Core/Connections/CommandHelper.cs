@@ -79,13 +79,13 @@ namespace MongoDB.Driver.Core.Connections
                 null,
                 new BsonBinaryWriterSettings());
 
-            using(var request = new BufferedRequestMessage())
+            using(var packet = new BufferedRequestNetworkPacket())
             {
-                request.AddMessage(queryMessage);
-                connection.SendMessage(request);
+                packet.AddMessage(queryMessage);
+                connection.Send(packet);
             }
 
-            using (var replyMessage = connection.ReceiveMessage())
+            using (var replyMessage = connection.Receive())
             {
                 if (replyMessage.NumberReturned == 0)
                 {

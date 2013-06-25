@@ -67,11 +67,11 @@ namespace MongoDB.Driver.Core.Operations
 
             var deleteMessage = new DeleteMessage(Namespace, _query, _flags, writerSettings);
 
-            SendMessageWithWriteConcernResult sendMessageResult;
-            using (var request = new BufferedRequestMessage())
+            SendPacketWithWriteConcernResult sendMessageResult;
+            using (var packet = new BufferedRequestNetworkPacket())
             {
-                request.AddMessage(deleteMessage);
-                sendMessageResult = SendMessageWithWriteConcern(channel, request, WriteConcern, writerSettings);
+                packet.AddMessage(deleteMessage);
+                sendMessageResult = SendPacketWithWriteConcern(channel, packet, WriteConcern, writerSettings);
             }
 
             return ReadWriteConcernResult(channel, sendMessageResult, readerSettings);

@@ -13,29 +13,34 @@
 * limitations under the License.
 */
 
-using System.IO;
 
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// A message sent the server.
+    /// Arguments for the Channel Receive method.
     /// </summary>
-    public interface IRequestMessage
+    public class ChannelReceiveArgs
     {
-        /// <summary>
-        /// Gets the length of the message.
-        /// </summary>
-        int Length { get; }
+        // private fields
+        private readonly int _requestId;
 
+        // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChannelReceiveArgs" /> class.
+        /// </summary>
+        /// <param name="requestId">The request id.</param>
+        public ChannelReceiveArgs(int requestId)
+        {
+            _requestId = requestId;
+        }
+
+        // public methods
         /// <summary>
         /// Gets the request id.
         /// </summary>
-        int RequestId { get; }
-
-        /// <summary>
-        /// Writes the message to the stream.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
-        void WriteTo(Stream stream);
+        public int RequestId
+        {
+            get { return _requestId; }
+        }
     }
 }

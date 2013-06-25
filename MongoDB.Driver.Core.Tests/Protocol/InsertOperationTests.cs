@@ -34,12 +34,12 @@ namespace MongoDB.Driver.Core.Protocol
                 b.MaxDocumentSize(BATCH_SIZE);
                 b.MaxMessageSize(BATCH_SIZE);
             }));
-            channel.ReceiveMessage(null).ReturnsForAnyArgs(c => CreateWriteConcernResult(true, null));
+            channel.Receive(null).ReturnsForAnyArgs(c => CreateWriteConcernResult(true, null));
 
             var subject = CreateSubject(flags, writeConcern, numBatches);
             subject.Execute(channel);
 
-            channel.ReceivedWithAnyArgs(numGetLastErrors).ReceiveMessage(null);
+            channel.ReceivedWithAnyArgs(numGetLastErrors).Receive(null);
         }
 
         private IEnumerable<BsonDocument> CreateDocumentBatch(int numBatches)

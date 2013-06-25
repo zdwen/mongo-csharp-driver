@@ -78,7 +78,7 @@ namespace MongoDB.Driver.Core.Operations
         /// </exception>
         protected WriteConcernResult ReadWriteConcernResult(
             IServerChannel channel,
-            SendMessageWithWriteConcernResult sendMessageResult,
+            SendPacketWithWriteConcernResult sendMessageResult,
             BsonBinaryReaderSettings readerSettings)
         {
             Ensure.IsNotNull("channel", channel);
@@ -88,8 +88,8 @@ namespace MongoDB.Driver.Core.Operations
             WriteConcernResult writeConcernResult = null;
             if (sendMessageResult.GetLastErrorRequestId.HasValue)
             {
-                var receiveParameters = new ReceiveMessageParameters(sendMessageResult.GetLastErrorRequestId.Value);
-                using (var reply = channel.ReceiveMessage(receiveParameters))
+                var receiveArgs = new ChannelReceiveArgs(sendMessageResult.GetLastErrorRequestId.Value);
+                using (var reply = channel.Receive(receiveArgs))
                 {
                     if (reply.NumberReturned == 0)
                     {
@@ -124,22 +124,22 @@ namespace MongoDB.Driver.Core.Operations
         /// Sends the message with write concern.
         /// </summary>
         /// <param name="channel">The channel.</param>
-        /// <param name="request">The message.</param>
+        /// <param name="packet">The packet.</param>
         /// <param name="writeConcern">The write concern.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        /// <returns>A SendMessageWithWriteConcernResult.</returns>
-        protected SendMessageWithWriteConcernResult SendMessageWithWriteConcern(
+        /// <returns>A SendPacketWithWriteConcernResult.</returns>
+        protected SendPacketWithWriteConcernResult SendPacketWithWriteConcern(
             IServerChannel channel,
-            BufferedRequestMessage request,
+            BufferedRequestNetworkPacket packet,
             WriteConcern writeConcern,
             BsonBinaryWriterSettings writerSettings)
         {
             Ensure.IsNotNull("channel", channel);
-            Ensure.IsNotNull("request", request);
+            Ensure.IsNotNull("request", packet);
             Ensure.IsNotNull("writerSettings", writerSettings);
             Ensure.IsNotNull("writeConcern", writeConcern);
 
-            var result = new SendMessageWithWriteConcernResult();
+            var result = new SendPacketWithWriteConcernResult();
             if (writeConcern.Enabled)
             {
                 var fsync = (writeConcern.FSync == null) ? null : (BsonValue)writeConcern.FSync;
@@ -166,22 +166,22 @@ namespace MongoDB.Driver.Core.Operations
                     null,
                     writerSettings);
 
-                request.AddMessage(getLastErrorMessage);
+                packet.AddMessage(getLastErrorMessage);
 
                 result.GetLastErrorCommand = getLastErrorCommand;
                 result.GetLastErrorRequestId = getLastErrorMessage.RequestId;
             }
 
-            channel.SendMessage(request);
+            channel.Send(packet);
 
             return result;
         }
 
         // nested classes
         /// <summary>
-        /// Represents the result of the SendMessageWithWriteConcern method.
+        /// Represents the result of the SendPacketWithWriteConcern method.
         /// </summary>
-        protected class SendMessageWithWriteConcernResult
+        protected class SendPacketWithWriteConcernResult
         {
             /// <summary>
             /// The GetLastErrorCommand.

@@ -54,13 +54,13 @@ namespace MongoDB.Driver.Core.Connections
         /// Receives a message.
         /// </summary>
         /// <returns>The reply.</returns>
-        public abstract ReplyMessage ReceiveMessage();
+        public abstract ReplyMessage Receive();
 
         /// <summary>
-        /// Sends the message.
+        /// Sends the packet.
         /// </summary>
-        /// <param name="message">The message.</param>
-        public abstract void SendMessage(IRequestMessage message);
+        /// <param name="packet">The packet.</param>
+        public abstract void Send(IRequestNetworkPacket packet);
 
         // protected methods
         /// <summary>

@@ -70,7 +70,7 @@
     <Compile Include="Connections\IConnection.cs" />
     <Compile Include="Connections\PipelinedChannelProvider.cs" />
     <Compile Include="Connections\PipelinedChannelProviderFactory.cs" />
-    <Compile Include="Connections\ReceiveMessageParameters.cs" />
+    <Compile Include="Connections\ChannelReceiveArgs.cs" />
     <Compile Include="Connections\MongoSocketWriteTimeoutException.cs" />
     <Compile Include="Connections\MongoSocketReadTimeoutException.cs" />
     <Compile Include="Connections\IClusterableServer.cs" />
@@ -87,8 +87,8 @@
     <Compile Include="Events\NodeDescriptionUpdatedEvent.cs" />
     <Compile Include="MongoDriverException.cs" />
     <Compile Include="Connections\MongoSocketException.cs" />
-    <Compile Include="Connections\IRequestMessage.cs" />
-    <Compile Include="Protocol\BufferedRequestMessage.cs" />
+    <Compile Include="Connections\IRequestNetworkPacket.cs" />
+    <Compile Include="Protocol\BufferedRequestNetworkPacket.cs" />
     <Compile Include="Protocol\InsertMessage.cs" />
     <Compile Include="Protocol\OpCode.cs" />
     <Compile Include="Protocol\UpdateMessage.cs" />
@@ -134,7 +134,7 @@
     <Compile Include="Connections\IChannelProviderFactory.cs" />
     <Compile Include="Events\IEventPublisher.cs" />
     <Compile Include="Events\ConnectionMessageReceivedEvent.cs" />
-    <Compile Include="Events\ConnectionMessageSendingEvent.cs" />
+    <Compile Include="Events\ConnectionPacketSendingEvent.cs" />
     <Compile Include="Extensions\System\Collections\Generics\IEnumerableExtensions.cs" />
     <Compile Include="CommandResult.cs" />
     <Compile Include="CommandResultSerializer.cs" />

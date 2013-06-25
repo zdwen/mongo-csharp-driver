@@ -96,14 +96,14 @@ namespace MongoDB.Driver.Core.Operations
                 null,
                 writerSettings);
 
-            using (var request = new BufferedRequestMessage())
+            using (var packet = new BufferedRequestNetworkPacket())
             {
-                request.AddMessage(queryMessage);
-                channel.SendMessage(request);
+                packet.AddMessage(queryMessage);
+                channel.Send(packet);
             }
 
-            var receiveParameters = new ReceiveMessageParameters(queryMessage.RequestId);
-            using (var reply = channel.ReceiveMessage(receiveParameters))
+            var receiveArgs = new ChannelReceiveArgs(queryMessage.RequestId);
+            using (var reply = channel.Receive(receiveArgs))
             {
                 if (reply.NumberReturned == 0)
                 {

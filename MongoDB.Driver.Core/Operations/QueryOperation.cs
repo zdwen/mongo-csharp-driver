@@ -209,14 +209,14 @@ namespace MongoDB.Driver.Core.Operations
                     _fields,
                     writerSettings);
 
-                using(var request = new BufferedRequestMessage())
+                using(var packet = new BufferedRequestNetworkPacket())
                 {
-                    request.AddMessage(queryMessage);
-                    channel.SendMessage(request);
+                    packet.AddMessage(queryMessage);
+                    channel.Send(packet);
                 }
 
-                var receiveParameters = new ReceiveMessageParameters(queryMessage.RequestId);
-                return channel.ReceiveMessage(receiveParameters);
+                var receiveArgs = new ChannelReceiveArgs(queryMessage.RequestId);
+                return channel.Receive(receiveArgs);
             }
         }
 
@@ -227,14 +227,14 @@ namespace MongoDB.Driver.Core.Operations
                 var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
                 var getMoreMessage = new GetMoreMessage(Namespace, cursorId, _batchSize);
 
-                using (var request = new BufferedRequestMessage())
+                using (var packet = new BufferedRequestNetworkPacket())
                 {
-                    request.AddMessage(getMoreMessage);
-                    channel.SendMessage(request);
+                    packet.AddMessage(getMoreMessage);
+                    channel.Send(packet);
                 }
 
-                var receiveParameters = new ReceiveMessageParameters(getMoreMessage.RequestId);
-                return channel.ReceiveMessage(receiveParameters);
+                var receiveArgs = new ChannelReceiveArgs(getMoreMessage.RequestId);
+                return channel.Receive(receiveArgs);
             }
         }
 
@@ -244,10 +244,10 @@ namespace MongoDB.Driver.Core.Operations
             {
                 var killCursorsMessage = new KillCursorsMessage(new[] { cursorId });
 
-                using (var request = new BufferedRequestMessage())
+                using (var packet = new BufferedRequestNetworkPacket())
                 {
-                    request.AddMessage(killCursorsMessage);
-                    channel.SendMessage(request);
+                    packet.AddMessage(killCursorsMessage);
+                    channel.Send(packet);
                 }
             }
         }

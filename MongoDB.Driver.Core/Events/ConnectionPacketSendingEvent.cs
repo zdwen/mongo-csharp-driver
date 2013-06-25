@@ -18,24 +18,24 @@ using MongoDB.Driver.Core.Connections;
 namespace MongoDB.Driver.Core.Events
 {
     /// <summary>
-    /// Occurs when a message has been serialized and is about to be sent.
+    /// Occurs when a network packet is about to be sent.
     /// </summary>
-    public class ConnectionMessageSendingEvent
+    public class ConnectionPacketSendingEvent
     {
         // private fields
         private readonly IConnection _connection;
-        private readonly IRequestMessage _message;
+        private readonly IRequestNetworkPacket _packet;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionMessageSendingEvent" /> class.
+        /// Initializes a new instance of the <see cref="ConnectionPacketSendingEvent" /> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
-        /// <param name="message">The message.</param>
-        public ConnectionMessageSendingEvent(IConnection connection, IRequestMessage message)
+        /// <param name="packet">The packet.</param>
+        public ConnectionPacketSendingEvent(IConnection connection, IRequestNetworkPacket packet)
         {
             _connection = connection;
-            _message = message;
+            _packet = packet;
         }
 
         // public properties
@@ -48,11 +48,11 @@ namespace MongoDB.Driver.Core.Events
         }
 
         /// <summary>
-        /// Gets the message.
+        /// Gets the packet.
         /// </summary>
-        public IRequestMessage Message
+        public IRequestNetworkPacket Packet
         {
-            get { return _message; }
+            get { return _packet; }
         }
     }
 }

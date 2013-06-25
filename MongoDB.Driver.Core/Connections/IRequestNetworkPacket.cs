@@ -13,34 +13,29 @@
 * limitations under the License.
 */
 
+using System.IO;
 
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Parameters for receiving a message.
+    /// Represents a network packet containing one or more messages to be sent the server.
     /// </summary>
-    public class ReceiveMessageParameters
+    public interface IRequestNetworkPacket
     {
-        // private fields
-        private readonly int _requestId;
-
-        // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveMessageParameters" /> class.
+        /// Gets the length of the network packet.
         /// </summary>
-        /// <param name="requestId">The request id.</param>
-        public ReceiveMessageParameters(int requestId)
-        {
-            _requestId = requestId;
-        }
+        int Length { get; }
 
-        // public methods
         /// <summary>
-        /// Gets the request id.
+        /// Gets the request id of the last message.
         /// </summary>
-        public int RequestId
-        {
-            get { return _requestId; }
-        }
+        int LastRequestId { get; }
+
+        /// <summary>
+        /// Writes the network packet to the stream.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        void WriteTo(Stream stream);
     }
 }

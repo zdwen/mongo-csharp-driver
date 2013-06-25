@@ -69,7 +69,7 @@ namespace MongoDB.Driver.Core.Diagnostics.PerformanceCounters
             _serverPackage.NumberOfBytesReceivedPerSecond.IncrementBy(sizeInBytes);
         }
 
-        public void MessageSent(int requestId, int sizeInBytes)
+        public void PacketSent(int lastRequestId, int sizeInBytes)
         {
             _appPackage.NumberOfMessagesSentPerSecond.Increment();
             _serverPackage.NumberOfMessagesSentPerSecond.Increment();

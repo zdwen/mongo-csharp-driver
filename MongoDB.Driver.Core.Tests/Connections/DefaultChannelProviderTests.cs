@@ -108,9 +108,9 @@ namespace MongoDB.Driver.Core.Connections
 
             var channel = _subject.GetChannel();
             var connection = (IConnection)channel.GetType().GetProperty("Connection").GetValue(channel, null);
-            connection.ReceiveMessage().ReturnsForAnyArgs(replyMessage);
+            connection.Receive().ReturnsForAnyArgs(replyMessage);
 
-            Assert.Throws<MongoProtocolException>(() => channel.ReceiveMessage(new ReceiveMessageParameters(0)));
+            Assert.Throws<MongoProtocolException>(() => channel.Receive(new ChannelReceiveArgs(0)));
         }
 
         private void InitializeAndWaitForMinPoolSize()

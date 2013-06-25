@@ -20,28 +20,28 @@ using MongoDB.Driver.Core.Connections;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Represents an <see cref="IRequestMessage"/> that contains one or more Messages that have been written to a backing Stream.
+    /// Represents an <see cref="IRequestNetworkPacket"/> that contains one or more Messages that have been written to a backing Stream.
     /// </summary>
-    public sealed class BufferedRequestMessage : IRequestMessage, IDisposable
+    public sealed class BufferedRequestNetworkPacket : IRequestNetworkPacket, IDisposable
     {
         // private fields
         private readonly Stream _stream;
-        private int _requestId;
+        private int _lastRequestId;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="BufferedRequestMessage" /> class.
+        /// Initializes a new instance of the <see cref="BufferedRequestNetworkPacket" /> class.
         /// </summary>
-        public BufferedRequestMessage()
+        public BufferedRequestNetworkPacket()
             : this(new MemoryStream())
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BufferedRequestMessage"/> class.
+        /// Initializes a new instance of the <see cref="BufferedRequestNetworkPacket"/> class.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        public BufferedRequestMessage(Stream stream)
+        public BufferedRequestNetworkPacket(Stream stream)
         {
             _stream = stream;
         }
@@ -56,11 +56,11 @@ namespace MongoDB.Driver.Core.Protocol
         }
 
         /// <summary>
-        /// Gets the request id.
+        /// Gets the request id of the last message.
         /// </summary>
-        public int RequestId
+        public int LastRequestId
         {
-            get { return _requestId; }
+            get { return _lastRequestId; }
         }
 
         /// <summary>
@@ -73,13 +73,13 @@ namespace MongoDB.Driver.Core.Protocol
 
         // public methods
         /// <summary>
-        /// Adds a message to the request.
+        /// Adds a message to the network packet.
         /// </summary>
         /// <param name="message">The message.</param>
         public void AddMessage(RequestMessage message)
         {
             message.WriteTo(_stream);
-            _requestId = message.RequestId;
+            _lastRequestId = message.RequestId;
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace MongoDB.Driver.Core.Protocol
         }
 
         /// <summary>
-        /// Writes the buffered message to another stream.
+        /// Writes the buffered network packet to another stream.
         /// </summary>
         /// <param name="destination">The destination stream.</param>
         public void WriteTo(Stream destination)

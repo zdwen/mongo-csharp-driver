@@ -129,7 +129,7 @@ namespace MongoDB.Driver.Core.Connections
         /// Receives a message.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        public override ReplyMessage ReceiveMessage()
+        public override ReplyMessage Receive()
         {
             ThrowIfDisposed();
             ThrowIfNotOpen();
@@ -173,39 +173,39 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         /// <summary>
-        /// Sends the message.
+        /// Sends the packet.
         /// </summary>
-        public override void SendMessage(IRequestMessage message)
+        public override void Send(IRequestNetworkPacket packet)
         {
-            Ensure.IsNotNull("message", message);
+            Ensure.IsNotNull("packet", packet);
 
             ThrowIfDisposed();
             ThrowIfNotOpen();
 
             try
             {
-                message.WriteTo(_stream);
-                _traceSource.TraceVerbose("{0}: sent message#{1} with {2} bytes.", _toStringDescription, message.RequestId, message.Length);
-                _events.Publish(new ConnectionMessageSendingEvent(this, message));
+                packet.WriteTo(_stream);
+                _traceSource.TraceVerbose("{0}: sent message#{1} with {2} bytes.", _toStringDescription, packet.LastRequestId, packet.Length);
+                _events.Publish(new ConnectionPacketSendingEvent(this, packet));
             }
             catch (SocketException ex)
             {
                 if (ex.SocketErrorCode == SocketError.TimedOut)
                 {
-                    _traceSource.TraceWarning(ex, "{0}: timed out sending message#{1}. Timeout = {2} milliseconds", _toStringDescription, message.RequestId, _stream.ReadTimeout);
+                    _traceSource.TraceWarning(ex, "{0}: timed out sending message#{1}. Timeout = {2} milliseconds", _toStringDescription, packet.LastRequestId, _stream.ReadTimeout);
                     HandleException(ex);
-                    throw new MongoSocketWriteTimeoutException(string.Format("Timed out sending message#{0}. Timeout = {1} milliseconds", message.RequestId, _stream.ReadTimeout), ex);
+                    throw new MongoSocketWriteTimeoutException(string.Format("Timed out sending message#{0}. Timeout = {1} milliseconds", packet.LastRequestId, _stream.ReadTimeout), ex);
                 }
                 else
                 {
-                    _traceSource.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, message.RequestId);
+                    _traceSource.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, packet.LastRequestId);
                     HandleException(ex);
-                    throw new MongoSocketException(string.Format("Error sending message #{0}", message.RequestId), ex);
+                    throw new MongoSocketException(string.Format("Error sending message #{0}", packet.LastRequestId), ex);
                 }
             }
             catch (Exception ex)
             {
-                _traceSource.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, message.RequestId);
+                _traceSource.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, packet.LastRequestId);
                 HandleException(ex);
 
                 if (ex is MongoDriverException)
@@ -214,7 +214,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
                 else
                 {
-                    throw new MongoDriverException(string.Format("Error sending message #{0}", message.RequestId), ex);
+                    throw new MongoDriverException(string.Format("Error sending message #{0}", packet.LastRequestId), ex);
                 }
             }
         }
