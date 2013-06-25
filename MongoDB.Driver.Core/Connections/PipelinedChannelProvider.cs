@@ -77,7 +77,7 @@ namespace MongoDB.Driver.Core.Connections
             return message;
         }
 
-        private void Send(IRequestNetworkPacket packet)
+        private void Send(IRequestPacket packet)
         {
             var holderIndex = packet.LastRequestId % _holders.Length;
             var holder = _holders[holderIndex];
@@ -171,7 +171,7 @@ namespace MongoDB.Driver.Core.Connections
                 return _provider.Receive(args);
             }
 
-            public override void Send(IRequestNetworkPacket packet)
+            public override void Send(IRequestPacket packet)
             {
                 _provider.Send(packet);
             }

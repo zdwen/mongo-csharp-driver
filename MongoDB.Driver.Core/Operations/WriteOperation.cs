@@ -130,7 +130,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <returns>A SendPacketWithWriteConcernResult.</returns>
         protected SendPacketWithWriteConcernResult SendPacketWithWriteConcern(
             IServerChannel channel,
-            BufferedRequestNetworkPacket packet,
+            BufferedRequestPacket packet,
             WriteConcern writeConcern,
             BsonBinaryWriterSettings writerSettings)
         {

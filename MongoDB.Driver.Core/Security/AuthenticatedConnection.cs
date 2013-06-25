@@ -80,7 +80,7 @@ namespace MongoDB.Driver.Core.Security
         /// Sends the packet.
         /// </summary>
         /// <param name="packet">The packet.</param>
-        public override void Send(IRequestNetworkPacket packet)
+        public override void Send(IRequestPacket packet)
         {
             ThrowIfDisposed();
             _wrapped.Send(packet);

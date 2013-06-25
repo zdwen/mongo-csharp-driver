@@ -209,7 +209,7 @@ namespace MongoDB.Driver.Core.Operations
                     _fields,
                     writerSettings);
 
-                using(var packet = new BufferedRequestNetworkPacket())
+                using(var packet = new BufferedRequestPacket())
                 {
                     packet.AddMessage(queryMessage);
                     channel.Send(packet);
@@ -227,7 +227,7 @@ namespace MongoDB.Driver.Core.Operations
                 var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
                 var getMoreMessage = new GetMoreMessage(Namespace, cursorId, _batchSize);
 
-                using (var packet = new BufferedRequestNetworkPacket())
+                using (var packet = new BufferedRequestPacket())
                 {
                     packet.AddMessage(getMoreMessage);
                     channel.Send(packet);
@@ -244,7 +244,7 @@ namespace MongoDB.Driver.Core.Operations
             {
                 var killCursorsMessage = new KillCursorsMessage(new[] { cursorId });
 
-                using (var packet = new BufferedRequestNetworkPacket())
+                using (var packet = new BufferedRequestPacket())
                 {
                     packet.AddMessage(killCursorsMessage);
                     channel.Send(packet);

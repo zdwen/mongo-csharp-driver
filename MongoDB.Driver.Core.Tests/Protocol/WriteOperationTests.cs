@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Protocol
         {
             int sentBufferLength = 0;
             var channel = Substitute.For<IServerChannel>();
-            channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestNetworkPacket>().Length; });
+            channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestPacket>().Length; });
             channel.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
 
             var subject = CreateSubject(WriteConcern.Unacknowledged);
@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Core.Protocol
         {
             int sentBufferLength = 0;
             var channel = Substitute.For<IServerChannel>();
-            channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestNetworkPacket>().Length; });
+            channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestPacket>().Length; });
             channel.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
 
             channel.Receive(null).ReturnsForAnyArgs(CreateWriteConcernResult(true, null));
@@ -51,7 +51,7 @@ namespace MongoDB.Driver.Core.Protocol
         {
             int sentBufferLength = 0;
             var channel = Substitute.For<IServerChannel>();
-            channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestNetworkPacket>().Length; });
+            channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestPacket>().Length; });
             channel.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
 
             channel.Receive(null).ReturnsForAnyArgs(CreateWriteConcernResult(false, "an error"));
@@ -65,7 +65,7 @@ namespace MongoDB.Driver.Core.Protocol
         {
             int sentBufferLength = 0;
             var channel = Substitute.For<IServerChannel>();
-            channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestNetworkPacket>().Length; });
+            channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestPacket>().Length; });
             channel.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
 
             channel.Receive(null).ReturnsForAnyArgs(CreateWriteConcernResult(true, "an error"));
@@ -118,7 +118,7 @@ namespace MongoDB.Driver.Core.Protocol
                     writerSettings);
 
                 SendPacketWithWriteConcernResult sendMessageResult;
-                using (var request = new BufferedRequestNetworkPacket())
+                using (var request = new BufferedRequestPacket())
                 {
                     request.AddMessage(deleteMessage);
                     BufferLengthWithoutWriteConcern = (int)request.Stream.Length;

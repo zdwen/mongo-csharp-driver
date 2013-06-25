@@ -442,7 +442,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            public override void Send(IRequestNetworkPacket packet)
+            public override void Send(IRequestPacket packet)
             {
                 ThrowIfDisposed();
                 try

@@ -30,7 +30,7 @@ namespace MongoDB.Driver.Core.Mocks
             return _connection.Receive();
         }
 
-        public override void Send(IRequestNetworkPacket message)
+        public override void Send(IRequestPacket message)
         {
             _connection.Send(message);
         }

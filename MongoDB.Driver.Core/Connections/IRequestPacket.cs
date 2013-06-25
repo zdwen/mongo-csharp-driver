@@ -18,12 +18,12 @@ using System.IO;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Represents a network packet containing one or more messages to be sent the server.
+    /// Represents a packet containing one or more messages to be sent the server.
     /// </summary>
-    public interface IRequestNetworkPacket
+    public interface IRequestPacket
     {
         /// <summary>
-        /// Gets the length of the network packet.
+        /// Gets the length of the packet.
         /// </summary>
         int Length { get; }
 
@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Core.Connections
         int LastRequestId { get; }
 
         /// <summary>
-        /// Writes the network packet to the stream.
+        /// Writes the packet to the stream.
         /// </summary>
         /// <param name="stream">The stream.</param>
         void WriteTo(Stream stream);

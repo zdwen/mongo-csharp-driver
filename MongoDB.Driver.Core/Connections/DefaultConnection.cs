@@ -175,7 +175,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Sends the packet.
         /// </summary>
-        public override void Send(IRequestNetworkPacket packet)
+        public override void Send(IRequestPacket packet)
         {
             Ensure.IsNotNull("packet", packet);
 

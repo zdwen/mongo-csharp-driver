@@ -13,9 +13,9 @@ namespace MongoDB.Driver.Core
 {
     public static class ProtocolHelper
     {
-        public static IRequestNetworkPacket BuildRequestMessage(string commandName)
+        public static IRequestPacket BuildRequestMessage(string commandName)
         {
-            var request = new BufferedRequestNetworkPacket();
+            var request = new BufferedRequestPacket();
 
             var queryMessage = new QueryMessage(
                 new MongoNamespace("test", MongoNamespace.CommandCollectionName),
@@ -56,7 +56,7 @@ namespace MongoDB.Driver.Core
                 stream);
         }
 
-        public static BsonDocument ReadQueryMessage(BufferedRequestNetworkPacket request)
+        public static BsonDocument ReadQueryMessage(BufferedRequestPacket request)
         {
             var stream = request.Stream;
             var streamReader = new BsonStreamReader(stream, Utf8Helper.StrictUtf8Encoding);
@@ -84,7 +84,7 @@ namespace MongoDB.Driver.Core
             return query;
         }
 
-        private class DummyRequestMessage : IRequestNetworkPacket
+        private class DummyRequestMessage : IRequestPacket
         {
             private readonly int _length;
             private readonly int _requestId;

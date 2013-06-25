@@ -87,8 +87,8 @@
     <Compile Include="Events\NodeDescriptionUpdatedEvent.cs" />
     <Compile Include="MongoDriverException.cs" />
     <Compile Include="Connections\MongoSocketException.cs" />
-    <Compile Include="Connections\IRequestNetworkPacket.cs" />
-    <Compile Include="Protocol\BufferedRequestNetworkPacket.cs" />
+    <Compile Include="Connections\IRequestPacket.cs" />
+    <Compile Include="Protocol\BufferedRequestPacket.cs" />
     <Compile Include="Protocol\InsertMessage.cs" />
     <Compile Include="Protocol\OpCode.cs" />
     <Compile Include="Protocol\UpdateMessage.cs" />

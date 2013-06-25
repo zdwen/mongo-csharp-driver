@@ -18,13 +18,13 @@ using MongoDB.Driver.Core.Connections;
 namespace MongoDB.Driver.Core.Events
 {
     /// <summary>
-    /// Occurs when a network packet is about to be sent.
+    /// Occurs when a packet is about to be sent.
     /// </summary>
     public class ConnectionPacketSendingEvent
     {
         // private fields
         private readonly IConnection _connection;
-        private readonly IRequestNetworkPacket _packet;
+        private readonly IRequestPacket _packet;
 
         // constructors
         /// <summary>
@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Core.Events
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="packet">The packet.</param>
-        public ConnectionPacketSendingEvent(IConnection connection, IRequestNetworkPacket packet)
+        public ConnectionPacketSendingEvent(IConnection connection, IRequestPacket packet)
         {
             _connection = connection;
             _packet = packet;
@@ -50,7 +50,7 @@ namespace MongoDB.Driver.Core.Events
         /// <summary>
         /// Gets the packet.
         /// </summary>
-        public IRequestNetworkPacket Packet
+        public IRequestPacket Packet
         {
             get { return _packet; }
         }

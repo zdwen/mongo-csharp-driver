@@ -20,9 +20,9 @@ using MongoDB.Driver.Core.Connections;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Represents an <see cref="IRequestNetworkPacket"/> that contains one or more Messages that have been written to a backing Stream.
+    /// Represents an <see cref="IRequestPacket"/> that contains one or more Messages that have been written to a backing Stream.
     /// </summary>
-    public sealed class BufferedRequestNetworkPacket : IRequestNetworkPacket, IDisposable
+    public sealed class BufferedRequestPacket : IRequestPacket, IDisposable
     {
         // private fields
         private readonly Stream _stream;
@@ -30,18 +30,18 @@ namespace MongoDB.Driver.Core.Protocol
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="BufferedRequestNetworkPacket" /> class.
+        /// Initializes a new instance of the <see cref="BufferedRequestPacket" /> class.
         /// </summary>
-        public BufferedRequestNetworkPacket()
+        public BufferedRequestPacket()
             : this(new MemoryStream())
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BufferedRequestNetworkPacket"/> class.
+        /// Initializes a new instance of the <see cref="BufferedRequestPacket"/> class.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        public BufferedRequestNetworkPacket(Stream stream)
+        public BufferedRequestPacket(Stream stream)
         {
             _stream = stream;
         }
@@ -73,7 +73,7 @@ namespace MongoDB.Driver.Core.Protocol
 
         // public methods
         /// <summary>
-        /// Adds a message to the network packet.
+        /// Adds a message to the packet.
         /// </summary>
         /// <param name="message">The message.</param>
         public void AddMessage(RequestMessage message)
@@ -91,7 +91,7 @@ namespace MongoDB.Driver.Core.Protocol
         }
 
         /// <summary>
-        /// Writes the buffered network packet to another stream.
+        /// Writes the buffered packet to another stream.
         /// </summary>
         /// <param name="destination">The destination stream.</param>
         public void WriteTo(Stream destination)

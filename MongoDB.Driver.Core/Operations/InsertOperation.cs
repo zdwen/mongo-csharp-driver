@@ -157,7 +157,7 @@ namespace MongoDB.Driver.Core.Operations
                         _checkInsertDocuments,
                         writerSettings);
 
-                    var packet = new BufferedRequestNetworkPacket();
+                    var packet = new BufferedRequestPacket();
                     try
                     {
                         packet.AddMessage(insertMessage);
@@ -240,7 +240,7 @@ namespace MongoDB.Driver.Core.Operations
         // nested classes
         private class Batch
         {
-            public BufferedRequestNetworkPacket Packet;
+            public BufferedRequestPacket Packet;
             public bool IsLast;
         }
     }

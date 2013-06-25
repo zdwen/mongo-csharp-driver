@@ -61,7 +61,7 @@ namespace MongoDB.Driver.Core.Mocks
             throw new AssertionException("ReceiveMessage called without any registered response.");
         }
 
-        public override void Send(IRequestNetworkPacket message)
+        public override void Send(IRequestPacket message)
         {
             if (_isServerDead)
             {
@@ -69,9 +69,9 @@ namespace MongoDB.Driver.Core.Mocks
                 throw new SocketException();
             }
 
-            if (message is BufferedRequestNetworkPacket)
+            if (message is BufferedRequestPacket)
             {
-                var doc = ProtocolHelper.ReadQueryMessage((BufferedRequestNetworkPacket)message);
+                var doc = ProtocolHelper.ReadQueryMessage((BufferedRequestPacket)message);
                 // get the last one here in case a response is changed 
                 var registeredResponse = _responses.LastOrDefault(x => x.Item1(doc));
                 if (registeredResponse != null)

@@ -96,7 +96,7 @@ namespace MongoDB.Driver.Core.Operations
                 null,
                 writerSettings);
 
-            using (var packet = new BufferedRequestNetworkPacket())
+            using (var packet = new BufferedRequestPacket())
             {
                 packet.AddMessage(queryMessage);
                 channel.Send(packet);

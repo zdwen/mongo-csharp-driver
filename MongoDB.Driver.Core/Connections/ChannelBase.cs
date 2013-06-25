@@ -51,7 +51,7 @@ namespace MongoDB.Driver.Core.Connections
         /// Sends the packet.
         /// </summary>
         /// <param name="packet">The packet.</param>
-        public abstract void Send(IRequestNetworkPacket packet);
+        public abstract void Send(IRequestPacket packet);
 
         // protected methods
         /// <summary>

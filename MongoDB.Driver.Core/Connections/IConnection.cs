@@ -49,6 +49,6 @@ namespace MongoDB.Driver.Core.Connections
         /// Sends the packet.
         /// </summary>
         /// <param name="packet">The packet.</param>
-        void Send(IRequestNetworkPacket packet);
+        void Send(IRequestPacket packet);
     }
 }
