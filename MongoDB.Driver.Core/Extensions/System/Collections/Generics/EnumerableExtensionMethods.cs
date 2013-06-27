@@ -28,20 +28,6 @@ namespace System.Collections.Generic
         private static Random __threadRandom;
 
         /// <summary>
-        /// Executes the action for each item in the enumerable.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="items">The items.</param>
-        /// <param name="action">The action.</param>
-        public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)
-        {
-            foreach (var item in items)
-            {
-                action(item);
-            }
-        }
-
-        /// <summary>
         /// Selects a single item from the items enumerable at random, or the 
         /// default value if the items enumerable contains no values.
         /// </summary>
