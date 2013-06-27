@@ -19,9 +19,9 @@ using System.Security.Cryptography;
 namespace System.Collections.Generic
 {
     /// <summary>
-    /// Extensions for IEnumerable.
+    /// Extension methods for <see cref="IEnumerable{T}"/>.
     /// </summary>
-    public static class IEnumerableExtensions
+    internal static class EnumerableExtensionMethods
     {
         private static RNGCryptoServiceProvider __globalRandom = new RNGCryptoServiceProvider();
         [ThreadStatic]

@@ -46,7 +46,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Extensions methods for <see cref="IChannelProvider"/>.
     /// </summary>
-    public static class IChannelProviderExtensions
+    public static class ChannelProviderExtensionMethods
     {
         /// <summary>
         /// Gets a channel.

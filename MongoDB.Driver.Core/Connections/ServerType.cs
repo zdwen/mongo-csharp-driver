@@ -54,7 +54,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Extension methods for <see cref="ServerType"/>.
     /// </summary>
-    public static class ServerTypeExtensions
+    public static class ServerTypeExtensionMethods
     {
         /// <summary>
         /// Indicates whether the server can accept writes.

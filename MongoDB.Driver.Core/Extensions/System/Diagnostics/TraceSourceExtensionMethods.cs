@@ -16,9 +16,9 @@
 namespace System.Diagnostics
 {
     /// <summary>
-    /// Extensions for the TraceSource class.
+    /// Extension methods for <see cref="TraceSource"/>.
     /// </summary>
-    public static class TraceSourceExtensions
+    internal static class TraceSourceExtensionMethods
     {
         // public static methods
         /// <summary>

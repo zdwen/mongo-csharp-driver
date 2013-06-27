@@ -47,7 +47,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Extension methods for <see cref="ICluster"/>.
     /// </summary>
-    public static class IClusterExtensions
+    public static class ClusterExtensionMethods
     {
         /// <summary>
         /// Selects a server using the specified selector.
