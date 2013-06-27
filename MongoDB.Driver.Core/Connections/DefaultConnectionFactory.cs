@@ -52,7 +52,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Creates a connection for the specified address.
         /// </summary>
-        /// <param name="address">The address.</param>
+        /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A connection.</returns>
         public IConnection Create(DnsEndPoint dnsEndPoint)
         {

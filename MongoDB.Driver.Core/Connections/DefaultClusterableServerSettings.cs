@@ -24,6 +24,9 @@ namespace MongoDB.Driver.Core.Connections
     public sealed class DefaultClusterableServerSettings
     {
         // public static fields
+        /// <summary>
+        /// The default settings.
+        /// </summary>
         public static readonly DefaultClusterableServerSettings Defaults = new Builder().Build();
 
         // private fields

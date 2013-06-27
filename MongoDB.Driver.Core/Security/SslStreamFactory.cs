@@ -16,6 +16,11 @@ namespace MongoDB.Driver.Core.Security
         private readonly IStreamFactory _wrapped;
 
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SslStreamFactory" /> class.
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        /// <param name="wrapped">The wrapped.</param>
         public SslStreamFactory(SslSettings settings, IStreamFactory wrapped)
         {
             Ensure.IsNotNull("settings", settings);

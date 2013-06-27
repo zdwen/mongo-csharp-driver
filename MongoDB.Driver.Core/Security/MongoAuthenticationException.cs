@@ -29,7 +29,7 @@ namespace MongoDB.Driver.Core.Security
         /// Initializes a new instance of the <see cref="MongoAuthenticationException" /> class.
         /// </summary>
         /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
+        /// <param name="response">The response.</param>
         public MongoAuthenticationException(string message, BsonDocument response) 
             : base(message, response) 
         { 

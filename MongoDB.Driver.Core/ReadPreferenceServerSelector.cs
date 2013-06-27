@@ -50,7 +50,7 @@ namespace MongoDB.Driver.Core
         /// <summary>
         /// Selects a server from the connected servers.
         /// </summary>
-        /// <param name="connectedServers">The connected servers.</param>
+        /// <param name="servers">The servers.</param>
         /// <returns>The selected server or <c>null</c> if none match.</returns>
         protected override ServerDescription SelectServerFromConnectedServers(IEnumerable<ServerDescription> servers)
         {

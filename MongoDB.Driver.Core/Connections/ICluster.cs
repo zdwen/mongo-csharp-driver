@@ -44,6 +44,9 @@ namespace MongoDB.Driver.Core.Connections
         IServer SelectServer(IServerSelector selector, TimeSpan timeout, CancellationToken cancellationToken);
     }
 
+    /// <summary>
+    /// Extension methods for <see cref="ICluster"/>.
+    /// </summary>
     public static class IClusterExtensions
     {
         /// <summary>
@@ -60,6 +63,8 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Selects a server using the specified selector.
         /// </summary>
+        /// <param name="this">The this.</param>
+        /// <param name="serverSelector">The server selector.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A server.</returns>
         public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector, CancellationToken cancellationToken)
@@ -70,7 +75,9 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Selects a server using the specified selector.
         /// </summary>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
+        /// <param name="this">The this.</param>
+        /// <param name="serverSelector">The server selector.</param>
+        /// <param name="timeout">The timeout.</param>
         /// <returns>A server.</returns>
         public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector, TimeSpan timeout)
         {

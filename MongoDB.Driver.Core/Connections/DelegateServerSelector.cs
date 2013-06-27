@@ -52,7 +52,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Selects a server from the provided servers.
         /// </summary>
-        /// <param name="servers">The servers.</param>
+        /// <param name="serverDescriptions">The server descriptions.</param>
         /// <returns>The selected server or <c>null</c> if none match.</returns>
         public ServerDescription SelectServer(IEnumerable<ServerDescription> serverDescriptions)
         {

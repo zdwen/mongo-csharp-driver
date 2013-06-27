@@ -30,21 +30,38 @@ namespace MongoDB.Driver.Core.Connections
         private readonly TimeSpan _expireAfter;
         private readonly AddressFamily _defaultAddressFamily;
 
+        // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DnsCache" /> class.
+        /// </summary>
         public DnsCache()
             : this(TimeSpan.FromMinutes(60), AddressFamily.InterNetwork)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DnsCache" /> class.
+        /// </summary>
+        /// <param name="expireAfter">The expire after.</param>
         public DnsCache(TimeSpan expireAfter)
             : this(expireAfter, AddressFamily.InterNetwork)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DnsCache" /> class.
+        /// </summary>
+        /// <param name="defaultAddressFamily">The default address family.</param>
         public DnsCache(AddressFamily defaultAddressFamily)
             : this(TimeSpan.FromMinutes(60), defaultAddressFamily)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DnsCache" /> class.
+        /// </summary>
+        /// <param name="expireAfter">The expire after.</param>
+        /// <param name="defaultAddressFamily">The default address family.</param>
         public DnsCache(TimeSpan expireAfter, AddressFamily defaultAddressFamily)
         {
             _expireAfter = expireAfter;
@@ -52,6 +69,12 @@ namespace MongoDB.Driver.Core.Connections
             _cache = new ConcurrentDictionary<DnsEndPoint, Entry>();
         }
 
+        // public methods
+        /// <summary>
+        /// Resolves the specified DNS end point.
+        /// </summary>
+        /// <param name="dnsEndPoint">The DNS end point.</param>
+        /// <returns></returns>
         public IPEndPoint Resolve(DnsEndPoint dnsEndPoint)
         {
             Entry entry;
@@ -72,6 +95,7 @@ namespace MongoDB.Driver.Core.Connections
             return _cache.AddOrUpdate(dnsEndPoint, entry, (key, old) => entry).IPEndPoint;
         }
 
+        // private static methods
         private static IPEndPoint ResolveIPEndPoint(DnsEndPoint dnsEndPoint, AddressFamily defaultAddressFamily)
         {
             // TODO: how to handle when the dnsEndPoint.AddressFamily is not an IP based end point?
@@ -96,6 +120,7 @@ namespace MongoDB.Driver.Core.Connections
             throw new MongoException(message);
         }
 
+        // nested classes
         private class Entry
         {
             public DateTime AddedAtUtc;

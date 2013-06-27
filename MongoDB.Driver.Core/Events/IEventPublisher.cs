@@ -16,8 +16,16 @@
 
 namespace MongoDB.Driver.Core.Events
 {
+    /// <summary>
+    /// Publishes events.
+    /// </summary>
     public interface IEventPublisher
     {
+        /// <summary>
+        /// Publishes the specified event.
+        /// </summary>
+        /// <typeparam name="TEvent">The type of the event.</typeparam>
+        /// <param name="event">The event.</param>
         void Publish<TEvent>(TEvent @event);
     }
 }

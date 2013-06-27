@@ -26,6 +26,9 @@ namespace MongoDB.Driver.Core
         private static readonly string __template = "{0}.{1}";
 
         // public static fields
+        /// <summary>
+        /// The name of the command collection.
+        /// </summary>
         public static readonly string CommandCollectionName = "$cmd";
 
         // private fields

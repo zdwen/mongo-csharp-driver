@@ -26,6 +26,9 @@ namespace MongoDB.Driver.Core.Security
     public class MongoCRAuthenticationProtocol : IAuthenticationProtocol
     {
         // public properties
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
         public string Name
         {
             get { return "MONGODB-CR"; }

@@ -81,6 +81,7 @@ namespace MongoDB.Driver.Core
         /// Initializes a new instance of the ReadPreference class.
         /// </summary>
         /// <param name="readPreferenceMode">The read preference mode.</param>
+        /// <param name="secondaryAcceptableLatency">The secondary acceptable latency.</param>
         /// <param name="tagSets">The tag sets.</param>
         public ReadPreference(ReadPreferenceMode readPreferenceMode, TimeSpan secondaryAcceptableLatency, IEnumerable<ReplicaSetTagSet> tagSets)
         {

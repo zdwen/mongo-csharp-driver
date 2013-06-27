@@ -33,8 +33,8 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes a new instance of the <see cref="ReplicaSetCluster" /> class.
         /// </summary>
-        /// <param name="replicaSetName">Name of the replica set.</param>
-        /// <param name="addresses">The addresses.</param>
+        /// <param name="settings">The settings.</param>
+        /// <param name="dnsEndPoints">The DNS end points.</param>
         /// <param name="serverFactory">The server factory.</param>
         public ReplicaSetCluster(ReplicaSetClusterSettings settings, IEnumerable<DnsEndPoint> dnsEndPoints, IClusterableServerFactory serverFactory)
             : base(MultiServerClusterType.ReplicaSet, dnsEndPoints, serverFactory)

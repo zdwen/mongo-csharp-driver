@@ -24,6 +24,9 @@ namespace MongoDB.Driver.Core.Connections
     /// </summary>
     public class ConnectedServerSelector : IServerSelector
     {
+        /// <summary>
+        /// The default instance.
+        /// </summary>
         public static readonly ConnectedServerSelector Instance = new ConnectedServerSelector();
 
         /// <summary>

@@ -29,15 +29,28 @@ namespace MongoDB.Driver.Core.Connections
     /// </remarks>
     public class Socks5StreamProxy : IStreamFactory
     {
+        // private fields
         private readonly DnsEndPoint _proxyDnsEndPoint;
         private readonly IStreamFactory _wrapped;
 
+        // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Socks5StreamProxy" /> class.
+        /// </summary>
+        /// <param name="proxyDnsEndPoint">The proxy DNS end point.</param>
+        /// <param name="wrapped">The wrapped.</param>
         public Socks5StreamProxy(DnsEndPoint proxyDnsEndPoint, IStreamFactory wrapped)
         {
             _proxyDnsEndPoint = proxyDnsEndPoint;
             _wrapped = wrapped;
         }
 
+        // public methods
+        /// <summary>
+        /// Creates a stream for the specified dns end point.
+        /// </summary>
+        /// <param name="dnsEndPoint">The DNS end point.</param>
+        /// <returns>A stream.</returns>
         public Stream Create(DnsEndPoint dnsEndPoint)
         {
             // use the proxy endpoint because that is what we are talking to...
@@ -50,6 +63,7 @@ namespace MongoDB.Driver.Core.Connections
             return stream;
         }
 
+        // private methods
         private byte[] GetDestinationAddressBytes(byte addressType, string host)
         {
             switch (addressType)
@@ -141,6 +155,7 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
+        // nested classes
         private static class Socks
         {
             public const string PROXY_NAME = "SOCKS5";

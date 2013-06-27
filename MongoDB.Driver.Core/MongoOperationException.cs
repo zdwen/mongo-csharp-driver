@@ -40,6 +40,7 @@ namespace MongoDB.Driver.Core
         /// Initializes a new instance of the <see cref="MongoOperationException" /> class.
         /// </summary>
         /// <param name="message">The message.</param>
+        /// <param name="response">The response.</param>
         public MongoOperationException(string message, BsonDocument response) 
             : base(message) 
         {
@@ -50,6 +51,7 @@ namespace MongoDB.Driver.Core
         /// Initializes a new instance of the <see cref="MongoOperationException" /> class.
         /// </summary>
         /// <param name="message">The message.</param>
+        /// <param name="response">The response.</param>
         /// <param name="inner">The inner.</param>
         public MongoOperationException(string message, BsonDocument response, Exception inner) 
             : base(message, inner) 

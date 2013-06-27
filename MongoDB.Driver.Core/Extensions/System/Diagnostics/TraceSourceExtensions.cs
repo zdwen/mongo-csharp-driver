@@ -58,7 +58,8 @@ namespace System.Diagnostics
         /// </summary>
         /// <param name="traceSource">The trace source.</param>
         /// <param name="ex">The ex.</param>
-        /// <param name="message">The message.</param>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The args.</param>
         public static void TraceError(this TraceSource traceSource, Exception ex, string format, params object[] args)
         {
             Trace(traceSource, TraceEventType.Error, ex, format, args);
@@ -122,7 +123,8 @@ namespace System.Diagnostics
         /// </summary>
         /// <param name="traceSource">The trace source.</param>
         /// <param name="ex">The ex.</param>
-        /// <param name="message">The message.</param>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The args.</param>
         public static void TraceWarning(this TraceSource traceSource, Exception ex, string format, params object[] args)
         {
             Trace(traceSource, TraceEventType.Warning, ex, format, args);

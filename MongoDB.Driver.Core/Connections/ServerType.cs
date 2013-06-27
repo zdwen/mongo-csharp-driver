@@ -51,6 +51,9 @@ namespace MongoDB.Driver.Core.Connections
         ShardRouter
     }
 
+    /// <summary>
+    /// Extension methods for <see cref="ServerType"/>.
+    /// </summary>
     public static class ServerTypeExtensions
     {
         /// <summary>

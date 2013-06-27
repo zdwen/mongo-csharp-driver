@@ -28,6 +28,9 @@ namespace MongoDB.Driver.Core
     public class SslSettings
     {
         // public static fields
+        /// <summary>
+        /// The default settings.
+        /// </summary>
         public static readonly SslSettings Defaults = new Builder().Build();
 
         // private fields

@@ -23,6 +23,9 @@ namespace MongoDB.Driver.Core.Connections
     public sealed class ReplicaSetClusterSettings
     {
         // public static fields
+        /// <summary>
+        /// The default settings.
+        /// </summary>
         public static readonly ReplicaSetClusterSettings Defaults = new Builder().Build();
 
         // private fields
@@ -32,7 +35,6 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes a new instance of the <see cref="ReplicaSetClusterSettings" /> class.
         /// </summary>
-        /// <param name="connectTimeout">The connect timeout.</param>
         /// <param name="replicaSetName">The name of the replica set.</param>
         public ReplicaSetClusterSettings(string replicaSetName)
         {

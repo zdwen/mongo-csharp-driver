@@ -38,6 +38,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="primary">The primary.</param>
         /// <param name="members">The members.</param>
         /// <param name="tags">The tags.</param>
+        /// <param name="version">The version.</param>
         public ReplicaSetInfo(string name, DnsEndPoint primary, IEnumerable<DnsEndPoint> members, IEnumerable<KeyValuePair<string, string>> tags, int? version)
         {
             _name = name;

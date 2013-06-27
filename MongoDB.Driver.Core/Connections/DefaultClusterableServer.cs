@@ -61,6 +61,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="channelProvider">The channel provider.</param>
         /// <param name="connectionFactory">The connection factory.</param>
+        /// <param name="events">The events.</param>
         /// <param name="traceManager">The trace manager.</param>
         public DefaultClusterableServer(DefaultClusterableServerSettings settings, DnsEndPoint dnsEndPoint, IChannelProvider channelProvider, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
         {

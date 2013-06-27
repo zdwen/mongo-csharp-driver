@@ -25,7 +25,13 @@ namespace MongoDB.Driver.Core.Diagnostics
     public class TraceManager : IDisposable
     {
         // public static fields
+        /// <summary>
+        /// The source switch name.
+        /// </summary>
         public static readonly string SourceSwitchName = "MongoDBSwitch";
+        /// <summary>
+        /// The prefix of the trace source name.
+        /// </summary>
         public static readonly string TraceSourceNamePrefix = "MongoDB.";
 
         // private fields
@@ -53,6 +59,9 @@ namespace MongoDB.Driver.Core.Diagnostics
         }
 
         // public methods
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -105,6 +114,7 @@ namespace MongoDB.Driver.Core.Diagnostics
             return TraceSourceNamePrefix + type.Name;
         }
 
+        // private methods
         private void ThrowIfDisposed()
         {
             if (_disposed)

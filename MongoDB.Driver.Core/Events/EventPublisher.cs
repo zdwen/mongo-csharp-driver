@@ -20,15 +20,26 @@ using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Events
 {
+    /// <summary>
+    /// Implementation of an event publisher that works with <see cref="IEventListener{T}" />.
+    /// </summary>
     public class EventPublisher : IEventPublisher
     {
         private readonly Dictionary<Type, List<object>> _listeners;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventPublisher" /> class.
+        /// </summary>
         public EventPublisher()
         {
             _listeners = new Dictionary<Type, List<object>>();
         }
 
+        /// <summary>
+        /// Publishes the specified event.
+        /// </summary>
+        /// <typeparam name="TEvent">The type of the event.</typeparam>
+        /// <param name="event">The event.</param>
         public void Publish<TEvent>(TEvent @event)
         {
             List<object> list;
@@ -41,6 +52,10 @@ namespace MongoDB.Driver.Core.Events
             }
         }
 
+        /// <summary>
+        /// Subscribes the specified listener. The listener instance passed in must implement <see cref="IEventListener{T}"/>.
+        /// </summary>
+        /// <param name="listener">The listener.</param>
         public void Subscribe(object listener)
         {
             Ensure.IsNotNull("listener", listener);
@@ -66,7 +81,7 @@ namespace MongoDB.Driver.Core.Events
 
             if (!foundAny)
             {
-                throw new ArgumentException("The provided listener did not implement IEventPublisher<>. As such, no events were subscribed.", "listener");
+                throw new ArgumentException("The provided listener did not implement IEventListener<>. As such, no events were subscribed.", "listener");
             }
         }
     }

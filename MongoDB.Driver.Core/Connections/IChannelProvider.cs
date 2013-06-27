@@ -43,7 +43,10 @@ namespace MongoDB.Driver.Core.Connections
         IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken);
     }
 
-    public static class IConnectionProviderExtensions
+    /// <summary>
+    /// Extensions methods for <see cref="IChannelProvider"/>.
+    /// </summary>
+    public static class IChannelProviderExtensions
     {
         /// <summary>
         /// Gets a channel.
@@ -57,6 +60,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets a channel.
         /// </summary>
+        /// <param name="this">The this.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A channel.</returns>
         public static IChannel GetChannel(this IChannelProvider @this, CancellationToken cancellationToken)
@@ -67,7 +71,8 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets a channel.
         /// </summary>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="F:System.Threading.Timeout.Infinite" />(-1) to wait indefinitely.</param>
+        /// <param name="this">The this.</param>
+        /// <param name="timeout">The timeout.</param>
         /// <returns>A channel.</returns>
         public static IChannel GetChannel(this IChannelProvider @this, TimeSpan timeout)
         {

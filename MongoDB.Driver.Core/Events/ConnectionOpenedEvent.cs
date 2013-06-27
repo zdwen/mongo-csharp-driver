@@ -27,7 +27,7 @@ namespace MongoDB.Driver.Core.Events
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionOpeningEvent" /> class.
+        /// Initializes a new instance of the <see cref="ConnectionOpenedEvent" /> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
         public ConnectionOpenedEvent(IConnection connection)

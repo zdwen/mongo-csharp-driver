@@ -37,7 +37,8 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        /// <param name="diagnosticsManager">The diagnostics manager.</param>
+        /// <param name="events">The events.</param>
+        /// <param name="traceManager">The trace manager.</param>
         public DefaultChannelProviderFactory(DefaultChannelProviderSettings settings, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
         {
             Ensure.IsNotNull("settings", settings);
