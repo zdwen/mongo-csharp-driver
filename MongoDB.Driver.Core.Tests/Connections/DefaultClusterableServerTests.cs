@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             var subject = CreateSubject();
 
-            Assert.Throws<InvalidOperationException>(() => subject.GetChannel());
+            Assert.Throws<InvalidOperationException>(() => subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
         }
 
         [Test]
@@ -66,8 +66,8 @@ namespace MongoDB.Driver.Core.Connections
             var subject = CreateSubject();
             subject.Initialize();
 
-            var connection = subject.GetChannel();
-            var connection2 = subject.GetChannel();
+            var connection = subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
+            var connection2 = subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
 
             connection.Dispose();
             subject.Dispose();
@@ -82,7 +82,7 @@ namespace MongoDB.Driver.Core.Connections
 
             subject.Dispose();
 
-            Assert.Throws<ObjectDisposedException>(() => subject.GetChannel());
+            Assert.Throws<ObjectDisposedException>(() => subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
         }
 
         [Test]

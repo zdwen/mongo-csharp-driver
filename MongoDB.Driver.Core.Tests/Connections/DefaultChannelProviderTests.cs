@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Diagnostics;
@@ -41,15 +42,15 @@ namespace MongoDB.Driver.Core.Connections
         [Test]
         public void GetConnection_should_throw_if_unitialized()
         {
-            Assert.Throws<InvalidOperationException>(() => _subject.GetChannel());
+            Assert.Throws<InvalidOperationException>(() => _subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
         }
 
         [Test]
         public void Disposing_of_a_connection_after_disconnect_should_not_throw_an_exception()
         {
             _subject.Initialize();
-            var channel = _subject.GetChannel();
-            var channel2 = _subject.GetChannel();
+            var channel = _subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
+            var channel2 = _subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
 
             channel.Dispose();
             _subject.Dispose();
@@ -61,7 +62,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             _subject.Dispose();
 
-            Assert.Throws<ObjectDisposedException>(() => _subject.GetChannel());
+            Assert.Throws<ObjectDisposedException>(() => _subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
         }
 
         [Test]
@@ -73,11 +74,11 @@ namespace MongoDB.Driver.Core.Connections
             for (int i = 0; i < _channelProviderSettings.MinSize; i++)
             {
                 // checkout the all the channels in the pool
-                channels.Add(_subject.GetChannel());
+                channels.Add(_subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
             }
 
             // this should create a new connection because all the channels in the pool have been checked out
-            _subject.GetChannel();
+            _subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
 
             // we should have gotten more calls to the connection factory...
             _connectionFactory.ReceivedWithAnyArgs(_channelProviderSettings.MinSize + 1).Create(null);
@@ -92,11 +93,11 @@ namespace MongoDB.Driver.Core.Connections
             // checkout all the channels in the pool so that we have to wait for one to become available
             for (int i = 0; i < _channelProviderSettings.MaxSize; i++)
             {
-                channels.Add(_subject.GetChannel());
+                channels.Add(_subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
             }
 
             // don't wait for the channels at all
-            Assert.Throws<MongoDriverException>(() => _subject.GetChannel(TimeSpan.Zero));
+            Assert.Throws<MongoDriverException>(() => _subject.GetChannel(TimeSpan.Zero, CancellationToken.None));
         }
 
         [Test]
@@ -106,7 +107,7 @@ namespace MongoDB.Driver.Core.Connections
 
             var replyMessage = ProtocolHelper.BuildReplyMessage(new[] { new BsonDocument() }, 3);
 
-            var channel = _subject.GetChannel();
+            var channel = _subject.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
             var connection = (IConnection)channel.GetType().GetProperty("Connection").GetValue(channel, null);
             connection.Receive().ReturnsForAnyArgs(replyMessage);
 

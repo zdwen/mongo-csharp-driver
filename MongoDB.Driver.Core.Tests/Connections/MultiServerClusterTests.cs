@@ -43,7 +43,7 @@ namespace MongoDB.Driver.Core.Connections
         [Test]
         public void SelectServer_should_throw_an_exception_if_not_initialized()
         {
-            Assert.Throws<InvalidOperationException>(() => _subject.SelectServer(ConnectedServerSelector.Instance));
+            Assert.Throws<InvalidOperationException>(() => _subject.SelectServer(ConnectedServerSelector.Instance, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
         }
 
         [Test]
@@ -55,7 +55,7 @@ namespace MongoDB.Driver.Core.Connections
             _server.SetNextDescription(connected);
             _server.ApplyChanges();
 
-            var selectedServer = _subject.SelectServer(ConnectedServerSelector.Instance);
+            var selectedServer = _subject.SelectServer(ConnectedServerSelector.Instance, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
 
             Assert.AreEqual(_server.Description.DnsEndPoint, selectedServer.Description.DnsEndPoint);
         }
@@ -71,7 +71,7 @@ namespace MongoDB.Driver.Core.Connections
 
             var selector = new DelegateServerSelector("never matches", s => null);
 
-            Assert.Throws<MongoDriverException>(() => _subject.SelectServer(selector));
+            Assert.Throws<MongoDriverException>(() => _subject.SelectServer(selector, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
         }
 
         [Test]
@@ -96,7 +96,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
             });
 
-            var selectedServer = _subject.SelectServer(ConnectedServerSelector.Instance);
+            var selectedServer = _subject.SelectServer(ConnectedServerSelector.Instance, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
 
             Assert.AreEqual(_server.Description.DnsEndPoint, selectedServer.Description.DnsEndPoint);
         }
@@ -105,7 +105,7 @@ namespace MongoDB.Driver.Core.Connections
         public void SelectServer_should_throw_an_exception_after_timing_out_trying_to_select_a_server()
         {
             _subject.Initialize();
-            Assert.Throws<MongoDriverException>(() => _subject.SelectServer(ConnectedServerSelector.Instance, TimeSpan.Zero));
+            Assert.Throws<MongoDriverException>(() => _subject.SelectServer(ConnectedServerSelector.Instance, TimeSpan.Zero, CancellationToken.None));
         }
 
         private class TestMultiServerManager : MultiServerCluster

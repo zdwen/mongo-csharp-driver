@@ -43,45 +43,4 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A server.</returns>
         IServer SelectServer(IServerSelector selector, TimeSpan timeout, CancellationToken cancellationToken);
     }
-
-    /// <summary>
-    /// Extension methods for <see cref="ICluster"/>.
-    /// </summary>
-    public static class ClusterExtensionMethods
-    {
-        /// <summary>
-        /// Selects a server using the specified selector.
-        /// </summary>
-        /// <param name="this">The this.</param>
-        /// <param name="serverSelector">The server selector.</param>
-        /// <returns>A server.</returns>
-        public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector)
-        {
-            return @this.SelectServer(serverSelector, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
-        }
-
-        /// <summary>
-        /// Selects a server using the specified selector.
-        /// </summary>
-        /// <param name="this">The this.</param>
-        /// <param name="serverSelector">The server selector.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
-        /// <returns>A server.</returns>
-        public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector, CancellationToken cancellationToken)
-        {
-            return @this.SelectServer(serverSelector, TimeSpan.FromMilliseconds(Timeout.Infinite), cancellationToken);
-        }
-
-        /// <summary>
-        /// Selects a server using the specified selector.
-        /// </summary>
-        /// <param name="this">The this.</param>
-        /// <param name="serverSelector">The server selector.</param>
-        /// <param name="timeout">The timeout.</param>
-        /// <returns>A server.</returns>
-        public static IServer SelectServer(this ICluster @this, IServerSelector serverSelector, TimeSpan timeout)
-        {
-            return @this.SelectServer(serverSelector, timeout, CancellationToken.None);
-        }
-    }
 }

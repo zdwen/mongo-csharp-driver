@@ -112,8 +112,8 @@ namespace MongoDB.DriverUnitTests.Jira
 
         private static void ClearData(ICluster cluster)
         {
-            using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary)))
-            using (var channel = node.GetChannel())
+            using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
+            using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
             {
                 var commandOp = new CommandOperation<CommandResult>(
                     "foo",
@@ -132,8 +132,8 @@ namespace MongoDB.DriverUnitTests.Jira
 
         private static void InsertData(ICluster cluster)
         {
-            using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary)))
-            using (var channel = node.GetChannel())
+            using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
+            using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
             {
                 for (int i = 0; i < 10000; i++)
                 {
@@ -151,8 +151,8 @@ namespace MongoDB.DriverUnitTests.Jira
                 BsonDocument doc;
                 try
                 {
-                    using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.SecondaryPreferred)))
-                    using (var channel = node.GetChannel())
+                    using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.SecondaryPreferred), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
+                    using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
                     {
                         var result = Query(channel, new BsonDocument("i", i));
                         if (result.MoveNext())
@@ -177,8 +177,8 @@ namespace MongoDB.DriverUnitTests.Jira
                 {
                     try
                     {
-                        using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary)))
-                        using (var channel = node.GetChannel())
+                        using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
+                        using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
                         {
                             Insert(channel, new BsonDocument().Add("i", i));
                         }
@@ -195,8 +195,8 @@ namespace MongoDB.DriverUnitTests.Jira
                     {
                         var query = new BsonDocument("_id", doc["_id"]);
                         var update = new BsonDocument("$set", new BsonDocument("i", i + 1));
-                        using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary)))
-                        using (var channel = node.GetChannel())
+                        using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
+                        using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
                         {
                             Update(channel, query, update);
                         }
