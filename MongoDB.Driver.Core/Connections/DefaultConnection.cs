@@ -16,9 +16,13 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using MongoDB.Bson;
+using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Protocol;
@@ -139,6 +143,13 @@ namespace MongoDB.Driver.Core.Connections
                 var reply = ReplyMessage.ReadFrom(_stream);
                 _traceSource.TraceVerbose("{0}: received message#{1} with {2} bytes.", _toStringDescription, reply.ResponseTo, reply.Length);
                 _events.Publish(new ConnectionMessageReceivedEvent(this, reply));
+
+                if ((reply.Flags & ReplyFlags.QueryFailure) != 0)
+                {
+                    var response = reply.DeserializeDocuments<BsonDocument>(BsonDocumentSerializer.Instance, null, BsonBinaryReaderSettings.Defaults).Single();
+                    var message = string.Format("Query failed with response: {0}.", response.ToJson());
+                    throw new MongoOperationException(message, response);
+                }
 
                 return reply;
             }

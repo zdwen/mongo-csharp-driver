@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Core.Security
             var connection = _wrapped.Create(dnsEndPoint);
 
             // only want to add in this overhead if we have credentials
-            if (!_settings.Credentials.Any())
+            if (_settings.Credentials.Any())
             {
                 return new AuthenticatedConnection(_settings, connection);
             }
