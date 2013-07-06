@@ -43,12 +43,12 @@ namespace MongoDB.Driver.Core.Security
         public void Authenticate(IConnection connection, MongoCredential credential)
         {
             var nonceCommand = new BsonDocument("getnonce", 1);
-            var nonceResult = CommandHelper.RunCommand(credential.Source, nonceCommand, connection);
-            if (!CommandHelper.IsResultOk(nonceResult))
+            var nonceResult = CommandHelper.RunCommand<CommandResult>(credential.Source, nonceCommand, connection);
+            if (!nonceResult.Ok)
             {
-                throw new MongoAuthenticationException("Error getting nonce for authentication.", nonceResult);
+                throw new MongoAuthenticationException("Error getting nonce for authentication.", nonceResult.Response);
             }
-            var nonce = nonceResult["nonce"].AsString;
+            var nonce = nonceResult.Response["nonce"].AsString;
 
             var passwordDigest = ((PasswordEvidence)credential.Evidence).ComputeMongoCRPasswordDigest(credential.Username);
             var digest = MongoUtils.Hash(nonce + credential.Username + passwordDigest);
@@ -60,11 +60,11 @@ namespace MongoDB.Driver.Core.Security
                 { "key", digest }
             };
 
-            var authenticateResult = CommandHelper.RunCommand(credential.Source, authenticateCommand, connection);
-            if (!CommandHelper.IsResultOk(authenticateResult))
+            var authenticateResult = CommandHelper.RunCommand<CommandResult>(credential.Source, authenticateCommand, connection);
+            if (!authenticateResult.Ok)
             {
                 var message = string.Format("Invalid credential for database '{0}'.", credential.Source);
-                throw new MongoAuthenticationException(message, authenticateResult);
+                throw new MongoAuthenticationException(message, authenticateResult.Response);
             }
         }
 

@@ -16,49 +16,45 @@ namespace MongoDB.Driver.Core.Connections
         [Test]
         public void GetMaxDocumentSize_should_return_default_if_unspecified()
         {
-            var isMasterResult = new BsonDocument();
-
-            var result = IsMasterResultHelper.GetMaxDocumentSize(isMasterResult, 100);
-
+            var doc = new BsonDocument();
+            var isMasterResult = new IsMasterResult(doc);
+            var result = isMasterResult.GetMaxDocumentSize(100);
             Assert.AreEqual(100, result);
         }
 
         [Test]
         public void GetMaxDocumentSize_should_return_value_if_specified()
         {
-            var isMasterResult = new BsonDocument("maxBsonObjectSize", 200);
-
-            var result = IsMasterResultHelper.GetMaxDocumentSize(isMasterResult, 100);
-
+            var doc = new BsonDocument("maxBsonObjectSize", 200);
+            var isMasterResult = new IsMasterResult(doc);
+            var result = isMasterResult.GetMaxDocumentSize(100);
             Assert.AreEqual(200, result);
         }
 
         [Test]
         public void GetMaxMessageSize_should_return_the_max_document_size_plus_1MB_if_it_is_specified_and_larger_than_the_default_max_message_size()
         {
-            var isMasterResult = new BsonDocument();
-
-            var result = IsMasterResultHelper.GetMaxMessageSize(isMasterResult, 100, 200);
-
+            var doc = new BsonDocument();
+            var isMasterResult = new IsMasterResult(doc);
+            var result = isMasterResult.GetMaxMessageSize(100, 200);
             Assert.AreEqual(1124, result);
         }
 
         [Test]
         public void GetMaxMessageSize_should_return_the_default_if_it_is_specified_and_larger_than_the_default_max_message_size_minus_1MB()
         {
-            var isMasterResult = new BsonDocument();
-
-            var result = IsMasterResultHelper.GetMaxMessageSize(isMasterResult, 100, 2048);
-
+            var doc = new BsonDocument();
+            var isMasterResult = new IsMasterResult(doc);
+            var result = isMasterResult.GetMaxMessageSize(100, 2048);
             Assert.AreEqual(2048, result);
         }
 
         [Test]
         public void GetMaxMessageSize_should_return_value_if_specified()
         {
-            var isMasterResult = new BsonDocument("maxMessageSizeBytes", 300);
-
-            var result = IsMasterResultHelper.GetMaxMessageSize(isMasterResult, 100, 200);
+            var doc = new BsonDocument("maxMessageSizeBytes", 300);
+            var isMasterResult = new IsMasterResult(doc);
+            var result = isMasterResult.GetMaxMessageSize(100, 200);
 
             Assert.AreEqual(300, result);
         }
@@ -72,34 +68,32 @@ namespace MongoDB.Driver.Core.Connections
         [TestCase("{msg: \"something\" }", ServerType.StandAlone)]
         public void GetServerType_should_return_correct_server_type(string json, ServerType expected)
         {
-            var isMasterResult = BsonSerializer.Deserialize<BsonDocument>(json);
-
-            var serverType = IsMasterResultHelper.GetServerType(isMasterResult);
-
+            var doc = BsonSerializer.Deserialize<BsonDocument>(json);
+            var isMasterResult = new IsMasterResult(doc);
+            var serverType = isMasterResult.ServerType;
             Assert.AreEqual(expected, serverType);
         }
 
         [Test]
         public void GetReplicaSetInfo_should_return_null_if_the_isMasterResult_is_not_a_replica_set()
         {
-            var isMasterResult = new BsonDocument();
-
-            var replicaSetInfo = IsMasterResultHelper.GetReplicaSetInfo(AddressFamily.InterNetwork, isMasterResult);
-
+            var doc = new BsonDocument();
+            var isMasterResult = new IsMasterResult(doc);
+            var replicaSetInfo = isMasterResult.GetReplicaSetInfo(AddressFamily.InterNetwork);
             Assert.IsNull(replicaSetInfo);
         }
 
         [Test]
         public void GetReplicaSetInfo_should_return_correct_info_when_the_isMasterResult_is_a_replica_set()
         {
-            var isMasterResult = new BsonDocument("setName", "funny")
+            var doc = new BsonDocument("setName", "funny")
                 .Add("primary", "localhost:1000")
                 .Add("hosts", new BsonArray(new[] { "localhost:1000", "localhost:1001" }))
                 .Add("passives", new BsonArray(new[] { "localhost:1002" }))
                 .Add("arbiters", new BsonArray(new[] { "localhost:1003" }))
                 .Add("tags", new BsonDocument("tag1", "a").Add("tag2", "b"));
-
-            var replicaSetInfo = IsMasterResultHelper.GetReplicaSetInfo(AddressFamily.InterNetwork, isMasterResult);
+            var isMasterResult = new IsMasterResult(doc);
+            var replicaSetInfo = isMasterResult.GetReplicaSetInfo(AddressFamily.InterNetwork);
 
             Assert.AreEqual("funny", replicaSetInfo.Name);
             Assert.AreEqual(new DnsEndPoint("localhost", 1000, AddressFamily.InterNetwork), replicaSetInfo.Primary);

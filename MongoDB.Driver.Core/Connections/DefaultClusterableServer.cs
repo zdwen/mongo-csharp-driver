@@ -201,35 +201,32 @@ namespace MongoDB.Driver.Core.Connections
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            var isMasterResult = CommandHelper.RunCommand("admin", isMasterCommand, _updateDescriptionConnection);
+            var isMasterResult = CommandHelper.RunCommand<IsMasterResult>("admin", isMasterCommand, _updateDescriptionConnection);
             stopwatch.Stop();
             _pingTimeAggregator.Include(stopwatch.Elapsed);
 
-            if (!CommandHelper.IsResultOk(isMasterResult))
+            if (!isMasterResult.Ok)
             {
-                throw new MongoOperationException("Command 'ismaster' failed.", isMasterResult);
+                throw new MongoOperationException("Command 'ismaster' failed.", isMasterResult.Response);
             }
 
             ServerBuildInfo buildInfo = null;
             var buildInfoCommand = new BsonDocument("buildinfo", 1);
-            var buildInfoResult = CommandHelper.RunCommand("admin", buildInfoCommand, _updateDescriptionConnection);
-            if (!CommandHelper.IsResultOk(buildInfoResult))
+            var buildInfoResult = CommandHelper.RunCommand<CommandResult>("admin", buildInfoCommand, _updateDescriptionConnection);
+            if (!buildInfoResult.Ok)
             {
-                throw new MongoOperationException("Command 'buildinfo' failed.", buildInfoResult);
+                throw new MongoOperationException("Command 'buildinfo' failed.", buildInfoResult.Response);
             }
-
-            var type = IsMasterResultHelper.GetServerType(isMasterResult);
-            var replicaSetInfo = IsMasterResultHelper.GetReplicaSetInfo(_updateDescriptionConnection.DnsEndPoint.AddressFamily, isMasterResult);
 
             return new ServerDescription(
                 averagePingTime: _pingTimeAggregator.Average,
                 buildInfo: buildInfo,
                 dnsEndPoint: _dnsEndPoint,
-                maxDocumentSize: IsMasterResultHelper.GetMaxDocumentSize(isMasterResult, _settings.MaxDocumentSizeDefault),
-                maxMessageSize: IsMasterResultHelper.GetMaxMessageSize(isMasterResult, _settings.MaxDocumentSizeDefault, _settings.MaxMessageSizeDefault),
-                replicaSetInfo: replicaSetInfo,
+                maxDocumentSize: isMasterResult.GetMaxDocumentSize(_settings.MaxDocumentSizeDefault),
+                maxMessageSize: isMasterResult.GetMaxMessageSize(_settings.MaxDocumentSizeDefault, _settings.MaxMessageSizeDefault),
+                replicaSetInfo: isMasterResult.GetReplicaSetInfo(_updateDescriptionConnection.DnsEndPoint.AddressFamily),
                 status: ServerStatus.Connected,
-                type: type);
+                type: isMasterResult.ServerType);
         }
 
         private void ThrowIfDisposed()

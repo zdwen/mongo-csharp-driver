@@ -16,6 +16,7 @@
 using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Support;
@@ -24,47 +25,7 @@ namespace MongoDB.Driver.Core.Connections
 {
     internal static class CommandHelper
     {
-        public static int? GetCode(BsonDocument result)
-        {
-            Ensure.IsNotNull("result", result);
-
-            return result.GetValue("code", BsonNull.Value).AsNullableInt32;
-        }
-
-        public static string GetErrorMessage(BsonDocument result)
-        {
-            Ensure.IsNotNull("result", result);
-
-            if (!IsResultOk(result))
-            {
-                BsonValue errmsg;
-                if (result.TryGetValue("errmsg", out errmsg) && !errmsg.IsBsonNull)
-                {
-                    return errmsg.ToString();
-                }
-                else
-                {
-                    return "Unknown error";
-                }
-            }
-
-            return null;
-        }
-
-        public static bool IsResultOk(BsonDocument result)
-        {
-            Ensure.IsNotNull("result", result);
-
-            BsonValue ok;
-            if (result.TryGetValue("ok", out ok))
-            {
-                return ok.ToBoolean();
-            }
-
-            return false;
-        }
-
-        public static BsonDocument RunCommand(string databaseName, BsonDocument command, IConnection connection)
+        public static TCommandResult RunCommand<TCommandResult>(string databaseName, BsonDocument command, IConnection connection)
         {
             Ensure.IsNotNull("databaseName", databaseName);
             Ensure.IsNotNull("command", command);
@@ -92,8 +53,8 @@ namespace MongoDB.Driver.Core.Connections
                     throw new MongoOperationException(string.Format("Command '{0}' failed. No response returned.", command.GetElement(0).Name));
                 }
 
-                var serializer = BsonDocumentSerializer.Instance;
-                return replyMessage.DeserializeDocuments<BsonDocument>(serializer, null, new BsonBinaryReaderSettings()).Single();
+                var serializer = BsonSerializer.LookupSerializer(typeof(TCommandResult));
+                return replyMessage.DeserializeDocuments<TCommandResult>(serializer, null, new BsonBinaryReaderSettings()).Single();
             }
         }
     }

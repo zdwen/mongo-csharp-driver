@@ -81,6 +81,7 @@
     <Compile Include="Connections\IConnectionPool.cs" />
     <Compile Include="Connections\IStreamFactory.cs" />
     <Compile Include="Connections\DefaultStreamFactory.cs" />
+    <Compile Include="Connections\IsMasterResult.cs" />
     <Compile Include="MongoOperationException.cs" />
     <Compile Include="Diagnostics\TraceManager.cs" />
     <Compile Include="Events\ConnectionAuthenticatedEvent.cs" />
@@ -196,7 +197,6 @@
     <Compile Include="Connections\ClusterableServerBase.cs" />
     <Compile Include="Connections\ClusterBase.cs" />
     <Compile Include="Connections\IServerSelector.cs" />
-    <Compile Include="Connections\IsMasterResultHelper.cs" />
     <Compile Include="Connections\ReplicaSetInfo.cs" />
     <Compile Include="Extensions\System\Diagnostics\TraceSourceExtensionMethods.cs" />
     <Compile Include="Operations\CommandOperation.cs" />

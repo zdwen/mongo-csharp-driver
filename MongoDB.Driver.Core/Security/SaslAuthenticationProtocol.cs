@@ -66,32 +66,31 @@ namespace MongoDB.Driver.Core.Security
 
                 while (true)
                 {
-                    BsonDocument result;
-                    result = CommandHelper.RunCommand(credential.Source, command, connection);
-                    if (!CommandHelper.IsResultOk(result))
+                    var result = CommandHelper.RunCommand<CommandResult>(credential.Source, command, connection);
+                    if (!result.Ok)
                     {
                         var message = "Unknown error occured during authentication.";
-                        var code = CommandHelper.GetCode(result);
-                        var errmsg = CommandHelper.GetErrorMessage(result);
-                        if (code.HasValue && errmsg != null)
+                        var code = result.Code;
+                        var errorMessage = result.ErrorMessage;
+                        if (code.HasValue && errorMessage != null)
                         {
-                            message = string.Format("Error: {0} - {1}", code, errmsg);
+                            message = string.Format("Error: {0} - {1}", code, errorMessage);
                         }
 
-                        throw new MongoAuthenticationException(message, result);
+                        throw new MongoAuthenticationException(message, result.Response);
                     }
 
-                    if (result["done"].AsBoolean)
+                    if (result.Response["done"].AsBoolean)
                     {
                         break;
                     }
 
-                    currentStep = currentStep.Transition(conversation, result["payload"].AsByteArray);
+                    currentStep = currentStep.Transition(conversation, result.Response["payload"].AsByteArray);
 
                     command = new BsonDocument
                     {
                         { "saslContinue", 1 },
-                        { "conversationId", result["conversationId"].AsInt32 },
+                        { "conversationId", result.Response["conversationId"].AsInt32 },
                         { "payload", currentStep.BytesToSendToServer }
                     };
                 }
