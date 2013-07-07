@@ -38,8 +38,8 @@ namespace MongoDB.DriverUnitTests.Jira
 
 
             // 1) Create a Stream Factory
-            IStreamFactory streamFactory = new DefaultStreamFactory(
-                DefaultStreamFactorySettings.Defaults,
+            IStreamFactory streamFactory = new NetworkStreamFactory(
+                NetworkStreamFactorySettings.Defaults,
                 new DnsCache());
 
             // SSL

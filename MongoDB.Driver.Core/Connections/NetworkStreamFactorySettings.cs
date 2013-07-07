@@ -20,15 +20,15 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Settings for the <see cref="DefaultStreamFactory"/>.
+    /// Settings for the <see cref="NetworkStreamFactory"/>.
     /// </summary>
-    public sealed class DefaultStreamFactorySettings
+    public sealed class NetworkStreamFactorySettings
     {
         // public static fields
         /// <summary>
         /// The default settings.
         /// </summary>
-        public static readonly DefaultStreamFactorySettings Defaults = new Builder().Build();
+        public static readonly NetworkStreamFactorySettings Defaults = new Builder().Build();
 
         // private fields
         private readonly TimeSpan _connectTimeout;
@@ -39,14 +39,14 @@ namespace MongoDB.Driver.Core.Connections
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultStreamFactorySettings" /> class.
+        /// Initializes a new instance of the <see cref="NetworkStreamFactorySettings" /> class.
         /// </summary>
         /// <param name="connectTimeout">The connect timeout.</param>
         /// <param name="readTimeout">The socket read timeout.</param>
         /// <param name="writeTimeout">The socket write timeout.</param>
         /// <param name="tcpReceiveBufferSize">The size of the TCP receive buffer.</param>
         /// <param name="tcpSendBufferSize">The size of the TCP send buffer.</param>
-        public DefaultStreamFactorySettings(TimeSpan connectTimeout, TimeSpan readTimeout, TimeSpan writeTimeout, int tcpReceiveBufferSize, int tcpSendBufferSize)
+        public NetworkStreamFactorySettings(TimeSpan connectTimeout, TimeSpan readTimeout, TimeSpan writeTimeout, int tcpReceiveBufferSize, int tcpSendBufferSize)
         {
             Ensure.IsInfiniteOrPositive("connectTimeout", connectTimeout);
             Ensure.IsInfiniteOrPositive("readTimeout", readTimeout);
@@ -108,7 +108,7 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="callback">The callback.</param>
         /// <returns>The built settings.</returns>
-        public static DefaultStreamFactorySettings Create(Action<Builder> callback)
+        public static NetworkStreamFactorySettings Create(Action<Builder> callback)
         {
             var builder = new Builder();
             callback(builder);
@@ -135,9 +135,9 @@ namespace MongoDB.Driver.Core.Connections
                 _writeTimeout = TimeSpan.FromMilliseconds(Timeout.Infinite); // OS default
             }
 
-            internal DefaultStreamFactorySettings Build()
+            internal NetworkStreamFactorySettings Build()
             {
-                return new DefaultStreamFactorySettings(
+                return new NetworkStreamFactorySettings(
                     _connectTimeout,
                     _readTimeout,
                     _writeTimeout,

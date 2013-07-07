@@ -80,7 +80,7 @@
     <Compile Include="Connections\Socks5ProxyStreamFactory.cs" />
     <Compile Include="Connections\IConnectionPool.cs" />
     <Compile Include="Connections\IStreamFactory.cs" />
-    <Compile Include="Connections\DefaultStreamFactory.cs" />
+    <Compile Include="Connections\NetworkStreamFactory.cs" />
     <Compile Include="Connections\IsMasterResult.cs" />
     <Compile Include="DatabaseNamespace.cs" />
     <Compile Include="MongoOperationException.cs" />
@@ -187,7 +187,7 @@
     <Compile Include="Connections\ConnectionMode.cs" />
     <Compile Include="Connections\DefaultChannelProvider.cs" />
     <Compile Include="Connections\DefaultChannelProviderSettings.cs" />
-    <Compile Include="Connections\DefaultStreamFactorySettings.cs" />
+    <Compile Include="Connections\NetworkStreamFactorySettings.cs" />
     <Compile Include="Connections\MultiServerCluster.cs" />
     <Compile Include="Connections\MultiServerClusterType.cs" />
     <Compile Include="Connections\DefaultClusterableServerFactory.cs" />

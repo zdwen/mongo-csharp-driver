@@ -23,19 +23,19 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Creates a <see cref="NetworkStream"/>.
     /// </summary>
-    public class DefaultStreamFactory : IStreamFactory
+    public class NetworkStreamFactory : IStreamFactory
     {
         // private fields
         private readonly DnsCache _dnsCache;
-        private readonly DefaultStreamFactorySettings _settings;
+        private readonly NetworkStreamFactorySettings _settings;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultStreamFactory" /> class.
+        /// Initializes a new instance of the <see cref="NetworkStreamFactory" /> class.
         /// </summary>
         /// <param name="settings">The settings.</param>
-        /// <param name="dnsCache">The dns cache.</param>
-        public DefaultStreamFactory(DefaultStreamFactorySettings settings, DnsCache dnsCache)
+        /// <param name="dnsCache">The DNS cache.</param>
+        public NetworkStreamFactory(NetworkStreamFactorySettings settings, DnsCache dnsCache)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsCache", dnsCache);
@@ -46,10 +46,10 @@ namespace MongoDB.Driver.Core.Connections
 
         // public methods
         /// <summary>
-        /// Creates a stream for the specified dns end point.
+        /// Creates a NetowrkStream for the specified DNS end point.
         /// </summary>
         /// <param name="dnsEndPoint">The DNS end point.</param>
-        /// <returns>A stream.</returns>
+        /// <returns>A NetworkStream.</returns>
         public Stream Create(DnsEndPoint dnsEndPoint)
         {
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
