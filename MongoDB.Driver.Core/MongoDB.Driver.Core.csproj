@@ -138,7 +138,7 @@
     <Compile Include="Events\IEventPublisher.cs" />
     <Compile Include="Events\ConnectionMessageReceivedEvent.cs" />
     <Compile Include="Events\ConnectionPacketSendingEvent.cs" />
-    <Compile Include="Extensions\System\Collections\Generics\EnumerableExtensionMethods.cs" />
+    <Compile Include="Extensions\Collections\EnumerableExtensionMethods.cs" />
     <Compile Include="CommandResult.cs" />
     <Compile Include="CommandResultSerializer.cs" />
     <Compile Include="Connections\ServerChannelBase.cs" />
@@ -199,7 +199,7 @@
     <Compile Include="Connections\ClusterBase.cs" />
     <Compile Include="Connections\IServerSelector.cs" />
     <Compile Include="Connections\ReplicaSetInfo.cs" />
-    <Compile Include="Extensions\System\Diagnostics\TraceSourceExtensionMethods.cs" />
+    <Compile Include="Extensions\Diagnostics\TraceSourceExtensionMethods.cs" />
     <Compile Include="Operations\CommandOperation.cs" />
     <Compile Include="Operations\DatabaseOperation.cs" />
     <Compile Include="Operations\ICursorChannelProvider.cs" />

@@ -13,10 +13,12 @@
 * limitations under the License.
 */
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace System.Collections.Generic
+namespace MongoDB.Driver.Core.Extensions.Collections
 {
     /// <summary>
     /// Extension methods for <see cref="IEnumerable{T}"/>.

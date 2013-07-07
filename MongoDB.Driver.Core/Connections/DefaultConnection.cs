@@ -21,6 +21,7 @@ using System.Net.Sockets;
 using System.Threading;
 using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Events;
+using MongoDB.Driver.Core.Extensions.Diagnostics;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Support;
 

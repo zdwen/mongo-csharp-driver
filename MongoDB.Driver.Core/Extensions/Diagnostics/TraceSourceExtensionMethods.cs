@@ -13,7 +13,9 @@
 * limitations under the License.
 */
 
-namespace System.Diagnostics
+using System;
+using System.Diagnostics;
+namespace MongoDB.Driver.Core.Extensions.Diagnostics
 {
     /// <summary>
     /// Extension methods for <see cref="TraceSource"/>.

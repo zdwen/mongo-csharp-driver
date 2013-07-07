@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Extensions.Collections;
 
 namespace MongoDB.Driver.Core
 {
