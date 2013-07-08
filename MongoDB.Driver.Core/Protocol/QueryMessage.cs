@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.Protocol
     {
         // private fields
         private readonly QueryFlags _flags;
-        private readonly MongoNamespace _namespace;
+        private readonly CollectionNamespace _collectionNamespace;
         private readonly int _numberToReturn;
         private readonly int _numberToSkip;
         private readonly object _query;
@@ -37,22 +37,22 @@ namespace MongoDB.Driver.Core.Protocol
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryMessage" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="query">The query.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="numberToSkip">The number to skip.</param>
         /// <param name="numberToReturn">The number to return.</param>
         /// <param name="returnFieldSelector">The return field selector.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public QueryMessage(MongoNamespace @namespace, object query, QueryFlags flags, int numberToSkip, int numberToReturn, object returnFieldSelector, BsonBinaryWriterSettings writerSettings)
+        public QueryMessage(CollectionNamespace collectionNamespace, object query, QueryFlags flags, int numberToSkip, int numberToReturn, object returnFieldSelector, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Query)
         {
-            Ensure.IsNotNull("@namespace", @namespace);
+            Ensure.IsNotNull("collectionNamespace", collectionNamespace);
             Ensure.IsNotNull("query", query);
             Ensure.IsNotNull("writerSettings", writerSettings);
             // NOTE: returnFieldSelector is allowed to be null as it is not required by the protocol
 
-            _namespace = @namespace;
+            _collectionNamespace = collectionNamespace;
             _flags = flags;
             _numberToSkip = numberToSkip;
             _numberToReturn = numberToReturn;
@@ -69,7 +69,7 @@ namespace MongoDB.Driver.Core.Protocol
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
             streamWriter.WriteInt32((int)_flags);
-            streamWriter.WriteCString(_namespace.FullName);
+            streamWriter.WriteCString(_collectionNamespace.FullName);
             streamWriter.WriteInt32(_numberToSkip);
             streamWriter.WriteInt32(_numberToReturn);
 

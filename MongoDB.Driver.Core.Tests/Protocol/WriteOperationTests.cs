@@ -77,7 +77,7 @@ namespace MongoDB.Driver.Core.Protocol
         private TestWriteOperation CreateSubject(WriteConcern writeConcern)
         {
             return new TestWriteOperation(
-                new MongoNamespace("admin", "YAY"),
+                new CollectionNamespace("admin", "YAY"),
                 new BsonBinaryReaderSettings(),
                 new BsonBinaryWriterSettings(),
                 writeConcern);
@@ -100,8 +100,8 @@ namespace MongoDB.Driver.Core.Protocol
 
         private class TestWriteOperation : WriteOperation
         {
-            public TestWriteOperation(MongoNamespace @namespace, BsonBinaryReaderSettings readerSettings, BsonBinaryWriterSettings writerSettings, WriteConcern writeConcern)
-                : base(@namespace, readerSettings, writerSettings, writeConcern)
+            public TestWriteOperation(CollectionNamespace collectionNamespace, BsonBinaryReaderSettings readerSettings, BsonBinaryWriterSettings writerSettings, WriteConcern writeConcern)
+                : base(collectionNamespace, readerSettings, writerSettings, writeConcern)
             { }
 
             public int BufferLengthWithoutWriteConcern { get; set; }
@@ -112,7 +112,7 @@ namespace MongoDB.Driver.Core.Protocol
                 var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
 
                 var deleteMessage = new DeleteMessage(
-                    Namespace,
+                    CollectionNamespace,
                     new BsonDocument(),
                     DeleteFlags.Single,
                     writerSettings);

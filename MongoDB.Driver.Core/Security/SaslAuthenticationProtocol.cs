@@ -66,7 +66,7 @@ namespace MongoDB.Driver.Core.Security
 
                 while (true)
                 {
-                    var result = CommandHelper.RunCommand<CommandResult>(credential.Source, command, connection);
+                    var result = CommandHelper.RunCommand<CommandResult>(new DatabaseNamespace(credential.Source), command, connection);
                     if (!result.Ok)
                     {
                         var message = "Unknown error occured during authentication.";

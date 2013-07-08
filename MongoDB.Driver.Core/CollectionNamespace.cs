@@ -18,30 +18,21 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core
 {
     /// <summary>
-    /// Represents a database name and a collection name.
+    /// Represents a collection name.
     /// </summary>
-    public class MongoNamespace
+    public class CollectionNamespace
     {
-        // private static fields
-        private static readonly string __template = "{0}.{1}";
-
-        // public static fields
-        /// <summary>
-        /// The name of the command collection.
-        /// </summary>
-        public static readonly string CommandCollectionName = "$cmd";
-
         // private fields
         private readonly string _databaseName;
         private readonly string _collectionName;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoNamespace" /> class.
+        /// Initializes a new instance of the <see cref="CollectionNamespace" /> class.
         /// </summary>
         /// <param name="databaseName">Name of the database.</param>
         /// <param name="collectionName">Name of the collection.</param>
-        public MongoNamespace(string databaseName, string collectionName)
+        public CollectionNamespace(string databaseName, string collectionName)
         {
             Ensure.IsNotNull("databaseName", databaseName);
             Ensure.IsNotNull("collectionName", collectionName);
@@ -60,14 +51,6 @@ namespace MongoDB.Driver.Core
         }
 
         /// <summary>
-        /// Gets the command collection.
-        /// </summary>
-        public MongoNamespace CommandCollection
-        {
-            get { return new MongoNamespace(_databaseName, CommandCollectionName); }
-        }
-
-        /// <summary>
         /// Gets the name of the database.
         /// </summary>
         public string DatabaseName
@@ -80,18 +63,7 @@ namespace MongoDB.Driver.Core
         /// </summary>
         public string FullName
         {
-            get { return string.Format(__template, _databaseName, _collectionName); }
-        }
-
-        // public methods
-        /// <summary>
-        /// Gets a sibling collection.
-        /// </summary>
-        /// <param name="collectionName">Name of the collection.</param>
-        /// <returns>The namespace for the sibling.</returns>
-        public MongoNamespace GetSiblingCollection(string collectionName)
-        {
-            return new MongoNamespace(_databaseName, collectionName);
+            get { return string.Format("{0}.{1}", _databaseName, _collectionName); }
         }
     }
 }

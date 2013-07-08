@@ -116,7 +116,7 @@ namespace MongoDB.DriverUnitTests.Jira
             using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
             {
                 var commandOp = new CommandOperation<CommandResult>(
-                    "foo",
+                    new DatabaseNamespace("foo"),
                     new BsonBinaryReaderSettings(),
                     new BsonBinaryWriterSettings(),
                     new BsonDocument("dropDatabase", 1),
@@ -213,7 +213,7 @@ namespace MongoDB.DriverUnitTests.Jira
         private static void Insert(IServerChannel connection, BsonDocument document)
         {
             var insertOp = new InsertOperation(
-                new MongoNamespace("foo", "bar"),
+                new CollectionNamespace("foo", "bar"),
                 new BsonBinaryReaderSettings(),
                 new BsonBinaryWriterSettings(),
                 WriteConcern.Acknowledged,
@@ -230,7 +230,7 @@ namespace MongoDB.DriverUnitTests.Jira
         private static IEnumerator<BsonDocument> Query(IServerChannel connection, BsonDocument query)
         {
             var queryOp = new QueryOperation<BsonDocument>(
-                new MongoNamespace("foo", "bar"),
+                new CollectionNamespace("foo", "bar"),
                 new BsonBinaryReaderSettings(),
                 new BsonBinaryWriterSettings(),
                 1,
@@ -270,7 +270,7 @@ namespace MongoDB.DriverUnitTests.Jira
         private static void Update(IServerChannel connection, BsonDocument query, BsonDocument update)
         {
             var updateOp = new UpdateOperation(
-                new MongoNamespace("foo", "bar"),
+                new CollectionNamespace("foo", "bar"),
                 new BsonBinaryReaderSettings(),
                 new BsonBinaryWriterSettings(),
                 WriteConcern.Acknowledged,

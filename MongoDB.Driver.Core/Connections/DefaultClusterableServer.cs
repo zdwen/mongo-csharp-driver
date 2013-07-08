@@ -201,7 +201,7 @@ namespace MongoDB.Driver.Core.Connections
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            var isMasterResult = CommandHelper.RunCommand<IsMasterResult>("admin", isMasterCommand, _updateDescriptionConnection);
+            var isMasterResult = CommandHelper.RunCommand<IsMasterResult>(new DatabaseNamespace("admin"), isMasterCommand, _updateDescriptionConnection);
             stopwatch.Stop();
             _pingTimeAggregator.Include(stopwatch.Elapsed);
 
@@ -211,7 +211,7 @@ namespace MongoDB.Driver.Core.Connections
             }
 
             var buildInfoCommand = new BsonDocument("buildinfo", 1);
-            var buildInfoResult = CommandHelper.RunCommand<CommandResult>("admin", buildInfoCommand, _updateDescriptionConnection);
+            var buildInfoResult = CommandHelper.RunCommand<CommandResult>(new DatabaseNamespace("admin"), buildInfoCommand, _updateDescriptionConnection);
             if (!buildInfoResult.Ok)
             {
                 throw new MongoOperationException("Command 'buildinfo' failed.", buildInfoResult.Response);

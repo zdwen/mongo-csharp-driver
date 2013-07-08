@@ -25,20 +25,20 @@ namespace MongoDB.Driver.Core.Protocol
     {
         // private fields
         private readonly long _cursorId;
-        private readonly MongoNamespace _namespace;
+        private readonly CollectionNamespace _collectionNamespace;
         private readonly int _numberToReturn;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="GetMoreMessage" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="cursorId">The cursor id.</param>
         /// <param name="numberToReturn">The number to return.</param>
-        public GetMoreMessage(MongoNamespace @namespace, long cursorId, int numberToReturn)
+        public GetMoreMessage(CollectionNamespace collectionNamespace, long cursorId, int numberToReturn)
             : base(OpCode.GetMore)
         {
-            _namespace = @namespace;
+            _collectionNamespace = collectionNamespace;
             _numberToReturn = numberToReturn;
             _cursorId = cursorId;
         }
@@ -51,7 +51,7 @@ namespace MongoDB.Driver.Core.Protocol
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
             streamWriter.WriteInt32(0); // reserved
-            streamWriter.WriteCString(_namespace.FullName);
+            streamWriter.WriteCString(_collectionNamespace.FullName);
             streamWriter.WriteInt32(_numberToReturn);
             streamWriter.WriteInt64(_cursorId);
         }

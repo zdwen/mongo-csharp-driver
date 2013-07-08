@@ -41,7 +41,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandOperation{TCommandResult}" /> class.
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
+        /// <param name="databaseNamespace">Name of the database.</param>
         /// <param name="readerSettings">The reader settings.</param>
         /// <param name="writerSettings">The writer settings.</param>
         /// <param name="command">The command.</param>
@@ -51,7 +51,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="serializationOptions">The serialization options.</param>
         /// <param name="serializer">The serializer.</param>
         public CommandOperation(
-            string databaseName,
+            DatabaseNamespace databaseNamespace,
             BsonBinaryReaderSettings readerSettings,
             BsonBinaryWriterSettings writerSettings,
             object command,
@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Core.Operations
             ReadPreference readPreference,
             IBsonSerializationOptions serializationOptions,
             IBsonSerializer serializer)
-            : base(new MongoNamespace(databaseName, MongoNamespace.CommandCollectionName), readerSettings, writerSettings)
+            : base(databaseNamespace.CommandCollection, readerSettings, writerSettings)
         {
             Ensure.IsNotNull("command", command);
             Ensure.IsNotNull("serializer", serializer);
@@ -88,7 +88,7 @@ namespace MongoDB.Driver.Core.Operations
             var wrappedQuery = WrapQuery(channel.Server, _command, _options, _readPreference);
 
             var queryMessage = new QueryMessage(
-                Namespace,
+                CollectionNamespace,
                 wrappedQuery,
                 _flags,
                 0,

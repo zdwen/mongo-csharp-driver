@@ -72,7 +72,7 @@ namespace MongoDB.Driver.Core.Protocol
         private InsertOperation CreateSubject(InsertFlags flags, WriteConcern writeConcern, int numBatches)
         {
             return new InsertOperation(
-                new MongoNamespace("admin", "YAY"),
+                new CollectionNamespace("admin", "YAY"),
                 new BsonBinaryReaderSettings(),
                 new BsonBinaryWriterSettings(),
                 writeConcern,

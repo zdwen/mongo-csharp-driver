@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.Protocol
     {
         // private fields
         private readonly DeleteFlags _flags;
-        private readonly MongoNamespace _namespace;
+        private readonly CollectionNamespace _collectionNamespace;
         private readonly object _selector;
         private readonly BsonBinaryWriterSettings _writerSettings;
 
@@ -34,18 +34,18 @@ namespace MongoDB.Driver.Core.Protocol
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteMessage" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="selector">The selector.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public DeleteMessage(MongoNamespace @namespace, object selector, DeleteFlags flags, BsonBinaryWriterSettings writerSettings)
+        public DeleteMessage(CollectionNamespace collectionNamespace, object selector, DeleteFlags flags, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Delete)
         {
-            Ensure.IsNotNull("@namespace", @namespace);
+            Ensure.IsNotNull("collectionNamespace", collectionNamespace);
             Ensure.IsNotNull("selector", selector);
             Ensure.IsNotNull("writerSettings", writerSettings);
 
-            _namespace = @namespace;
+            _collectionNamespace = collectionNamespace;
             _flags = flags;
             _selector = selector;
             _writerSettings = writerSettings;
@@ -59,7 +59,7 @@ namespace MongoDB.Driver.Core.Protocol
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
             streamWriter.WriteInt32(0); // reserved
-            streamWriter.WriteCString(_namespace.FullName);
+            streamWriter.WriteCString(_collectionNamespace.FullName);
             streamWriter.WriteInt32((int)_flags);
             
             using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, _writerSettings))

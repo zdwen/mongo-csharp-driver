@@ -93,7 +93,7 @@ namespace MongoDB.Driver.Core.Protocol
         private class TestReadOperation : ReadOperation
         {
             public TestReadOperation()
-                : base(new MongoNamespace("foo", "bar"), new BsonBinaryReaderSettings(), new BsonBinaryWriterSettings())
+                : base(new CollectionNamespace("foo", "bar"), new BsonBinaryReaderSettings(), new BsonBinaryWriterSettings())
             {
             }
 

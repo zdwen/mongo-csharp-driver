@@ -18,7 +18,7 @@ namespace MongoDB.Driver.Core
             var request = new BufferedRequestPacket();
 
             var queryMessage = new QueryMessage(
-                new MongoNamespace("test", MongoNamespace.CommandCollectionName),
+                new DatabaseNamespace("test").CommandCollection,
                 new BsonDocument(commandName, 1),
                 QueryFlags.AwaitData,
                 0,

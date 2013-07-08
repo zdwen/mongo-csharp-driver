@@ -29,7 +29,7 @@ namespace MongoDB.Driver.Core.Protocol
         // private fields
         private readonly bool _checkInsertDocuments;
         private readonly InsertFlags _flags;
-        private readonly MongoNamespace _namespace;
+        private readonly CollectionNamespace _collectionNamespace;
         private readonly BsonBinaryWriterSettings _writerSettings;
         private int _lastDocumentStartPosition;
 
@@ -37,14 +37,14 @@ namespace MongoDB.Driver.Core.Protocol
         /// <summary>
         /// Initializes a new instance of the <see cref="InsertMessage" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="checkInsertDocuments">Set to true if the inserted document(s) should be checked for invalid element names.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public InsertMessage(MongoNamespace @namespace, InsertFlags flags, bool checkInsertDocuments, BsonBinaryWriterSettings writerSettings)
+        public InsertMessage(CollectionNamespace collectionNamespace, InsertFlags flags, bool checkInsertDocuments, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Insert)
         {
-            _namespace = @namespace;
+            _collectionNamespace = collectionNamespace;
             _flags = flags;
             _checkInsertDocuments = checkInsertDocuments;
             _writerSettings = writerSettings;
@@ -107,7 +107,7 @@ namespace MongoDB.Driver.Core.Protocol
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
             streamWriter.WriteInt32((int)_flags);
-            streamWriter.WriteCString(_namespace.FullName);
+            streamWriter.WriteCString(_collectionNamespace.FullName);
         }
     }
 }

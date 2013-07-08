@@ -25,14 +25,14 @@ namespace MongoDB.Driver.Core.Connections
 {
     internal static class CommandHelper
     {
-        public static TCommandResult RunCommand<TCommandResult>(string databaseName, BsonDocument command, IConnection connection)
+        public static TCommandResult RunCommand<TCommandResult>(DatabaseNamespace databaseNamespace, BsonDocument command, IConnection connection)
         {
-            Ensure.IsNotNull("databaseName", databaseName);
+            Ensure.IsNotNull("databaseNamespace", databaseNamespace);
             Ensure.IsNotNull("command", command);
             Ensure.IsNotNull("connection", connection);
 
             var queryMessage = new QueryMessage(
-                new MongoNamespace(databaseName, MongoNamespace.CommandCollectionName),
+                databaseNamespace.CommandCollection,
                 command,
                 QueryFlags.SlaveOk,
                 0,

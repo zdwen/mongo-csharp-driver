@@ -82,6 +82,7 @@
     <Compile Include="Connections\IStreamFactory.cs" />
     <Compile Include="Connections\DefaultStreamFactory.cs" />
     <Compile Include="Connections\IsMasterResult.cs" />
+    <Compile Include="DatabaseNamespace.cs" />
     <Compile Include="MongoOperationException.cs" />
     <Compile Include="Diagnostics\TraceManager.cs" />
     <Compile Include="Events\ConnectionAuthenticatedEvent.cs" />
@@ -218,7 +219,7 @@
     <Compile Include="Support\Ensure.cs" />
     <Compile Include="WriteConcernResult.cs" />
     <Compile Include="MongoException.cs" />
-    <Compile Include="MongoNamespace.cs" />
+    <Compile Include="CollectionNamespace.cs" />
     <Compile Include="Support\MongoUtils.cs" />
     <Compile Include="Protocol\InsertFlags.cs" />
     <Compile Include="Connections\MongoConnectTimeoutException.cs" />

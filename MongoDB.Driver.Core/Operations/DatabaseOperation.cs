@@ -25,7 +25,7 @@ namespace MongoDB.Driver.Core.Operations
     public abstract class DatabaseOperation
     {
         // private fields
-        private readonly MongoNamespace _namespace;
+        private readonly CollectionNamespace _collectionNamespace;
         private readonly BsonBinaryReaderSettings _readerSettings;
         private readonly BsonBinaryWriterSettings _writerSettings;
 
@@ -33,30 +33,30 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Initializes a new instance of the <see cref="DatabaseOperation" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="readerSettings">The reader settings.</param>
         /// <param name="writerSettings">The writer settings.</param>
         protected DatabaseOperation(
-            MongoNamespace @namespace,
+            CollectionNamespace collectionNamespace,
             BsonBinaryReaderSettings readerSettings,
             BsonBinaryWriterSettings writerSettings)
         {
-            Ensure.IsNotNull("namespace", @namespace);
+            Ensure.IsNotNull("namespace", collectionNamespace);
             Ensure.IsNotNull("readerSettings", readerSettings);
             Ensure.IsNotNull("writerSettings", writerSettings);
 
-            _namespace = @namespace;
+            _collectionNamespace = collectionNamespace;
             _readerSettings = (BsonBinaryReaderSettings)readerSettings.FrozenCopy();
             _writerSettings = (BsonBinaryWriterSettings)writerSettings.FrozenCopy();
         }
 
         // protected properties
         /// <summary>
-        /// Gets the namespace the operation will be performed against.
+        /// Gets the collection namespace the operation will be performed against.
         /// </summary>
-        protected MongoNamespace Namespace
+        protected CollectionNamespace CollectionNamespace
         {
-            get { return _namespace; }
+            get { return _collectionNamespace; }
         }
 
         /// <summary>

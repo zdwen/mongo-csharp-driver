@@ -33,20 +33,20 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Initializes a new instance of the <see cref="RemoveOperation" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="readerSettings">The reader settings.</param>
         /// <param name="writerSettings">The writer settings.</param>
         /// <param name="writeConcern">The write concern.</param>
         /// <param name="query">The query.</param>
         /// <param name="flags">The flags.</param>
         public RemoveOperation(
-            MongoNamespace @namespace,
+            CollectionNamespace collectionNamespace,
             BsonBinaryReaderSettings readerSettings,
             BsonBinaryWriterSettings writerSettings,
             WriteConcern writeConcern,
             object query,
             DeleteFlags flags)
-            : base(@namespace, readerSettings, writerSettings, writeConcern)
+            : base(collectionNamespace, readerSettings, writerSettings, writeConcern)
         {
             _query = query;
             _flags = flags;
@@ -65,7 +65,7 @@ namespace MongoDB.Driver.Core.Operations
             var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
             var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
 
-            var deleteMessage = new DeleteMessage(Namespace, _query, _flags, writerSettings);
+            var deleteMessage = new DeleteMessage(CollectionNamespace, _query, _flags, writerSettings);
 
             SendPacketWithWriteConcernResult sendMessageResult;
             using (var packet = new BufferedRequestPacket())

@@ -41,7 +41,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Initializes a new instance of the <see cref="InsertOperation" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The collection namespace.</param>
         /// <param name="readerSettings">The reader settings.</param>
         /// <param name="writerSettings">The writer settings.</param>
         /// <param name="writeConcern">The write concern.</param>
@@ -52,7 +52,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="flags">The flags.</param>
         /// <param name="maxMessageSize">The max message size for each batch.</param>
         public InsertOperation(
-            MongoNamespace @namespace,
+            CollectionNamespace collectionNamespace,
             BsonBinaryReaderSettings readerSettings,
             BsonBinaryWriterSettings writerSettings,
             WriteConcern writeConcern,
@@ -62,7 +62,7 @@ namespace MongoDB.Driver.Core.Operations
             IEnumerable documents,
             InsertFlags flags,
             int maxMessageSize)
-            : base(@namespace, readerSettings, writerSettings, writeConcern)
+            : base(collectionNamespace, readerSettings, writerSettings, writeConcern)
         {
             Ensure.IsNotNull("documentType", documentType);
             Ensure.IsNotNull("documents", documents);
@@ -152,7 +152,7 @@ namespace MongoDB.Driver.Core.Operations
                 do
                 {
                     var insertMessage = new InsertMessage(
-                        Namespace,
+                        CollectionNamespace,
                         _flags,
                         _checkInsertDocuments,
                         writerSettings);

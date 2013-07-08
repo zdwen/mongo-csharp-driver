@@ -47,7 +47,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryOperation{TDocument}" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="readerSettings">The reader settings.</param>
         /// <param name="writerSettings">The writer settings.</param>
         /// <param name="batchSize">Size of the batch.</param>
@@ -61,7 +61,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="serializer">The serializer.</param>
         /// <param name="skip">The skip.</param>
         public QueryOperation(
-            MongoNamespace @namespace,
+            CollectionNamespace collectionNamespace,
             BsonBinaryReaderSettings readerSettings,
             BsonBinaryWriterSettings writerSettings,
             int batchSize,
@@ -74,7 +74,7 @@ namespace MongoDB.Driver.Core.Operations
             IBsonSerializationOptions serializationOptions,
             IBsonSerializer serializer,
             int skip)
-            : base(@namespace, readerSettings, writerSettings)
+            : base(collectionNamespace, readerSettings, writerSettings)
         {
             Ensure.IsNotNull("serializer", serializer);
 
@@ -201,7 +201,7 @@ namespace MongoDB.Driver.Core.Operations
                 var wrappedQuery = WrapQuery(channel.Server, _query, _options, _readPreference);
 
                 var queryMessage = new QueryMessage(
-                    Namespace,
+                    CollectionNamespace,
                     wrappedQuery,
                     _flags,
                     _skip,
@@ -225,7 +225,7 @@ namespace MongoDB.Driver.Core.Operations
             using (var channel = channelProvider.GetChannel())
             {
                 var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
-                var getMoreMessage = new GetMoreMessage(Namespace, cursorId, _batchSize);
+                var getMoreMessage = new GetMoreMessage(CollectionNamespace, cursorId, _batchSize);
 
                 using (var packet = new BufferedRequestPacket())
                 {

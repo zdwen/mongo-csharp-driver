@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Core.Protocol
         // private fields
         private readonly bool _checkUpdateDocument;
         private readonly UpdateFlags _flags;
-        private readonly MongoNamespace _namespace;
+        private readonly CollectionNamespace _collectionNamespace;
         private readonly object _selector;
         private readonly object _update;
         private readonly BsonBinaryWriterSettings _writerSettings;
@@ -37,21 +37,21 @@ namespace MongoDB.Driver.Core.Protocol
         /// <summary>
         /// Initializes a new instance of the <see cref="UpdateMessage" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="selector">The query to select the document(s).</param>
         /// <param name="update">The update.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="checkUpdateDocument">Set to true if the update document should be checked for invalid element names.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public UpdateMessage(MongoNamespace @namespace, object selector, object update, UpdateFlags flags, bool checkUpdateDocument, BsonBinaryWriterSettings writerSettings)
+        public UpdateMessage(CollectionNamespace collectionNamespace, object selector, object update, UpdateFlags flags, bool checkUpdateDocument, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Update)
         {
-            Ensure.IsNotNull("@namespace", @namespace);
+            Ensure.IsNotNull("collectionNamespace", collectionNamespace);
             Ensure.IsNotNull("selector", selector);
             Ensure.IsNotNull("update", update);
             Ensure.IsNotNull("writerSettings", writerSettings);
 
-            _namespace = @namespace;
+            _collectionNamespace = collectionNamespace;
             _checkUpdateDocument = checkUpdateDocument;
             _flags = flags;
             _selector = selector;
@@ -67,7 +67,7 @@ namespace MongoDB.Driver.Core.Protocol
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
             streamWriter.WriteInt32(0); // reserved
-            streamWriter.WriteCString(_namespace.FullName);
+            streamWriter.WriteCString(_collectionNamespace.FullName);
             streamWriter.WriteInt32((int)_flags);
 
             using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, _writerSettings))

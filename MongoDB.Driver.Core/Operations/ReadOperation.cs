@@ -28,14 +28,14 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadOperation" /> class.
         /// </summary>
-        /// <param name="namespace">The namespace.</param>
+        /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="readerSettings">The reader settings.</param>
         /// <param name="writerSettings">The writer settings.</param>
         protected ReadOperation(
-            MongoNamespace @namespace,
+            CollectionNamespace collectionNamespace,
             BsonBinaryReaderSettings readerSettings,
             BsonBinaryWriterSettings writerSettings)
-            : base(@namespace, readerSettings, writerSettings)
+            : base(collectionNamespace, readerSettings, writerSettings)
         {
         }
 
