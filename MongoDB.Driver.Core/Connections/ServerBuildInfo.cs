@@ -15,6 +15,7 @@
 
 using System;
 using System.Text.RegularExpressions;
+using MongoDB.Bson;
 
 namespace MongoDB.Driver.Core.Connections
 {
@@ -86,6 +87,35 @@ namespace MongoDB.Driver.Core.Connections
         public string VersionString
         {
             get { return _versionString; }
+        }
+
+        // public static methods
+        /// <summary>
+        /// Creates a new instance of ServerBuildInfo initialized from the result of a buildinfo command.
+        /// </summary>
+        /// <param name="commandResult">A CommandResult.</param>
+        /// <returns>A ServerBuildInfo.</returns>
+        public static ServerBuildInfo FromCommandResult(CommandResult commandResult)
+        {
+            var response = commandResult.Response;
+            return new ServerBuildInfo(
+                response["bits"].ToInt32(),
+                response["gitVersion"].AsString,
+                response["sysInfo"].AsString,
+                response["version"].AsString
+            );
+        }
+
+        // public methods
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return _version.ToString();
         }
 
         // private methods

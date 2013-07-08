@@ -210,13 +210,13 @@ namespace MongoDB.Driver.Core.Connections
                 throw new MongoOperationException("Command 'ismaster' failed.", isMasterResult.Response);
             }
 
-            ServerBuildInfo buildInfo = null;
             var buildInfoCommand = new BsonDocument("buildinfo", 1);
             var buildInfoResult = CommandHelper.RunCommand<CommandResult>("admin", buildInfoCommand, _updateDescriptionConnection);
             if (!buildInfoResult.Ok)
             {
                 throw new MongoOperationException("Command 'buildinfo' failed.", buildInfoResult.Response);
             }
+            var buildInfo = ServerBuildInfo.FromCommandResult(buildInfoResult);
 
             return new ServerDescription(
                 averagePingTime: _pingTimeAggregator.Average,
