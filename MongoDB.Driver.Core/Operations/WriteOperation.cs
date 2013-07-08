@@ -17,6 +17,7 @@ using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Support;
@@ -91,6 +92,12 @@ namespace MongoDB.Driver.Core.Operations
                 var receiveArgs = new ChannelReceiveArgs(sendMessageResult.GetLastErrorRequestId.Value);
                 using (var reply = channel.Receive(receiveArgs))
                 {
+                    if ((reply.Flags & ReplyFlags.QueryFailure) != 0)
+                    {
+                        var response = reply.DeserializeDocuments<BsonDocument>(BsonDocumentSerializer.Instance, null, BsonBinaryReaderSettings.Defaults).Single();
+                        var message = string.Format("Query failed with response: {0}.", response.ToJson());
+                        throw new MongoOperationException(message, response);
+                    }
                     if (reply.NumberReturned == 0)
                     {
                         throw new MongoOperationException("Command 'getLastError' failed. No response returned.");
