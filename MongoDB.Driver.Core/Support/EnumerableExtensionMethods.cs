@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace MongoDB.Driver.Core.Extensions.Collections
+namespace MongoDB.Driver.Core.Support
 {
     /// <summary>
     /// Extension methods for <see cref="IEnumerable{T}"/>.

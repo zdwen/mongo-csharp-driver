@@ -15,7 +15,8 @@
 
 using System;
 using System.Diagnostics;
-namespace MongoDB.Driver.Core.Extensions.Diagnostics
+
+namespace MongoDB.Driver.Core.Support
 {
     /// <summary>
     /// Extension methods for <see cref="TraceSource"/>.
