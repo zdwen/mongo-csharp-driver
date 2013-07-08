@@ -91,6 +91,7 @@
     <Compile Include="MongoDriverException.cs" />
     <Compile Include="Connections\MongoSocketException.cs" />
     <Compile Include="Connections\IRequestPacket.cs" />
+    <Compile Include="MongoQueryException.cs" />
     <Compile Include="Protocol\BufferedRequestPacket.cs" />
     <Compile Include="Protocol\InsertMessage.cs" />
     <Compile Include="Protocol\OpCode.cs" />

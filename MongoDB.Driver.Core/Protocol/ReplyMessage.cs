@@ -16,8 +16,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Driver.Core.Protocol
 {
@@ -196,6 +199,20 @@ namespace MongoDB.Driver.Core.Protocol
                 {
                     yield return (TDocument)serializer.Deserialize(bsonReader, typeof(TDocument), serializationOptions);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Throws if query failure flag is set.
+        /// </summary>
+        /// <exception cref="MongoQueryException"></exception>
+        public void ThrowIfQueryFailureFlagIsSet()
+        {
+            if ((_flags & ReplyFlags.QueryFailure) != 0)
+            {
+                var response = DeserializeDocuments<BsonDocument>(BsonDocumentSerializer.Instance, null, BsonBinaryReaderSettings.Defaults).Single();
+                var message = string.Format("Query failed with response: {0}.", response.ToJson());
+                throw new MongoQueryException(message, response);
             }
         }
     }

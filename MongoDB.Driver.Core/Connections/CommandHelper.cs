@@ -17,7 +17,6 @@ using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Support;
 
@@ -48,12 +47,7 @@ namespace MongoDB.Driver.Core.Connections
 
             using (var reply = connection.Receive())
             {
-                if ((reply.Flags & ReplyFlags.QueryFailure) != 0)
-                {
-                    var response = reply.DeserializeDocuments<BsonDocument>(BsonDocumentSerializer.Instance, null, BsonBinaryReaderSettings.Defaults).Single();
-                    var message = string.Format("Query failed with response: {0}.", response.ToJson());
-                    throw new MongoOperationException(message, response);
-                }
+                reply.ThrowIfQueryFailureFlagIsSet();
                 if (reply.NumberReturned == 0)
                 {
                     throw new MongoOperationException(string.Format("Command '{0}' failed. No response returned.", command.GetElement(0).Name));
