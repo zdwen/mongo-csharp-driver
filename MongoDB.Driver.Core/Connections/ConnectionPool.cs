@@ -147,7 +147,7 @@ namespace MongoDB.Driver.Core.Connections
                         {
                             _trace.TraceVerbose("{0}: removed {1} because it was expired.", _toStringDescription, connection);
                             _events.Publish(new ConnectionRemovedFromPoolEvent(this, connection));
-                            connection.Wrapped.Dispose();
+                            connection.Dispose();
 
                             connection = OpenNewConnection();
                             _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, connection);
@@ -155,7 +155,7 @@ namespace MongoDB.Driver.Core.Connections
                         }
 
                         _events.Publish(new ConnectionCheckedOutOfPoolEvent(this, connection));
-                        return connection;
+                        return new AcquiredConnection(connection, this);
                     }
                     else
                     {
@@ -166,7 +166,7 @@ namespace MongoDB.Driver.Core.Connections
                         _trace.TraceInformation("{0}: pool size is {1}", _toStringDescription, CurrentSize);
                         _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
                         _events.Publish(new ConnectionCheckedOutOfPoolEvent(this, connection));
-                        return connection;
+                        return new AcquiredConnection(connection, this);
                     }
                 }
 
@@ -360,7 +360,7 @@ namespace MongoDB.Driver.Core.Connections
                 {
                     if (IsConnectionExpired(connection))
                     {
-                        connection.Wrapped.Dispose();
+                        connection.Dispose();
                         _trace.TraceVerbose("{0}: removed {1} because it has expired.", _toStringDescription, connection);
                         _trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
                         _events.Publish(new ConnectionRemovedFromPoolEvent(this, connection));
@@ -398,7 +398,7 @@ namespace MongoDB.Driver.Core.Connections
                 // events could get out of wack because we
                 // aren't raising events for connection checked in 
                 // or connection removed.
-                connection.Wrapped.Dispose();
+                connection.Dispose();
                 return;
             }
 
@@ -406,7 +406,7 @@ namespace MongoDB.Driver.Core.Connections
             if (IsConnectionExpired(connection))
             {
                 _poolQueue.Release();
-                connection.Wrapped.Dispose();
+                connection.Dispose();
                 _trace.TraceVerbose("{0}: removed {1} because it has expired.", _toStringDescription, connection);
                 _trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, _settings.MaxSize - _poolQueue.CurrentCount);
                 _events.Publish(new ConnectionRemovedFromPoolEvent(this, connection));
@@ -448,6 +448,78 @@ namespace MongoDB.Driver.Core.Connections
             public int GenerationId;
         }
 
+        private sealed class AcquiredConnection : ConnectionBase
+        {
+            private ConnectionPool _pool;
+            private PooledConnection _wrapped;
+            private bool _disposed;
+
+            public AcquiredConnection(PooledConnection connection, ConnectionPool pool)
+            {
+                _wrapped = connection;
+                _pool = pool;
+            }
+
+            public override DnsEndPoint DnsEndPoint
+            {
+                get
+                {
+                    ThrowIfDisposed();
+                    return _wrapped.DnsEndPoint;
+                }
+            }
+
+            public override bool IsOpen
+            {
+                get
+                {
+                    ThrowIfDisposed();
+                    return _wrapped.IsOpen;
+                }
+            }
+
+            public override void Open()
+            {
+                ThrowIfDisposed();
+                _wrapped.Open();
+            }
+
+            public override ReplyMessage Receive()
+            {
+                ThrowIfDisposed();
+                return _wrapped.Receive();
+            }
+
+            public override void Send(IRequestPacket packet)
+            {
+                ThrowIfDisposed();
+                _wrapped.Send(packet);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (!_disposed)
+                {
+                    if (disposing)
+                    {
+                        _pool.ReleaseConnection(_wrapped);
+                        _pool = null;
+                        _wrapped = null;
+                    }
+                    _disposed = true;
+                }
+                base.Dispose(disposing);
+            }
+
+            private void ThrowIfDisposed()
+            {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(GetType().Name);
+                }
+            }
+        }
+
         private sealed class PooledConnection : ConnectionBase
         {
             private ConnectionInfo _info;
@@ -460,15 +532,6 @@ namespace MongoDB.Driver.Core.Connections
                 _wrapped = connection;
                 _pool = pool;
                 _info = info;
-            }
-
-            public IConnection Wrapped
-            {
-                get
-                {
-                    ThrowIfDisposed();
-                    return _wrapped;
-                }
             }
 
             public override DnsEndPoint DnsEndPoint
@@ -540,14 +603,17 @@ namespace MongoDB.Driver.Core.Connections
 
             protected override void Dispose(bool disposing)
             {
-                if (disposing && _pool != null)
+                if (!_disposed)
                 {
-                    _pool.ReleaseConnection(this);
-                    _pool = null;
-                    _info = null;
-                    _wrapped = null;
+                    if (disposing)
+                    {
+                        _wrapped.Dispose();
+                        _pool = null;
+                        _info = null;
+                        _wrapped = null;
+                    }
+                    _disposed = true;
                 }
-                _disposed = true;
                 base.Dispose(disposing);
             }
 
