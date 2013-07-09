@@ -75,7 +75,7 @@
     <Compile Include="Connections\StreamConnectionTests.cs" />
     <Compile Include="ProtocolHelper.cs" />
     <Compile Include="Connections\CommandHelperTests.cs" />
-    <Compile Include="Connections\DefaultChannelProviderTests.cs" />
+    <Compile Include="Connections\ConnectionPoolTests.cs" />
     <Compile Include="Mocks\MockChannel.cs" />
     <Compile Include="Mocks\MockChannelProvider.cs" />
     <Compile Include="Protocol\ReadOperationTests.cs" />

@@ -13,33 +13,20 @@
 * limitations under the License.
 */
 
-using System;
 using System.Net;
-using System.Threading;
 
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// A pool of connections.
+    /// Creates a <see cref="ConnectionPoolChannelProviderFactory"/>.
     /// </summary>
-    public interface IConnectionPool : IDisposable
+    public interface IConnectionPoolFactory
     {
         /// <summary>
-        /// Gets the DNS end point.
+        /// Creates a connection pool for the specified address.
         /// </summary>
-        DnsEndPoint DnsEndPoint { get; }
-
-        /// <summary>
-        /// Gets the connection pool settings.
-        /// </summary>
-        ConnectionPoolSettings Settings { get; }
-
-        /// <summary>
-        /// Gets a connection.
-        /// </summary>
-        /// <param name="timeout">The timeout.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
-        /// <returns>A connection.</returns>
-        IConnection GetConnection(TimeSpan timeout, CancellationToken cancellationToken);
+        /// <param name="dnsEndPoint">The DNS end point.</param>
+        /// <returns>A connection pool.</returns>
+        IConnectionPool Create(DnsEndPoint dnsEndPoint);
     }
 }

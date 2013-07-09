@@ -26,9 +26,9 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// The default channel provider, implemented as a connection pool.
+    /// Represents a connection pool.
     /// </summary>
-    internal sealed class DefaultChannelProvider : ChannelProviderBase, IConnectionPool
+    internal sealed class ConnectionPool : IConnectionPool
     {
         // private static fields
         private static int __nextId;
@@ -39,9 +39,9 @@ namespace MongoDB.Driver.Core.Connections
         private readonly DnsEndPoint _dnsEndPoint;
         private readonly IEventPublisher _events;
         private readonly int _id;
-        private readonly ConcurrentQueue<ConnectionChannel> _pool;
+        private readonly ConcurrentQueue<PooledConnection> _pool;
         private readonly SemaphoreSlim _poolQueue;
-        private readonly DefaultChannelProviderSettings _settings;
+        private readonly ConnectionPoolSettings _settings;
         private readonly string _toStringDescription;
         private readonly TraceSource _trace;
         private int _currentGenerationId;
@@ -51,14 +51,14 @@ namespace MongoDB.Driver.Core.Connections
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultChannelProvider" /> class.
+        /// Initializes a new instance of the <see cref="ConnectionPool" /> class.
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
         /// <param name="traceManager">The trace manager.</param>
-        public DefaultChannelProvider(DefaultChannelProviderSettings settings, DnsEndPoint dnsEndPoint, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
+        public ConnectionPool(ConnectionPoolSettings settings, DnsEndPoint dnsEndPoint, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
@@ -72,9 +72,9 @@ namespace MongoDB.Driver.Core.Connections
             _events = events;
             _settings = settings;
             _toStringDescription = string.Format("pool#{0}", _id);
-            _trace = traceManager.GetTraceSource<DefaultChannelProvider>();
+            _trace = traceManager.GetTraceSource<ConnectionPool>();
 
-            _pool = new ConcurrentQueue<ConnectionChannel>();
+            _pool = new ConcurrentQueue<PooledConnection>();
             _poolQueue = new SemaphoreSlim(_settings.MaxSize, _settings.MaxSize);
             _sizeMaintenanceTimer = new Timer(_ => MaintainSize());
         }
@@ -83,41 +83,17 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the DNS end point.
         /// </summary>
-        public override DnsEndPoint DnsEndPoint
+        public DnsEndPoint DnsEndPoint
         {
             get { return _dnsEndPoint; }
         }
 
         /// <summary>
-        /// Gets the maximum amount of time a connection is allowed to be idle.
+        /// Gets the connection pool settings.
         /// </summary>
-        public TimeSpan MaxConnectionIdleTime
+        public ConnectionPoolSettings Settings
         {
-            get { return _settings.ConnectionMaxIdleTime; }
-        }
-
-        /// <summary>
-        /// Gets the maximum amount of time a connection is allowed to be used.
-        /// </summary>
-        public TimeSpan MaxConnectionLifeTime
-        {
-            get { return _settings.ConnectionMaxLifeTime; }
-        }
-
-        /// <summary>
-        /// Gets the maximum number of connections allowed.
-        /// </summary>
-        public int MaxSize
-        {
-            get { return _settings.MaxSize; }
-        }
-
-        /// <summary>
-        /// Gets the minimum number of connections allowed.
-        /// </summary>
-        public int MinSize
-        {
-            get { return _settings.MinSize; }
+            get { return _settings; }
         }
 
         // private properties
@@ -133,13 +109,22 @@ namespace MongoDB.Driver.Core.Connections
 
         // public methods
         /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
         /// Gets a connection.
         /// </summary>
         /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A connection.</returns>
         /// <exception cref="MongoDriverException">Too many threads are already waiting for a connection.</exception>
-        public override IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
+        public IConnection GetConnection(TimeSpan timeout, CancellationToken cancellationToken)
         {
             ThrowIfUninitialized();
             ThrowIfDisposed();
@@ -155,33 +140,33 @@ namespace MongoDB.Driver.Core.Connections
 
                 if (_poolQueue.Wait(timeout, cancellationToken))
                 {
-                    ConnectionChannel channel;
-                    if (_pool.TryDequeue(out channel))
+                    PooledConnection connection;
+                    if (_pool.TryDequeue(out connection))
                     {
-                        if (IsConnectionExpired(channel))
+                        if (IsConnectionExpired(connection))
                         {
-                            _trace.TraceVerbose("{0}: removed {1} because it was expired.", _toStringDescription, channel.Connection);
-                            _events.Publish(new ConnectionRemovedFromPoolEvent(this, channel.Connection));
-                            channel.Connection.Dispose();
+                            _trace.TraceVerbose("{0}: removed {1} because it was expired.", _toStringDescription, connection);
+                            _events.Publish(new ConnectionRemovedFromPoolEvent(this, connection));
+                            connection.Wrapped.Dispose();
 
-                            channel = OpenNewChannel();
-                            _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, channel.Connection);
-                            _events.Publish(new ConnectionAddedToPoolEvent(this, channel.Connection));
+                            connection = OpenNewConnection();
+                            _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, connection);
+                            _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
                         }
 
-                        _events.Publish(new ConnectionCheckedOutOfPoolEvent(this, channel.Connection));
-                        return channel;
+                        _events.Publish(new ConnectionCheckedOutOfPoolEvent(this, connection));
+                        return connection;
                     }
                     else
                     {
                         // make sure connection is created successfully before incrementing poolSize
                         // connection will be opened later outside of the lock
-                        channel = OpenNewChannel();
-                        _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, channel.Connection);
+                        connection = OpenNewConnection();
+                        _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, connection);
                         _trace.TraceInformation("{0}: pool size is {1}", _toStringDescription, CurrentSize);
-                        _events.Publish(new ConnectionAddedToPoolEvent(this, channel.Connection));
-                        _events.Publish(new ConnectionCheckedOutOfPoolEvent(this, channel.Connection));
-                        return channel;
+                        _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
+                        _events.Publish(new ConnectionCheckedOutOfPoolEvent(this, connection));
+                        return connection;
                     }
                 }
 
@@ -195,7 +180,7 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        public override void Initialize()
+        public void Initialize()
         {
             ThrowIfDisposed();
             if (Interlocked.CompareExchange(ref _state, State.Initialized, State.Unitialized) == State.Unitialized)
@@ -211,7 +196,7 @@ namespace MongoDB.Driver.Core.Connections
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected override void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (Interlocked.Exchange(ref _state, State.Disposed) != State.Disposed && disposing)
             {
@@ -222,7 +207,6 @@ namespace MongoDB.Driver.Core.Connections
                 _events.Publish(new ConnectionPoolClosedEvent(this));
                 _trace.TraceInformation("{0}: closed with {1}.", _toStringDescription, _dnsEndPoint);
             }
-            base.Dispose(disposing);
         }
 
         // private methods
@@ -262,11 +246,11 @@ namespace MongoDB.Driver.Core.Connections
                     }
 
                     enteredPoolCount++;
-                    var channel = OpenNewChannel();
-                    _pool.Enqueue(channel);
-                    _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, channel.Connection);
+                    var connection = OpenNewConnection();
+                    _pool.Enqueue(connection);
+                    _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, connection);
                     _trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
-                    _events.Publish(new ConnectionAddedToPoolEvent(this, channel.Connection));
+                    _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
                 }
             }
             finally
@@ -285,29 +269,29 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        private bool IsConnectionExpired(ConnectionChannel channel)
+        private bool IsConnectionExpired(PooledConnection connection)
         {
             // connection has been closed
-            if (!channel.Connection.IsOpen)
+            if (!connection.IsOpen)
             {
                 return true;
             }
 
             // connection is no longer valid
-            if (channel.Info.GenerationId != Interlocked.CompareExchange(ref _currentGenerationId, 0, 0))
+            if (connection.Info.GenerationId != Interlocked.CompareExchange(ref _currentGenerationId, 0, 0))
             {
                 return true;
             }
 
             // connection has lived too long
             var now = DateTime.UtcNow;
-            if (_settings.ConnectionMaxLifeTime.TotalMilliseconds > -1 && now > channel.Info.OpenedAtUtc.Add(_settings.ConnectionMaxLifeTime))
+            if (_settings.ConnectionMaxLifeTime.TotalMilliseconds > -1 && now > connection.Info.OpenedAtUtc.Add(_settings.ConnectionMaxLifeTime))
             {
                 return true;
             }
 
             // connection has been idle for too long
-            if (_settings.ConnectionMaxIdleTime.TotalMilliseconds > -1 && now > channel.Info.LastUsedAtUtc.Add(_settings.ConnectionMaxIdleTime))
+            if (_settings.ConnectionMaxIdleTime.TotalMilliseconds > -1 && now > connection.Info.LastUsedAtUtc.Add(_settings.ConnectionMaxIdleTime))
             {
                 return true;
             }
@@ -343,7 +327,7 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        private ConnectionChannel OpenNewChannel()
+        private PooledConnection OpenNewConnection()
         {
             var info = new ConnectionInfo
             {
@@ -352,7 +336,7 @@ namespace MongoDB.Driver.Core.Connections
             };
             var connection = _connectionFactory.Create(_dnsEndPoint);
             connection.Open();
-            return new ConnectionChannel(info, this, connection);
+            return new PooledConnection(connection, this, info);
         }
 
         private void PrunePool()
@@ -368,25 +352,25 @@ namespace MongoDB.Driver.Core.Connections
                     return;
                 }
 
-                ConnectionChannel channel;
+                PooledConnection connection;
                 int numAttempts = 0;
                 int count = _pool.Count; // TODO:  maybe do count / 2
                 // we don't want to do this forever...
-                while (numAttempts < count && _pool.TryDequeue(out channel))
+                while (numAttempts < count && _pool.TryDequeue(out connection))
                 {
-                    if (IsConnectionExpired(channel))
+                    if (IsConnectionExpired(connection))
                     {
-                        channel.Connection.Dispose();
-                        _trace.TraceVerbose("{0}: removed {1} because it has expired.", _toStringDescription, channel.Connection);
+                        connection.Wrapped.Dispose();
+                        _trace.TraceVerbose("{0}: removed {1} because it has expired.", _toStringDescription, connection);
                         _trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
-                        _events.Publish(new ConnectionRemovedFromPoolEvent(this, channel.Connection));
+                        _events.Publish(new ConnectionRemovedFromPoolEvent(this, connection));
                         break; // only going to kill off one connection per-round
                     }
                     else
                     {
                         // put it back on... of course, it might be expired by the time the 
                         // next guy pulls it off, but maybe not.
-                        _pool.Enqueue(channel);
+                        _pool.Enqueue(connection);
                     }
                     numAttempts++;
                 }
@@ -407,34 +391,29 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        private ConnectionChannel RecycleConnection(ConnectionChannel channel)
-        {
-            return new ConnectionChannel(channel.Info, this, channel.Connection);
-        }
-
-        private void ReleaseChannel(ConnectionChannel channel)
+        private void ReleaseConnection(PooledConnection connection)
         {
             if (IsDisposed)
             {
                 // events could get out of wack because we
                 // aren't raising events for connection checked in 
                 // or connection removed.
-                channel.Connection.Dispose();
+                connection.Wrapped.Dispose();
                 return;
             }
 
-            _events.Publish(new ConnectionCheckedInToPoolEvent(this, channel.Connection));
-            if (IsConnectionExpired(channel))
+            _events.Publish(new ConnectionCheckedInToPoolEvent(this, connection));
+            if (IsConnectionExpired(connection))
             {
                 _poolQueue.Release();
-                channel.Connection.Dispose();
-                _trace.TraceVerbose("{0}: removed {1} because it has expired.", _toStringDescription, channel.Connection);
+                connection.Wrapped.Dispose();
+                _trace.TraceVerbose("{0}: removed {1} because it has expired.", _toStringDescription, connection);
                 _trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, _settings.MaxSize - _poolQueue.CurrentCount);
-                _events.Publish(new ConnectionRemovedFromPoolEvent(this, channel.Connection));
+                _events.Publish(new ConnectionRemovedFromPoolEvent(this, connection));
             }
             else
             {
-                _pool.Enqueue(RecycleConnection(channel));
+                _pool.Enqueue(connection);
                 _poolQueue.Release();
             }
         }
@@ -451,7 +430,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Unitialized)
             {
-                throw new InvalidOperationException("DefaultConnectionProvider must be initialized.");
+                throw new InvalidOperationException("ConnectionPool must be initialized.");
             }
         }
 
@@ -469,26 +448,26 @@ namespace MongoDB.Driver.Core.Connections
             public int GenerationId;
         }
 
-        private sealed class ConnectionChannel : ChannelBase
+        private sealed class PooledConnection : ConnectionBase
         {
-            private IConnection _connection;
             private ConnectionInfo _info;
-            private DefaultChannelProvider _pool;
+            private ConnectionPool _pool;
+            private IConnection _wrapped;
             private bool _disposed;
 
-            public ConnectionChannel(ConnectionInfo info, DefaultChannelProvider pool, IConnection connection)
+            public PooledConnection(IConnection connection, ConnectionPool pool, ConnectionInfo info)
             {
-                _info = info;
+                _wrapped = connection;
                 _pool = pool;
-                _connection = connection;
+                _info = info;
             }
 
-            public IConnection Connection
+            public IConnection Wrapped
             {
                 get
                 {
                     ThrowIfDisposed();
-                    return _connection;
+                    return _wrapped;
                 }
             }
 
@@ -497,7 +476,7 @@ namespace MongoDB.Driver.Core.Connections
                 get
                 {
                     ThrowIfDisposed();
-                    return _connection.DnsEndPoint;
+                    return _wrapped.DnsEndPoint;
                 }
             }
 
@@ -510,20 +489,28 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            public override ReplyMessage Receive(ChannelReceiveArgs args)
+            public override bool IsOpen
+            {
+                get
+                {
+                    ThrowIfDisposed();
+                    return _wrapped.IsOpen;
+                }
+            }
+
+            public override void Open()
+            {
+                ThrowIfDisposed();
+                _wrapped.Open();
+            }
+
+            public override ReplyMessage Receive()
             {
                 ThrowIfDisposed();
                 try
                 {
                     _info.LastUsedAtUtc = DateTime.UtcNow;
-                    var message = _connection.Receive();
-                    if (message.ResponseTo != args.RequestId)
-                    {
-                        var formatted = string.Format("Expected a response to '{0}' but got '{1}' instead.", args.RequestId, message.ResponseTo);
-                        throw new MongoProtocolException(formatted);
-                    }
-
-                    return message;
+                    return _wrapped.Receive();
                 }
                 catch (ObjectDisposedException)
                 {
@@ -542,7 +529,7 @@ namespace MongoDB.Driver.Core.Connections
                 try
                 {
                     _info.LastUsedAtUtc = DateTime.UtcNow;
-                    _connection.Send(packet);
+                    _wrapped.Send(packet);
                 }
                 catch (Exception ex)
                 {
@@ -555,10 +542,10 @@ namespace MongoDB.Driver.Core.Connections
             {
                 if (disposing && _pool != null)
                 {
-                    _pool.ReleaseChannel(this);
+                    _pool.ReleaseConnection(this);
                     _pool = null;
                     _info = null;
-                    _connection = null;
+                    _wrapped = null;
                 }
                 _disposed = true;
                 base.Dispose(disposing);

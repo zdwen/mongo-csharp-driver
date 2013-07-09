@@ -49,7 +49,7 @@ namespace MongoDB.DriverUnitTests.Jira
             //streamFactory = new Socks5StreamProxy(new DnsEndPoint("localhost", 1080), streamFactory);
 
             // 2) Create a Connection Factory
-            IConnectionFactory connectionFactory = new StreamConnectionFactory(
+            var connectionFactory = new StreamConnectionFactory(
                 streamFactory,
                 events,
                 traceManager);
@@ -61,14 +61,20 @@ namespace MongoDB.DriverUnitTests.Jira
             //});
             //connectionFactory = new AuthenticatedConnectionFactory(authSettings, connectionFactory);
 
-            // 3) Create a Channel Provider Factory
-            IChannelProviderFactory channelProviderFactory = new DefaultChannelProviderFactory(
-                DefaultChannelProviderSettings.Create(b =>
+            // 3a) Create a connection pool factory
+            var connectionPoolFactory = new ConnectionPoolFactory(
+                ConnectionPoolSettings.Create(b =>
                 {
                     // make this short to watch perf counters
                     b.SetConnectionMaxLifeTime(TimeSpan.FromSeconds(20));
                 }),
                 connectionFactory,
+                events,
+                traceManager);
+
+            // 3b) Create a channel provider factory
+            var pooledConnectionChannelProviderFactory = new ConnectionPoolChannelProviderFactory(
+                connectionPoolFactory,
                 events,
                 traceManager);
 
@@ -79,7 +85,7 @@ namespace MongoDB.DriverUnitTests.Jira
             var nodeFactory = new ClusterableServerFactory(
                 false,
                 ClusterableServerSettings.Defaults,
-                channelProviderFactory,
+                pooledConnectionChannelProviderFactory,
                 connectionFactory,
                 events,
                 traceManager);

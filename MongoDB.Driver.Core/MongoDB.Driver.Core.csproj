@@ -68,7 +68,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connections\ConnectionBase.cs" />
+    <Compile Include="Connections\ConnectionPool.cs" />
+    <Compile Include="Connections\ConnectionPoolFactory.cs" />
     <Compile Include="Connections\IConnection.cs" />
+    <Compile Include="Connections\IConnectionPoolFactory.cs" />
     <Compile Include="Connections\PipelinedChannelProvider.cs" />
     <Compile Include="Connections\PipelinedChannelProviderFactory.cs" />
     <Compile Include="Connections\ChannelReceiveArgs.cs" />
@@ -124,7 +127,7 @@
     <Compile Include="Connections\ICluster.cs" />
     <Compile Include="Connections\IChannelProvider.cs" />
     <Compile Include="Connections\IServer.cs" />
-    <Compile Include="Connections\DefaultChannelProviderFactory.cs" />
+    <Compile Include="Connections\ConnectionPoolChannelProviderFactory.cs" />
     <Compile Include="Connections\DelegateServerSelector.cs" />
     <Compile Include="Diagnostics\PerformanceCounters\ConnectionPoolPerformanceRecorder.cs" />
     <Compile Include="Diagnostics\PerformanceCounters\ConnectionPerformanceRecorder.cs" />
@@ -185,8 +188,8 @@
     <Compile Include="Connections\StreamConnection.cs" />
     <Compile Include="Connections\StreamConnectionFactory.cs" />
     <Compile Include="Connections\ConnectionMode.cs" />
-    <Compile Include="Connections\DefaultChannelProvider.cs" />
-    <Compile Include="Connections\DefaultChannelProviderSettings.cs" />
+    <Compile Include="Connections\ConnectionPoolChannelProvider.cs" />
+    <Compile Include="Connections\ConnectionPoolSettings.cs" />
     <Compile Include="Connections\NetworkStreamFactorySettings.cs" />
     <Compile Include="Connections\MultiServerCluster.cs" />
     <Compile Include="Connections\MultiServerClusterType.cs" />

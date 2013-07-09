@@ -19,15 +19,15 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Settings for the <see cref="DefaultChannelProviderFactory"/>.
+    /// Settings for the <see cref="ConnectionPoolChannelProviderFactory"/>.
     /// </summary>
-    public sealed class DefaultChannelProviderSettings
+    public sealed class ConnectionPoolSettings
     {
         // public static fields
         /// <summary>
         /// The default settings.
         /// </summary>
-        public static readonly DefaultChannelProviderSettings Defaults = new Builder().Build();
+        public static readonly ConnectionPoolSettings Defaults = new Builder().Build();
 
         // private fields
         private readonly TimeSpan _connectionMaxIdleTime;
@@ -39,7 +39,7 @@ namespace MongoDB.Driver.Core.Connections
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultChannelProviderSettings" /> class.
+        /// Initializes a new instance of the <see cref="ConnectionPoolSettings" /> class.
         /// </summary>
         /// <param name="connectionMaxIdleTime">The maximum amount of time a connection is allowed to not be used.</param>
         /// <param name="connectionMaxLifeTime">The maximum amount of time a connection is allowed to be used.</param>
@@ -47,7 +47,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="minSize">The minumum size of the connection pool.</param>
         /// <param name="sizeMaintenanceFrequency">The frequency to ensure the min and max size of the pool.</param>
         /// <param name="maxWaitQueueSize">Size of the max wait queue.</param>
-        public DefaultChannelProviderSettings(TimeSpan connectionMaxIdleTime, TimeSpan connectionMaxLifeTime, int maxSize, int minSize, TimeSpan sizeMaintenanceFrequency, int maxWaitQueueSize)
+        public ConnectionPoolSettings(TimeSpan connectionMaxIdleTime, TimeSpan connectionMaxLifeTime, int maxSize, int minSize, TimeSpan sizeMaintenanceFrequency, int maxWaitQueueSize)
         {
             Ensure.IsInfiniteOrPositive("connectionMaxIdleTime", connectionMaxIdleTime);
             Ensure.IsInfiniteOrPositive("connectionMaxLifeTime", connectionMaxLifeTime);
@@ -123,7 +123,7 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="callback">The callback.</param>
         /// <returns>The built settings.</returns>
-        public static DefaultChannelProviderSettings Create(Action<Builder> callback)
+        public static ConnectionPoolSettings Create(Action<Builder> callback)
         {
             var builder = new Builder();
             callback(builder);
@@ -131,7 +131,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         /// <summary>
-        /// Used to build up <see cref="DefaultChannelProviderSettings"/>.
+        /// Used to build up <see cref="ConnectionPoolSettings"/>.
         /// </summary>
         public sealed class Builder
         {
@@ -152,9 +152,9 @@ namespace MongoDB.Driver.Core.Connections
                 _waitQueueSize = 500; // maxSize * 5
             }
 
-            internal DefaultChannelProviderSettings Build()
+            internal ConnectionPoolSettings Build()
             {
-                return new DefaultChannelProviderSettings(
+                return new ConnectionPoolSettings(
                     _connectionMaxIdleTime,
                     _connectionMaxLifeTime,
                     _maxSize,

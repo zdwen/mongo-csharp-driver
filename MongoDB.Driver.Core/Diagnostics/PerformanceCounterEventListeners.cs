@@ -182,7 +182,7 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionPoolOpenedEvent @event)
         {
             var serverPackage = GetServerPackage(@event.ConnectionPool.DnsEndPoint);
-            ConnectionPoolPerformanceRecorder recorder = new ConnectionPoolPerformanceRecorder(@event.ConnectionPool.MaxSize, _appPackage, serverPackage);
+            ConnectionPoolPerformanceRecorder recorder = new ConnectionPoolPerformanceRecorder(@event.ConnectionPool.Settings.MaxSize, _appPackage, serverPackage);
             _connectionPoolRecorders.Add(@event.ConnectionPool, recorder);
             recorder.Opened();
         }

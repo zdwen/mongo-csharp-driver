@@ -21,33 +21,29 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// A factory for <see cref="DefaultChannelProvider"/>s.
+    /// A factory for <see cref="ConnectionPoolChannelProvider"/>s.
     /// </summary>
-    public sealed class DefaultChannelProviderFactory : IChannelProviderFactory
+    public sealed class ConnectionPoolChannelProviderFactory : IChannelProviderFactory
     {
         // private fields
-        private readonly DefaultChannelProviderSettings _settings;
-        private readonly IConnectionFactory _connectionFactory;
+        private readonly IConnectionPoolFactory _connectionPoolFactory;
         private readonly IEventPublisher _events;
         private readonly TraceManager _traceManager;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultChannelProviderFactory" /> class.
+        /// Initializes a new instance of the <see cref="ConnectionPoolChannelProviderFactory" /> class.
         /// </summary>
-        /// <param name="settings">The settings.</param>
-        /// <param name="connectionFactory">The connection factory.</param>
+        /// <param name="connectionPoolFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
         /// <param name="traceManager">The trace manager.</param>
-        public DefaultChannelProviderFactory(DefaultChannelProviderSettings settings, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
+        public ConnectionPoolChannelProviderFactory(IConnectionPoolFactory connectionPoolFactory, IEventPublisher events, TraceManager traceManager)
         {
-            Ensure.IsNotNull("settings", settings);
-            Ensure.IsNotNull("connectionFactory", connectionFactory);
+            Ensure.IsNotNull("connectionFactory", connectionPoolFactory);
             Ensure.IsNotNull("events", events);
             Ensure.IsNotNull("traceManager", traceManager);
 
-            _settings = settings;
-            _connectionFactory = connectionFactory;
+            _connectionPoolFactory = connectionPoolFactory;
             _events = events;
             _traceManager = traceManager;
         }
@@ -62,7 +58,8 @@ namespace MongoDB.Driver.Core.Connections
         {
             Ensure.IsNotNull("address", dnsEndPoint);
 
-            return new DefaultChannelProvider(_settings, dnsEndPoint, _connectionFactory, _events, _traceManager);
+            var connectionPool = _connectionPoolFactory.Create(dnsEndPoint);
+            return new ConnectionPoolChannelProvider(dnsEndPoint, connectionPool, _events, _traceManager);
         }
     }
 }
