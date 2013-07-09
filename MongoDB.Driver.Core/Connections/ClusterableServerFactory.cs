@@ -21,13 +21,13 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// A factory for <see cref="DefaultClusterableServer"/>s.
+    /// A factory for <see cref="ClusterableServer"/>s.
     /// </summary>
-    public sealed class DefaultClusterableServerFactory : IClusterableServerFactory
+    public sealed class ClusterableServerFactory : IClusterableServerFactory
     {
         // private fields
         private readonly bool _ipv6;
-        private readonly DefaultClusterableServerSettings _settings;
+        private readonly ClusterableServerSettings _settings;
         private readonly IConnectionFactory _connectionFactory;
         private readonly IChannelProviderFactory _channelProviderFactory;
         private readonly IEventPublisher _events;
@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Core.Connections
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultClusterableServerFactory" /> class.
+        /// Initializes a new instance of the <see cref="ClusterableServerFactory" /> class.
         /// </summary>
         /// <param name="ipv6">Whether to use ip version 6 addresses.</param>
         /// <param name="settings">The settings.</param>
@@ -43,7 +43,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
         /// <param name="traceManager">The trace manager.</param>
-        public DefaultClusterableServerFactory(bool ipv6, DefaultClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
+        public ClusterableServerFactory(bool ipv6, ClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("connectionPoolFactory", channelProviderFactory);
@@ -70,7 +70,7 @@ namespace MongoDB.Driver.Core.Connections
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
             var channelProvider = _channelProviderFactory.Create(dnsEndPoint);
-            return new DefaultClusterableServer(_settings, dnsEndPoint, channelProvider, _connectionFactory, _events, _traceManager);
+            return new ClusterableServer(_settings, dnsEndPoint, channelProvider, _connectionFactory, _events, _traceManager);
         }
     }
 }

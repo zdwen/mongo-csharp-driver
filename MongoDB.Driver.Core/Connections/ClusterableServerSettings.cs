@@ -19,15 +19,15 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Settings for the <see cref="DefaultClusterableServerFactory"/>.
+    /// Settings for the <see cref="ClusterableServerFactory"/>.
     /// </summary>
-    public sealed class DefaultClusterableServerSettings
+    public sealed class ClusterableServerSettings
     {
         // public static fields
         /// <summary>
         /// The default settings.
         /// </summary>
-        public static readonly DefaultClusterableServerSettings Defaults = new Builder().Build();
+        public static readonly ClusterableServerSettings Defaults = new Builder().Build();
 
         // private fields
         private readonly TimeSpan _connectRetryFrequency;
@@ -37,13 +37,13 @@ namespace MongoDB.Driver.Core.Connections
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultClusterableServerSettings" /> class.
+        /// Initializes a new instance of the <see cref="ClusterableServerSettings" /> class.
         /// </summary>
         /// <param name="connectRetryFrequency">The connect retry frequency.</param>
         /// <param name="heartbeatFrequency">The heartbeat frequency.</param>
         /// <param name="maxDocumentSizeDefault">The max document size default.</param>
         /// <param name="maxMessageSizeDefault">The max message size default.</param>
-        public DefaultClusterableServerSettings(TimeSpan connectRetryFrequency, TimeSpan heartbeatFrequency, int maxDocumentSizeDefault, int maxMessageSizeDefault)
+        public ClusterableServerSettings(TimeSpan connectRetryFrequency, TimeSpan heartbeatFrequency, int maxDocumentSizeDefault, int maxMessageSizeDefault)
         {
             Ensure.IsInfiniteOrPositive("connectRetryFrequency", connectRetryFrequency);
             Ensure.IsInfiniteOrPositive("heartbeatFrequency", heartbeatFrequency);
@@ -95,7 +95,7 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="callback">The callback.</param>
         /// <returns>The built settings.</returns>
-        public static DefaultClusterableServerSettings Create(Action<Builder> callback)
+        public static ClusterableServerSettings Create(Action<Builder> callback)
         {
             var builder = new Builder();
             callback(builder);
@@ -120,9 +120,9 @@ namespace MongoDB.Driver.Core.Connections
                 _maxMessageSizeDefault = 16000000; // 16MB (not 16 MiB!)
             }
 
-            internal DefaultClusterableServerSettings Build()
+            internal ClusterableServerSettings Build()
             {
-                return new DefaultClusterableServerSettings(
+                return new ClusterableServerSettings(
                     _connectRetryFrequency,
                     _heartbeatFrequency,
                     _maxDocumentSizeDefault,

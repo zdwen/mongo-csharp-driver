@@ -26,7 +26,7 @@ using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
 {
-    internal sealed class DefaultConnection : ConnectionBase
+    internal sealed class StreamConnection : ConnectionBase
     {
         // private static fields
         private static int __nextId;
@@ -44,13 +44,13 @@ namespace MongoDB.Driver.Core.Connections
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultConnection" /> class.
+        /// Initializes a new instance of the <see cref="StreamConnection" /> class.
         /// </summary>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="streamFactory">The stream factory.</param>
         /// <param name="events">The events.</param>
         /// <param name="traceManager">The trace manager.</param>
-        public DefaultConnection(DnsEndPoint dnsEndPoint, IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager)
+        public StreamConnection(DnsEndPoint dnsEndPoint, IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager)
         {
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
             Ensure.IsNotNull("streamFactory", streamFactory);
@@ -63,7 +63,7 @@ namespace MongoDB.Driver.Core.Connections
             _streamFactory = streamFactory;
             _state = State.Initial;
             _toStringDescription = string.Format("conn#{0}", _id);
-            _traceSource = traceManager.GetTraceSource<DefaultConnection>();
+            _traceSource = traceManager.GetTraceSource<StreamConnection>();
         }
 
         // public properties

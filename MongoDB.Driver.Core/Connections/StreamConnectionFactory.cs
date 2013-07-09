@@ -21,9 +21,9 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// A factory for <see cref="DefaultConnection"/>s.
+    /// A factory for <see cref="StreamConnection"/>s.
     /// </summary>
-    public sealed class DefaultConnectionFactory : IConnectionFactory
+    public sealed class StreamConnectionFactory : IConnectionFactory
     {
         // private fields
         private readonly IEventPublisher _events;
@@ -32,12 +32,12 @@ namespace MongoDB.Driver.Core.Connections
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultConnectionFactory" /> class.
+        /// Initializes a new instance of the <see cref="StreamConnectionFactory" /> class.
         /// </summary>
         /// <param name="streamFactory">The stream factory.</param>
         /// <param name="events">The events.</param>
         /// <param name="traceManager">The trace manager.</param>
-        public DefaultConnectionFactory(IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager)
+        public StreamConnectionFactory(IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager)
         {
             Ensure.IsNotNull("streamFactory", streamFactory);
             Ensure.IsNotNull("events", events);
@@ -58,7 +58,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
-            return new DefaultConnection(dnsEndPoint, _streamFactory, _events, _traceManager);
+            return new StreamConnection(dnsEndPoint, _streamFactory, _events, _traceManager);
         }
     }
 }

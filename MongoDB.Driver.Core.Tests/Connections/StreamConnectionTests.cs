@@ -13,17 +13,17 @@ using NUnit.Framework;
 namespace MongoDB.Driver.Core.Connections
 {
     [TestFixture]
-    public class DefaultConnectionTests
+    public class StreamConnectionTests
     {
         private IStreamFactory _streamFactory;
-        private DefaultConnection _subject;
+        private StreamConnection _subject;
 
         [SetUp]
         public void SetUp()
         {
             _streamFactory = Substitute.For<IStreamFactory>();
 
-            _subject = new DefaultConnection(
+            _subject = new StreamConnection(
                 new DnsEndPoint("localhost", 27017),
                 _streamFactory,
                 Substitute.For<IEventPublisher>(),

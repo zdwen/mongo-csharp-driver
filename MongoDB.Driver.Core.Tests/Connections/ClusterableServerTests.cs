@@ -18,17 +18,17 @@ using NSubstitute;
 namespace MongoDB.Driver.Core.Connections
 {
     [TestFixture]
-    public class DefaultClusterableServerTests
+    public class ClusterableServerTests
     {
         private DnsEndPoint _dnsEndPoint;
         private MockConnectionFactory _connectionFactory;
         private MockChannelProvider _channelProvider;
-        private DefaultClusterableServerSettings _serverSettings;
+        private ClusterableServerSettings _serverSettings;
 
         [SetUp]
         public void SetUp()
         {
-            _serverSettings = new DefaultClusterableServerSettings(
+            _serverSettings = new ClusterableServerSettings(
                 connectRetryFrequency: TimeSpan.FromMilliseconds(-1),
                 heartbeatFrequency: TimeSpan.FromMilliseconds(-1),
                 maxDocumentSizeDefault: 1024 * 4,
@@ -158,9 +158,9 @@ namespace MongoDB.Driver.Core.Connections
             Assert.AreEqual(ServerStatus.Connecting, firstDescription.Status);
         }
 
-        private DefaultClusterableServer CreateSubject()
+        private ClusterableServer CreateSubject()
         {
-            return new DefaultClusterableServer(_serverSettings, _dnsEndPoint, _channelProvider, _connectionFactory, new EventPublisher(), new TraceManager());
+            return new ClusterableServer(_serverSettings, _dnsEndPoint, _channelProvider, _connectionFactory, new EventPublisher(), new TraceManager());
         }
 
         private void SetupLookupDescriptionResults()

@@ -30,7 +30,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Represents a remove server which maintains an open connection for health checking.
     /// </summary>
-    internal sealed class DefaultClusterableServer : ClusterableServerBase
+    internal sealed class ClusterableServer : ClusterableServerBase
     {
         // private static fields
         private static int __nextId;
@@ -46,7 +46,7 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IEventPublisher _events;
         private readonly int _id;
         private readonly PingTimeAggregator _pingTimeAggregator;
-        private readonly DefaultClusterableServerSettings _settings;
+        private readonly ClusterableServerSettings _settings;
         private readonly string _toStringDescription;
         private readonly TraceSource _trace;
         private IConnection _updateDescriptionConnection;
@@ -55,7 +55,7 @@ namespace MongoDB.Driver.Core.Connections
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultClusterableServer" /> class.
+        /// Initializes a new instance of the <see cref="ClusterableServer" /> class.
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
@@ -63,7 +63,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
         /// <param name="traceManager">The trace manager.</param>
-        public DefaultClusterableServer(DefaultClusterableServerSettings settings, DnsEndPoint dnsEndPoint, IChannelProvider channelProvider, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
+        public ClusterableServer(ClusterableServerSettings settings, DnsEndPoint dnsEndPoint, IChannelProvider channelProvider, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
@@ -78,7 +78,7 @@ namespace MongoDB.Driver.Core.Connections
             _events = events;
             _pingTimeAggregator = new PingTimeAggregator(5);
             _toStringDescription = string.Format("server#{0}", _id);
-            _trace = traceManager.GetTraceSource<DefaultClusterableServer>();
+            _trace = traceManager.GetTraceSource<ClusterableServer>();
 
             _connectingDescription = new ServerDescription(
                 averagePingTime: TimeSpan.MaxValue,
@@ -241,7 +241,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Unitialized)
             {
-                throw new InvalidOperationException("DefaultClusterableServer must be initialized.");
+                throw new InvalidOperationException("ClusterableServer must be initialized.");
             }
         }
 
@@ -398,11 +398,11 @@ namespace MongoDB.Driver.Core.Connections
 
         private sealed class ServerChannel : ServerChannelBase
         {
-            private readonly DefaultClusterableServer _server;
+            private readonly ClusterableServer _server;
             private readonly IChannel _wrapped;
             private bool _disposed;
 
-            public ServerChannel(DefaultClusterableServer server, IChannel wrapped)
+            public ServerChannel(ClusterableServer server, IChannel wrapped)
             {
                 _server = server;
                 _wrapped = wrapped;

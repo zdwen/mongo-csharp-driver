@@ -49,7 +49,7 @@ namespace MongoDB.DriverUnitTests.Jira
             //streamFactory = new Socks5StreamProxy(new DnsEndPoint("localhost", 1080), streamFactory);
 
             // 2) Create a Connection Factory
-            IConnectionFactory connectionFactory = new DefaultConnectionFactory(
+            IConnectionFactory connectionFactory = new StreamConnectionFactory(
                 streamFactory,
                 events,
                 traceManager);
@@ -76,9 +76,9 @@ namespace MongoDB.DriverUnitTests.Jira
             //channelProviderFactory = new PipelinedChannelProviderFactory(connectionFactory, 1);
 
             // 4) Create a Node Factory
-            var nodeFactory = new DefaultClusterableServerFactory(
+            var nodeFactory = new ClusterableServerFactory(
                 false,
-                DefaultClusterableServerSettings.Defaults,
+                ClusterableServerSettings.Defaults,
                 channelProviderFactory,
                 connectionFactory,
                 events,

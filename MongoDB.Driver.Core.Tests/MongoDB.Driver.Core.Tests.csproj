@@ -72,7 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connections\IsMasterResultHelperTests.cs" />
-    <Compile Include="Connections\DefaultConnectionTests.cs" />
+    <Compile Include="Connections\StreamConnectionTests.cs" />
     <Compile Include="ProtocolHelper.cs" />
     <Compile Include="Connections\CommandHelperTests.cs" />
     <Compile Include="Connections\DefaultChannelProviderTests.cs" />
@@ -86,7 +86,7 @@
     <Compile Include="Connections\ReplicaSetClusterTests.cs" />
     <Compile Include="Connections\MultiServerClusterTests.cs" />
     <Compile Include="Connections\ServerDescriptionBuilder.cs" />
-    <Compile Include="Connections\DefaultClusterableServerTests.cs" />
+    <Compile Include="Connections\ClusterableServerTests.cs" />
     <Compile Include="Connections\SingleServerClusterTests.cs" />
     <Compile Include="Mocks\MockServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

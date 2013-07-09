@@ -116,7 +116,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         /// <summary>
-        /// Used to build up DefaultConnectionSettings.
+        /// Used to build up NetworkStreamFactorySettings.
         /// </summary>
         public sealed class Builder
         {
