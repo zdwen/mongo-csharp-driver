@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using MongoDB.Driver.Core.Support;
@@ -92,10 +93,10 @@ namespace MongoDB.Driver.Core.Connections
                 currentWaitHandle = Interlocked.CompareExchange(ref _currentWaitHandle, null, null);
                 description = _server.Description;
 
-                var selectedDescription = selector.SelectServer(new[] { description });
+                var selectedDescription = selector.SelectServers(new[] { description }).SingleOrDefault();
                 if (selectedDescription != null)
                 {
-                    return new DisposalProtectedServer(_server);
+                    return _server;
                 }
 
                 if (description.Status != ServerStatus.Connecting)
@@ -115,7 +116,7 @@ namespace MongoDB.Driver.Core.Connections
             }
             while ((timeout.TotalMilliseconds == Timeout.Infinite || remaining > TimeSpan.Zero) && currentWaitHandle.Wait(remaining, cancellationToken));
 
-            throw new MongoDriverException(string.Format("The server {0} does not match '{1}'.", description.DnsEndPoint, selector.Description));
+            throw new MongoDriverException(string.Format("The server {0} does not match '{1}'.", description.DnsEndPoint, selector));
         }
 
         // protected methods

@@ -48,7 +48,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A channel.</returns>
-        public abstract IServerChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken);
+        public abstract IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken);
 
         /// <summary>
         /// Initializes the server.

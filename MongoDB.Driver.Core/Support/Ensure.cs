@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Core.Support
             }
         }
 
-        public static void IsInfiniteOrPositive(string argumentName, TimeSpan timeSpan)
+        public static void IsInfiniteOrZeroOrPositive(string argumentName, TimeSpan timeSpan)
         {
             if (timeSpan.TotalMilliseconds < -1)
             {

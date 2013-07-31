@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MongoDB.Driver.Core.Connections
 {
@@ -25,7 +26,7 @@ namespace MongoDB.Driver.Core.Connections
     {
         // private fields
         private readonly string _description;
-        private readonly Func<IEnumerable<ServerDescription>, ServerDescription> _selector;
+        private readonly Func<ServerDescription, bool> _selector;
 
         // constructors
         /// <summary>
@@ -33,19 +34,10 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="description">The description.</param>
         /// <param name="selector">The selector.</param>
-        public DelegateServerSelector(string description, Func<IEnumerable<ServerDescription>, ServerDescription> selector)
+        public DelegateServerSelector(string description, Func<ServerDescription, bool> selector)
         {
             _description = description;
             _selector = selector;
-        }
-
-        // public properties
-        /// <summary>
-        /// Gets the description of the server selector.
-        /// </summary>
-        public string Description
-        {
-            get { return _description; }
         }
 
         // public methods
@@ -54,9 +46,20 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="serverDescriptions">The server descriptions.</param>
         /// <returns>The selected server or <c>null</c> if none match.</returns>
-        public ServerDescription SelectServer(IEnumerable<ServerDescription> serverDescriptions)
+        public IEnumerable<ServerDescription> SelectServers(IEnumerable<ServerDescription> serverDescriptions)
         {
-            return _selector(serverDescriptions);
+            return serverDescriptions.Where(_selector);
+        }
+
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return _description;
         }
     }
 }

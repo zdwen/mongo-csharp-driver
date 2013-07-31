@@ -76,7 +76,6 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes the cluster.
         /// </summary>
-        /// <exception cref="System.NotImplementedException"></exception>
         public override void Initialize()
         {
             ThrowIfDisposed();
@@ -114,11 +113,11 @@ namespace MongoDB.Driver.Core.Connections
                 currentWaitHandle = Interlocked.CompareExchange(ref _selectServerEvent, null, null);
                 var descriptions = getDescriptions();
 
-                var selectedDescription = selector.SelectServer(descriptions);
+                var selectedDescription = selector.SelectServers(descriptions).RandomOrDefault();
                 IClusterableServer selectedServer;
                 if (selectedDescription != null && _servers.TryGetValue(selectedDescription.DnsEndPoint, out selectedServer))
                 {
-                    return new DisposalProtectedServer(selectedServer);
+                    return selectedServer;
                 }
 
                 if (!descriptions.Any(x => x.Status == ServerStatus.Connecting))
@@ -138,7 +137,7 @@ namespace MongoDB.Driver.Core.Connections
             }
             while ((timeout.TotalMilliseconds == Timeout.Infinite || remaining > TimeSpan.Zero) && currentWaitHandle.Wait(remaining, cancellationToken));
 
-            throw new MongoDriverException(string.Format("Unable to find a server matching '{0}'.", selector.Description));
+            throw new MongoDriverException(string.Format("Unable to find a server matching '{0}'.", selector));
         }
 
         // protected methods

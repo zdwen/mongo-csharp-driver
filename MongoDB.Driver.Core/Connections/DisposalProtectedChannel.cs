@@ -14,33 +14,34 @@
 */
 
 using System;
+using System.Net;
 using System.Threading;
+using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Server that does not dispose of its wrapped server.  This is used to protect the driver from a bad user decision.
+    /// Channel that does not dispose of its wrapped channel.  This is used to protect the driver from a bad user decision.
     /// </summary>
-    internal sealed class DisposalProtectedServer : IServer
+    internal sealed class DisposalProtectedChannel : IChannel
     {
         // private fields
-        private readonly IServer _wrapped;
+        private readonly IChannel _wrapped;
         private bool _disposed;
 
         // constructors
-        public DisposalProtectedServer(IServer wrapped)
+        public DisposalProtectedChannel(IChannel wrapped)
         {
+            Ensure.IsNotNull("wrapped", wrapped);
+
             _wrapped = wrapped;
         }
 
         // public properties
-        public ServerDescription Description
+        public DnsEndPoint DnsEndPoint
         {
-            get
-            {
-                ThrowIfDisposed();
-                return _wrapped.Description;
-            }
+            get { return _wrapped.DnsEndPoint; }
         }
 
         // public methods
@@ -50,15 +51,14 @@ namespace MongoDB.Driver.Core.Connections
             GC.SuppressFinalize(this);
         }
 
-        public IServerChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
+        public ReplyMessage Receive(ChannelReceiveArgs args)
         {
-            ThrowIfDisposed();
-            return _wrapped.GetChannel(timeout, cancellationToken);
+            return _wrapped.Receive(args);
         }
 
-        public void Initialize()
+        public void Send(IRequestPacket packet)
         {
-            // do nothing...
+            _wrapped.Send(packet);
         }
 
         // private methods

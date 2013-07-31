@@ -18,7 +18,7 @@ using System.Net;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Creates a <see cref="ConnectionPoolChannelProviderFactory"/>.
+    /// Creates a <see cref="IConnectionPool"/>.
     /// </summary>
     public interface IConnectionPoolFactory
     {

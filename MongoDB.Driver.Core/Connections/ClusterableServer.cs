@@ -118,7 +118,7 @@ namespace MongoDB.Driver.Core.Connections
         public override event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
 
         // public methods
-        public override IServerChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
+        public override IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
         {
             ThrowIfUninitialized();
             ThrowIfDisposed();
@@ -396,7 +396,7 @@ namespace MongoDB.Driver.Core.Connections
             public const int Disposed = 2;
         }
 
-        private sealed class ServerChannel : ServerChannelBase
+        private sealed class ServerChannel : ChannelBase
         {
             private readonly ClusterableServer _server;
             private readonly IChannel _wrapped;
@@ -414,15 +414,6 @@ namespace MongoDB.Driver.Core.Connections
                 {
                     ThrowIfDisposed();
                     return _wrapped.DnsEndPoint;
-                }
-            }
-
-            public override ServerDescription Server
-            {
-                get
-                {
-                    ThrowIfDisposed();
-                    return _server.Description;
                 }
             }
 

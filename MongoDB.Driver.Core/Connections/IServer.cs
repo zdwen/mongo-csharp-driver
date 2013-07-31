@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A logical connection to a remote server.
     /// </summary>
-    public interface IServer : IDisposable
+    public interface IServer
     {
         /// <summary>
         /// Gets the description.
@@ -34,6 +34,6 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A channel.</returns>
-        IServerChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken);
+        IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

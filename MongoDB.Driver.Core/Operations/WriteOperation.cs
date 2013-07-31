@@ -26,41 +26,38 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// The base class for operations that perform writes.
     /// </summary>
-    public abstract class WriteOperation : DatabaseOperation
+    public abstract class WriteOperation<T> : DatabaseOperation<T>
     {
         // private fields
-        private readonly WriteConcern _writeConcern;
+        private CollectionNamespace _collection;
+        private WriteConcern _writeConcern;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="WriteOperation" /> class.
+        /// Initializes a new instance of the <see cref="WriteOperation{T}" /> class.
         /// </summary>
-        /// <param name="collectionNamespace">The namespace.</param>
-        /// <param name="readerSettings">The reader settings.</param>
-        /// <param name="writerSettings">The writer settings.</param>
-        /// <param name="writeConcern">The write concern.</param>
-        protected WriteOperation(
-            CollectionNamespace collectionNamespace,
-            BsonBinaryReaderSettings readerSettings,
-            BsonBinaryWriterSettings writerSettings,
-            WriteConcern writeConcern)
-            : base(collectionNamespace, readerSettings, writerSettings)
+        protected WriteOperation()
         {
-            Ensure.IsNotNull("writeConcern", writeConcern);
-
-            _writeConcern = writeConcern;
+            _writeConcern = MongoDB.Driver.Core.WriteConcern.Acknowledged;
         }
 
-        // protected properties
+        // public properties
         /// <summary>
-        /// Gets the write concern.
+        /// Gets or sets the collection.
         /// </summary>
-        /// <value>
-        /// The write concern.
-        /// </value>
-        protected WriteConcern WriteConcern
+        public CollectionNamespace Collection
+        {
+            get { return _collection; }
+            set { _collection = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the write concern.
+        /// </summary>
+        public WriteConcern WriteConcern
         {
             get { return _writeConcern; }
+            set { _writeConcern = value; }
         }
 
         // protected methods
@@ -77,7 +74,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <exception cref="MongoWriteConcernException">
         /// </exception>
         protected WriteConcernResult ReadWriteConcernResult(
-            IServerChannel channel,
+            IChannel channel,
             SendPacketWithWriteConcernResult sendMessageResult,
             BsonBinaryReaderSettings readerSettings)
         {
@@ -130,7 +127,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="writerSettings">The writer settings.</param>
         /// <returns>A SendPacketWithWriteConcernResult.</returns>
         protected SendPacketWithWriteConcernResult SendPacketWithWriteConcern(
-            IServerChannel channel,
+            IChannel channel,
             BufferedRequestPacket packet,
             WriteConcern writeConcern,
             BsonBinaryWriterSettings writerSettings)
@@ -159,7 +156,7 @@ namespace MongoDB.Driver.Core.Operations
 
                 // piggy back on network transmission for message
                 var getLastErrorMessage = new QueryMessage(
-                    new DatabaseNamespace(CollectionNamespace.DatabaseName).CommandCollection,
+                    new DatabaseNamespace(Collection.DatabaseName).CommandCollection,
                     getLastErrorCommand,
                     QueryFlags.None,
                     0,
@@ -176,6 +173,16 @@ namespace MongoDB.Driver.Core.Operations
             channel.Send(packet);
 
             return result;
+        }
+
+        /// <summary>
+        /// Validates the required properties.
+        /// </summary>
+        protected override void ValidateRequiredProperties()
+        {
+            base.ValidateRequiredProperties();
+            Ensure.IsNotNull("Collection", _collection);
+            Ensure.IsNotNull("WriteConcern", _writeConcern);
         }
 
         // nested classes

@@ -21,7 +21,7 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// A factory for <see cref="ConnectionPoolChannelProvider"/>s.
+    /// A factory for a <see cref="ConnectionPoolChannelProvider"/>s.
     /// </summary>
     public sealed class ConnectionPoolChannelProviderFactory : IChannelProviderFactory
     {

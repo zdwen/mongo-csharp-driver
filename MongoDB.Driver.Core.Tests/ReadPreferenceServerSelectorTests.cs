@@ -18,33 +18,33 @@ namespace MongoDB.Driver.Core
             var rp = ReadPreference.Primary;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            var server = subject.SelectServers(servers).Single();
 
-            Assert.AreEqual(new DnsEndPoint("localhost", 1000), server.DnsEndPoint);
+            Assert.AreEqual(1000, server.DnsEndPoint.Port);
         }
 
         [Test]
-        public void ReadPreference_Primary_should_return_null_when_no_primary_is_available()
+        public void ReadPreference_Primary_should_return_empty_when_no_primary_is_available()
         {
             var servers = GetConnectedServers(primaryConnected: false);
             var rp = ReadPreference.Primary;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            servers = subject.SelectServers(servers);
 
-            Assert.IsNull(server);
+            Assert.IsEmpty(servers);
         }
 
         [Test]
-        public void ReadPreference_PrimaryPreferred_should_return_the_primary_when_no_secondaries_are_available()
+        public void ReadPreference_PrimaryPreferred_should_return_the_primary_when_it_is_available()
         {
             var servers = GetConnectedServers(secondariesConnected: false);
             var rp = ReadPreference.PrimaryPreferred;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            var server = subject.SelectServers(servers).Single();
 
-            Assert.AreEqual(new DnsEndPoint("localhost", 1000), server.DnsEndPoint);
+            Assert.AreEqual(1000, server.DnsEndPoint.Port);
         }
 
         [Test]
@@ -54,21 +54,22 @@ namespace MongoDB.Driver.Core
             var rp = ReadPreference.PrimaryPreferred;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            servers = subject.SelectServers(servers);
 
-            Assert.IsTrue(new[] { 1001, 1002 }.Contains(server.DnsEndPoint.Port), "Found {0} instead", server.DnsEndPoint.Port);
+            Assert.Contains(1001, servers.Select(x => x.DnsEndPoint.Port).ToList());
+            Assert.Contains(1002, servers.Select(x => x.DnsEndPoint.Port).ToList());
         }
 
         [Test]
-        public void ReadPreference_PrimaryPreferred_should_return_null_when_primary_and_secondaries_are_unavailable()
+        public void ReadPreference_PrimaryPreferred_should_return_empty_when_primary_and_secondaries_are_unavailable()
         {
             var servers = GetConnectedServers(primaryConnected: false, secondariesConnected: false);
             var rp = ReadPreference.PrimaryPreferred;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            servers = subject.SelectServers(servers);
 
-            Assert.IsNull(server);
+            Assert.IsEmpty(servers);
         }
 
         [Test]
@@ -78,9 +79,10 @@ namespace MongoDB.Driver.Core
             var rp = ReadPreference.SecondaryPreferred;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            var server = subject.SelectServers(servers);
 
-            Assert.IsTrue(new[] { 1001, 1002 }.Contains(server.DnsEndPoint.Port));
+            Assert.Contains(1001, servers.Select(x => x.DnsEndPoint.Port).ToList());
+            Assert.Contains(1002, servers.Select(x => x.DnsEndPoint.Port).ToList());
         }
 
         [Test]
@@ -90,21 +92,21 @@ namespace MongoDB.Driver.Core
             var rp = ReadPreference.SecondaryPreferred;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            var server = subject.SelectServers(servers).Single();
 
-            Assert.AreEqual(new DnsEndPoint("localhost", 1000), server.DnsEndPoint);
+            Assert.AreEqual(1000, server.DnsEndPoint.Port);
         }
 
         [Test]
-        public void ReadPreference_SecondaryPreferred_should_return_null_when_secondaries_and_primary_are_unavailable()
+        public void ReadPreference_SecondaryPreferred_should_return_empty_when_secondaries_and_primary_are_unavailable()
         {
             var servers = GetConnectedServers(primaryConnected: false, secondariesConnected: false);
             var rp = ReadPreference.SecondaryPreferred;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            servers = subject.SelectServers(servers);
 
-            Assert.IsNull(server);
+            Assert.IsEmpty(servers);
         }
 
         [Test]
@@ -114,21 +116,22 @@ namespace MongoDB.Driver.Core
             var rp = ReadPreference.SecondaryPreferred;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            servers = subject.SelectServers(servers);
 
-            Assert.IsTrue(new[] { 1001, 1002 }.Contains(server.DnsEndPoint.Port));
+            Assert.Contains(1001, servers.Select(x => x.DnsEndPoint.Port).ToList());
+            Assert.Contains(1002, servers.Select(x => x.DnsEndPoint.Port).ToList());
         }
 
         [Test]
-        public void ReadPreference_Secondary_should_return_null_when_secondaries_are_unavailable()
+        public void ReadPreference_Secondary_should_return_empty_when_secondaries_are_unavailable()
         {
             var servers = GetConnectedServers(secondariesConnected: false);
             var rp = ReadPreference.Secondary;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            servers = subject.SelectServers(servers);
 
-            Assert.IsNull(server);
+            Assert.IsEmpty(servers);
         }
 
         [Test]
@@ -138,21 +141,22 @@ namespace MongoDB.Driver.Core
             var rp = ReadPreference.Nearest;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            servers = subject.SelectServers(servers);
 
-            Assert.IsTrue(new[] { 1000, 1001 }.Contains(server.DnsEndPoint.Port));
+            Assert.Contains(1000, servers.Select(x => x.DnsEndPoint.Port).ToList());
+            Assert.Contains(1001, servers.Select(x => x.DnsEndPoint.Port).ToList());
         }
 
         [Test]
-        public void ReadPreference_Nearest_should_return_null_when_primary_and_secondaries_are_unavailable()
+        public void ReadPreference_Nearest_should_return_empty_when_primary_and_secondaries_are_unavailable()
         {
             var servers = GetConnectedServers(primaryConnected: false, secondariesConnected: false);
             var rp = ReadPreference.Nearest;
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            servers = subject.SelectServers(servers);
 
-            Assert.IsNull(server);
+            Assert.IsEmpty(servers);
         }
 
         [Test]
@@ -163,9 +167,9 @@ namespace MongoDB.Driver.Core
             var rp = new ReadPreference(ReadPreferenceMode.Primary, new [] { tagSet });
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            var server = subject.SelectServers(servers).Single();
 
-            Assert.AreEqual(new DnsEndPoint("localhost", 1000), server.DnsEndPoint);
+            Assert.AreEqual(1000, server.DnsEndPoint.Port);
         }
 
         [Test]
@@ -180,9 +184,9 @@ namespace MongoDB.Driver.Core
             var rp = new ReadPreference(mode, new[] { tagSet });
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            var server = subject.SelectServers(servers).Single();
 
-            Assert.AreEqual(new DnsEndPoint("localhost", 1001), server.DnsEndPoint);
+            Assert.AreEqual(1001, server.DnsEndPoint.Port);
         }
 
         [Test]
@@ -197,9 +201,9 @@ namespace MongoDB.Driver.Core
             var rp = new ReadPreference(mode, new[] { tagSet });
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            var server = subject.SelectServers(servers).Single();
 
-            Assert.AreEqual(new DnsEndPoint("localhost", 1001), server.DnsEndPoint);
+            Assert.AreEqual(1001, server.DnsEndPoint.Port);
         }
 
         [Test]
@@ -214,9 +218,9 @@ namespace MongoDB.Driver.Core
             var rp = new ReadPreference(mode, new[] { tagSet });
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            var server = subject.SelectServers(servers).Single();
 
-            Assert.AreEqual(new DnsEndPoint("localhost", 1001), server.DnsEndPoint);
+            Assert.AreEqual(1001, server.DnsEndPoint.Port);
         }
 
         [Test]
@@ -234,9 +238,9 @@ namespace MongoDB.Driver.Core
             var rp = new ReadPreference(mode, new[] { tagSet1, tagSet2 });
             var subject = new ReadPreferenceServerSelector(rp);
 
-            var server = subject.SelectServer(servers);
+            var server = subject.SelectServers(servers).Single();
 
-            Assert.AreEqual(new DnsEndPoint("localhost", 1001), server.DnsEndPoint);
+            Assert.AreEqual(1001, server.DnsEndPoint.Port);
         }
 
         private IEnumerable<ServerDescription> GetConnectedServers(bool primaryConnected=true, bool secondariesConnected=true, bool includeTagSets = false)

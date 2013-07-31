@@ -69,7 +69,7 @@ namespace MongoDB.Driver.Core.Connections
             _server.SetNextDescription(connected);
             _server.ApplyChanges();
 
-            var selector = new DelegateServerSelector("never matches", s => null);
+            var selector = new DelegateServerSelector("never matches", s => false);
 
             Assert.Throws<MongoDriverException>(() => _subject.SelectServer(selector, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
         }

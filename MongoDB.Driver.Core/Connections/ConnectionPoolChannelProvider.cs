@@ -41,7 +41,6 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionPoolChannelProvider" /> class.
         /// </summary>
-        /// <param name="settings">The settings.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="connectionPool">The connection factory.</param>
         /// <param name="events">The events.</param>
@@ -86,12 +85,24 @@ namespace MongoDB.Driver.Core.Connections
         public override void Initialize()
         {
             ThrowIfDisposed();
+            _connectionPool.Initialize();
         }
 
         // protected methods
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
+        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected override void Dispose(bool disposing)
         {
-            _disposed = true;
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _connectionPool.Dispose();
+                }
+                _disposed = true;
+            }
             base.Dispose(disposing);
         }
 

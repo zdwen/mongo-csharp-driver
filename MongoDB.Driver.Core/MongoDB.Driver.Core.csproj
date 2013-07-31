@@ -67,6 +67,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Connections\ClusterableServerFactory.cs" />
     <Compile Include="Connections\ConnectionBase.cs" />
     <Compile Include="Connections\ConnectionPool.cs" />
     <Compile Include="Connections\ConnectionPoolFactory.cs" />
@@ -78,7 +79,6 @@
     <Compile Include="Connections\MongoSocketWriteTimeoutException.cs" />
     <Compile Include="Connections\MongoSocketReadTimeoutException.cs" />
     <Compile Include="Connections\IClusterableServer.cs" />
-    <Compile Include="Connections\IServerChannel.cs" />
     <Compile Include="Connections\MultiServerClusterDescription.cs" />
     <Compile Include="Connections\Socks5ProxyStreamFactory.cs" />
     <Compile Include="Connections\IConnectionPool.cs" />
@@ -86,6 +86,7 @@
     <Compile Include="Connections\NetworkStreamFactory.cs" />
     <Compile Include="Connections\IsMasterResult.cs" />
     <Compile Include="DatabaseNamespace.cs" />
+    <Compile Include="LatencyLimitingServerSelector.cs" />
     <Compile Include="MongoOperationException.cs" />
     <Compile Include="Diagnostics\TraceManager.cs" />
     <Compile Include="Events\ConnectionAuthenticatedEvent.cs" />
@@ -95,6 +96,9 @@
     <Compile Include="Connections\MongoSocketException.cs" />
     <Compile Include="Connections\IRequestPacket.cs" />
     <Compile Include="MongoQueryException.cs" />
+    <Compile Include="Operations\IOperation.cs" />
+    <Compile Include="WritableServerSelector.cs" />
+    <Compile Include="Sessions\IServerChannelProvider.cs" />
     <Compile Include="Protocol\BufferedRequestPacket.cs" />
     <Compile Include="Protocol\InsertMessage.cs" />
     <Compile Include="Protocol\OpCode.cs" />
@@ -110,7 +114,6 @@
     <Compile Include="Security\AuthenticatedConnectionFactory.cs" />
     <Compile Include="Diagnostics\PerformanceCounterEventListeners.cs" />
     <Compile Include="Connections\DnsCache.cs" />
-    <Compile Include="Connections\DisposalProtectedServer.cs" />
     <Compile Include="Events\ConnectionRemovedFromPoolEvent.cs" />
     <Compile Include="Events\ConnectionAddedToPoolEvent.cs" />
     <Compile Include="Events\ConnectionCheckedInToPoolEvent.cs" />
@@ -142,10 +145,13 @@
     <Compile Include="Events\IEventPublisher.cs" />
     <Compile Include="Events\ConnectionMessageReceivedEvent.cs" />
     <Compile Include="Events\ConnectionPacketSendingEvent.cs" />
+    <Compile Include="Sessions\ClusterSession.cs" />
+    <Compile Include="Sessions\CreateServerChannelProviderArgs.cs" />
+    <Compile Include="Sessions\ISession.cs" />
+    <Compile Include="Sessions\MonotonicSession.cs" />
     <Compile Include="Support\EnumerableExtensionMethods.cs" />
     <Compile Include="CommandResult.cs" />
     <Compile Include="CommandResultSerializer.cs" />
-    <Compile Include="Connections\ServerChannelBase.cs" />
     <Compile Include="Security\AuthenticationSettings.cs" />
     <Compile Include="Security\MongoSecurityException.cs" />
     <Compile Include="Security\IAuthenticationProtocol.cs" />
@@ -193,7 +199,6 @@
     <Compile Include="Connections\NetworkStreamFactorySettings.cs" />
     <Compile Include="Connections\MultiServerCluster.cs" />
     <Compile Include="Connections\MultiServerClusterType.cs" />
-    <Compile Include="Connections\ClusterableServerFactory.cs" />
     <Compile Include="Connections\IClusterableServerFactory.cs" />
     <Compile Include="Connections\SingleServerCluster.cs" />
     <Compile Include="Connections\SingleServerClusterDescription.cs" />
@@ -206,7 +211,6 @@
     <Compile Include="Support\TraceSourceExtensionMethods.cs" />
     <Compile Include="Operations\CommandOperation.cs" />
     <Compile Include="Operations\DatabaseOperation.cs" />
-    <Compile Include="Operations\ICursorChannelProvider.cs" />
     <Compile Include="Operations\InsertOperation.cs" />
     <Compile Include="Operations\QueryOperation.cs" />
     <Compile Include="Operations\ReadOperation.cs" />

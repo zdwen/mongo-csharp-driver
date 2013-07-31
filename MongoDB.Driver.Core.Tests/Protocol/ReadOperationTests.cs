@@ -90,11 +90,15 @@ namespace MongoDB.Driver.Core.Protocol
             }
         }
 
-        private class TestReadOperation : ReadOperation
+        private class TestReadOperation : ReadOperation<BsonDocument>
         {
             public TestReadOperation()
-                : base(new CollectionNamespace("foo", "bar"), new BsonBinaryReaderSettings(), new BsonBinaryWriterSettings())
             {
+            }
+
+            public override BsonDocument Execute()
+            {
+                throw new NotImplementedException();
             }
 
             public BsonDocument TestWrapQuery(ServerDescription server, BsonDocument query, BsonDocument options, ReadPreference readPreference)

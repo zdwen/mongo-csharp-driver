@@ -13,18 +13,20 @@
 * limitations under the License.
 */
 
+using System;
 
-namespace MongoDB.Driver.Core.Connections
+namespace MongoDB.Driver.Core.Sessions
 {
     /// <summary>
-    /// A literal connection to a remove server.
+    /// A session decides on where operations get executed.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly")]
-    public abstract class ServerChannelBase : ChannelBase, IServerChannel
+    public interface ISession : IDisposable
     {
         /// <summary>
-        /// Gets the server.
+        /// Creates a server channel provider.
         /// </summary>
-        public abstract ServerDescription Server { get; }
+        /// <param name="args">The args.</param>
+        /// <returns>A server channel provider.</returns>
+        IServerChannelProvider CreateServerChannelProvider(CreateServerChannelProviderArgs args);
     }
 }

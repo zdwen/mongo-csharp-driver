@@ -44,6 +44,12 @@ namespace MongoDB.Driver.Core
         }
 
         // public properties
+        /// <summary>
+        /// Gets the type of the server.
+        /// </summary>
+        /// <value>
+        /// The type of the server.
+        /// </value>
         public ServerType ServerType
         {
             get
@@ -90,11 +96,22 @@ namespace MongoDB.Driver.Core
 
 
         // public methods
+        /// <summary>
+        /// Gets the size of the max document.
+        /// </summary>
+        /// <param name="maxDocumentSizeDefault">The max document size default.</param>
+        /// <returns></returns>
         public int GetMaxDocumentSize(int maxDocumentSizeDefault)
         {
             return Response.GetValue("maxBsonObjectSize", maxDocumentSizeDefault).ToInt32();
         }
 
+        /// <summary>
+        /// Gets the size of the max message.
+        /// </summary>
+        /// <param name="maxDocumentSizeDefault">The max document size default.</param>
+        /// <param name="maxMessageSizeDefault">The max message size default.</param>
+        /// <returns></returns>
         public int GetMaxMessageSize(int maxDocumentSizeDefault, int maxMessageSizeDefault)
         {
             return Response.GetValue(
@@ -103,6 +120,11 @@ namespace MongoDB.Driver.Core
                 .ToInt32();
         }
 
+        /// <summary>
+        /// Gets the replica set info.
+        /// </summary>
+        /// <param name="addressFamily">The address family.</param>
+        /// <returns></returns>
         public ReplicaSetInfo GetReplicaSetInfo(AddressFamily addressFamily)
         {
             if (!IsReplicaSetMember)

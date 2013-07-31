@@ -41,5 +41,10 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A connection.</returns>
         IConnection GetConnection(TimeSpan timeout, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Initializes the connection pool.
+        /// </summary>
+        void Initialize();
     }
 }

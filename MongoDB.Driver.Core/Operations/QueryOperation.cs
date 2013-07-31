@@ -17,10 +17,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using MongoDB.Bson;
-using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Operations
@@ -29,100 +29,178 @@ namespace MongoDB.Driver.Core.Operations
     /// Represents a Query operation.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public class QueryOperation<TDocument> : ReadOperation
+    public class QueryOperation<TDocument> : ReadOperation<IEnumerator<TDocument>>
     {
         // private fields
-        private readonly int _batchSize;
-        private readonly object _fields;
-        private readonly QueryFlags _flags;
-        private readonly int _limit;
-        private readonly BsonDocument _options;
-        private readonly object _query;
-        private readonly ReadPreference _readPreference;
-        private readonly IBsonSerializationOptions _serializationOptions;
-        private readonly IBsonSerializer _serializer;
-        private readonly int _skip;
+        private int _batchSize;
+        private CollectionNamespace _collection;
+        private object _fields;
+        private QueryFlags _flags;
+        private int _limit;
+        private BsonDocument _options;
+        private object _query;
+        private ReadPreference _readPreference;
+        private IBsonSerializationOptions _serializationOptions;
+        private IBsonSerializer _serializer;
+        private int _skip;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryOperation{TDocument}" /> class.
         /// </summary>
-        /// <param name="collectionNamespace">The namespace.</param>
-        /// <param name="readerSettings">The reader settings.</param>
-        /// <param name="writerSettings">The writer settings.</param>
-        /// <param name="batchSize">Size of the batch.</param>
-        /// <param name="fields">The fields.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="limit">The limit.</param>
-        /// <param name="options">The options.</param>
-        /// <param name="query">The query.</param>
-        /// <param name="readPreference">The read preference.</param>
-        /// <param name="serializationOptions">The serialization options.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <param name="skip">The skip.</param>
-        public QueryOperation(
-            CollectionNamespace collectionNamespace,
-            BsonBinaryReaderSettings readerSettings,
-            BsonBinaryWriterSettings writerSettings,
-            int batchSize,
-            object fields,
-            QueryFlags flags,
-            int limit,
-            BsonDocument options,
-            object query,
-            ReadPreference readPreference,
-            IBsonSerializationOptions serializationOptions,
-            IBsonSerializer serializer,
-            int skip)
-            : base(collectionNamespace, readerSettings, writerSettings)
+        public QueryOperation()
         {
-            Ensure.IsNotNull("serializer", serializer);
+            _readPreference = ReadPreference.Primary;
+        }
 
-            _batchSize = batchSize;
-            _fields = fields;
-            _flags = flags;
-            _limit = limit;
-            _options = options;
-            _query = query;
-            _readPreference = readPreference;
-            _serializationOptions = serializationOptions;
-            _serializer = serializer;
-            _skip = skip;
+        // public properties
+        /// <summary>
+        /// Gets or sets the size of the batch.
+        /// </summary>
+        public int BatchSize
+        {
+            get { return _batchSize; }
+            set { _batchSize = value; }
+        }
 
-            // since we're going to block anyway when a tailable cursor is temporarily out of data
-            // we might as well do it as efficiently as possible
-            if ((_flags & QueryFlags.TailableCursor) != 0)
-            {
-                _flags |= QueryFlags.AwaitData;
-            }
+        /// <summary>
+        /// Gets or sets the collection.
+        /// </summary>
+        public CollectionNamespace Collection
+        {
+            get { return _collection; }
+            set { _collection = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the fields.
+        /// </summary>
+        public object Fields
+        {
+            get { return _fields; }
+            set { _fields = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the flags.
+        /// </summary>
+        public QueryFlags Flags
+        {
+            get { return _flags; }
+            set { _flags = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the limit.
+        /// </summary>
+        public int Limit
+        {
+            get { return _limit; }
+            set { _limit = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the query options.
+        /// </summary>
+        public BsonDocument Options
+        {
+            get { return _options; }
+            set { _options = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the query object.
+        /// </summary>
+        public object Query
+        {
+            get { return _query; }
+            set { _query = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the read preference.
+        /// </summary>
+        public ReadPreference ReadPreference
+        {
+            get { return _readPreference; }
+            set { _readPreference = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the serialization options.
+        /// </summary>
+        public IBsonSerializationOptions SerializationOptions
+        {
+            get { return _serializationOptions; }
+            set { _serializationOptions = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the serializer.
+        /// </summary>
+        public IBsonSerializer Serializer
+        {
+            get { return _serializer; }
+            set { _serializer = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the skip.
+        /// </summary>
+        public int Skip
+        {
+            get { return _skip; }
+            set { _skip = value; }
         }
 
         // public methods
         /// <summary>
         /// Executes the Query operation.
         /// </summary>
-        /// <param name="channelProvider">The channel provider.</param>
         /// <returns>An enumerator to enumerate over the results.</returns>
-        public IEnumerator<TDocument> Execute(ICursorChannelProvider channelProvider)
+        public override IEnumerator<TDocument> Execute()
         {
-            Ensure.IsNotNull("channelProvider", channelProvider);
+            ValidateRequiredProperties();
+
+            // since we're going to block anyway when a tailable cursor is temporarily out of data
+            // we might as well do it as efficiently as possible
+            var flags = _flags;
+            if ((flags & QueryFlags.TailableCursor) != 0)
+            {
+                flags |= QueryFlags.AwaitData;
+            }
 
             var count = 0;
             var limit = (_limit >= 0) ? _limit : -_limit;
 
-            foreach (var document in DeserializeDocuments(channelProvider))
+            using (var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true))
             {
-                if (limit != 0 && count == limit)
+                foreach (var document in DeserializeDocuments(channelProvider))
                 {
-                    yield break;
+                    if (limit != 0 && count == limit)
+                    {
+                        yield break;
+                    }
+                    yield return document;
+                    count++;
                 }
-                yield return document;
-                count++;
             }
         }
 
+        // protected methods
+        /// <summary>
+        /// Validates the required properties.
+        /// </summary>
+        protected override void ValidateRequiredProperties()
+        {
+            base.ValidateRequiredProperties();
+            Ensure.IsNotNull("Collection", _collection);
+            Ensure.IsNotNull("Query", _query);
+            Ensure.IsNotNull("Serializer", _serializer);
+        }
+
         // private methods
-        private IEnumerable<TDocument> DeserializeDocuments(ICursorChannelProvider channelProvider)
+        private IEnumerable<TDocument> DeserializeDocuments(IServerChannelProvider channelProvider)
         {
             var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
 
@@ -169,7 +247,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private ReplyMessage GetFirstBatch(ICursorChannelProvider channelProvider)
+        private ReplyMessage GetFirstBatch(IServerChannelProvider channelProvider)
         {
             // some of these weird conditions are necessary to get commands to run correctly
             // specifically numberToReturn has to be 1 or -1 for commands
@@ -195,13 +273,13 @@ namespace MongoDB.Driver.Core.Operations
                 numberToReturn = _batchSize;
             }
 
-            using (var channel = channelProvider.GetChannel())
+            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
             {
-                var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
-                var wrappedQuery = WrapQuery(channel.Server, _query, _options, _readPreference);
+                var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);
+                var wrappedQuery = WrapQuery(channelProvider.Server, _query, _options, _readPreference);
 
                 var queryMessage = new QueryMessage(
-                    CollectionNamespace,
+                    Collection,
                     wrappedQuery,
                     _flags,
                     _skip,
@@ -223,12 +301,12 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private ReplyMessage GetNextBatch(ICursorChannelProvider channelProvider, long cursorId)
+        private ReplyMessage GetNextBatch(IServerChannelProvider channelProvider, long cursorId)
         {
-            using (var channel = channelProvider.GetChannel())
+            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
             {
-                var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
-                var getMoreMessage = new GetMoreMessage(CollectionNamespace, cursorId, _batchSize);
+                var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
+                var getMoreMessage = new GetMoreMessage(Collection, cursorId, _batchSize);
 
                 using (var packet = new BufferedRequestPacket())
                 {
@@ -244,9 +322,9 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private void KillCursor(ICursorChannelProvider channelProvider, long cursorId)
+        private void KillCursor(IServerChannelProvider channelProvider, long cursorId)
         {
-            using (var channel = channelProvider.GetChannel())
+            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
             {
                 var killCursorsMessage = new KillCursorsMessage(new[] { cursorId });
 

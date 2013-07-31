@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Mocks;
 using MongoDB.Driver.Core.Operations;
+using MongoDB.Driver.Core.Sessions;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -20,12 +22,18 @@ namespace MongoDB.Driver.Core.Protocol
         public void When_not_using_a_write_concern_a_getLastError_message_should_not_be_piggy_backed()
         {
             int sentBufferLength = 0;
-            var channel = Substitute.For<IServerChannel>();
+            var channel = Substitute.For<IChannel>();
             channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestPacket>().Length; });
-            channel.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
 
-            var subject = CreateSubject(WriteConcern.Unacknowledged);
-            subject.Execute(channel);
+            var channelProvider = Substitute.For<IServerChannelProvider>();
+            channelProvider.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
+            channelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None).ReturnsForAnyArgs(channel);
+
+            var session = Substitute.For<ISession>();
+            session.CreateServerChannelProvider(null).ReturnsForAnyArgs(channelProvider);
+
+            var subject = CreateSubject(session, WriteConcern.Unacknowledged);
+            subject.Execute();
 
             Assert.AreEqual(subject.BufferLengthWithoutWriteConcern, sentBufferLength);
         }
@@ -34,14 +42,19 @@ namespace MongoDB.Driver.Core.Protocol
         public void When_using_a_write_concern_a_getLastError_message_should_be_piggy_backed()
         {
             int sentBufferLength = 0;
-            var channel = Substitute.For<IServerChannel>();
+            var channel = Substitute.For<IChannel>();
             channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestPacket>().Length; });
-            channel.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
-
             channel.Receive(null).ReturnsForAnyArgs(CreateWriteConcernResult(true, null));
 
-            var subject = CreateSubject(WriteConcern.Acknowledged);
-            subject.Execute(channel);
+            var channelProvider = Substitute.For<IServerChannelProvider>();
+            channelProvider.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
+            channelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None).ReturnsForAnyArgs(channel);
+
+            var session = Substitute.For<ISession>();
+            session.CreateServerChannelProvider(null).ReturnsForAnyArgs(channelProvider);
+
+            var subject = CreateSubject(session, WriteConcern.Acknowledged);
+            subject.Execute();
 
             Assert.Greater(sentBufferLength, subject.BufferLengthWithoutWriteConcern);
         }
@@ -50,37 +63,43 @@ namespace MongoDB.Driver.Core.Protocol
         public void When_a_write_concern_is_specified_and_getLastError_is_not_ok_an_exception_should_be_thrown()
         {
             int sentBufferLength = 0;
-            var channel = Substitute.For<IServerChannel>();
+            var channel = Substitute.For<IChannel>();
             channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestPacket>().Length; });
-            channel.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
-
             channel.Receive(null).ReturnsForAnyArgs(CreateWriteConcernResult(false, "an error"));
 
-            var subject = CreateSubject(WriteConcern.Acknowledged);
-            Assert.Throws<MongoWriteConcernException>(() => subject.Execute(channel));
+            var channelProvider = Substitute.For<IServerChannelProvider>();
+            channelProvider.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
+            channelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None).ReturnsForAnyArgs(channel);
+
+            var session = Substitute.For<ISession>();
+            session.CreateServerChannelProvider(null).ReturnsForAnyArgs(channelProvider);
+
+            var subject = CreateSubject(session, WriteConcern.Acknowledged);
+            Assert.Throws<MongoWriteConcernException>(() => subject.Execute());
         }
 
         [Test]
         public void When_a_write_concern_is_specified_and_getLastError_has_an_err_message_an_exception_should_be_thrown()
         {
             int sentBufferLength = 0;
-            var channel = Substitute.For<IServerChannel>();
+            var channel = Substitute.For<IChannel>();
             channel.WhenForAnyArgs(c => c.Send(null)).Do(c => { sentBufferLength = c.Arg<IRequestPacket>().Length; });
-            channel.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
-
             channel.Receive(null).ReturnsForAnyArgs(CreateWriteConcernResult(true, "an error"));
 
-            var subject = CreateSubject(WriteConcern.Acknowledged);
-            Assert.Throws<MongoWriteConcernException>(() => subject.Execute(channel));
+            var channelProvider = Substitute.For<IServerChannelProvider>();
+            channelProvider.Server.Returns(ServerDescriptionBuilder.Build(b => { }));
+            channelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None).ReturnsForAnyArgs(channel);
+
+            var session = Substitute.For<ISession>();
+            session.CreateServerChannelProvider(null).ReturnsForAnyArgs(channelProvider);
+
+            var subject = CreateSubject(session, WriteConcern.Acknowledged);
+            Assert.Throws<MongoWriteConcernException>(() => subject.Execute());
         }
 
-        private TestWriteOperation CreateSubject(WriteConcern writeConcern)
+        private TestWriteOperation CreateSubject(ISession session, WriteConcern writeConcern)
         {
-            return new TestWriteOperation(
-                new CollectionNamespace("admin", "YAY"),
-                new BsonBinaryReaderSettings(),
-                new BsonBinaryWriterSettings(),
-                writeConcern);
+            return new TestWriteOperation(session, new CollectionNamespace("admin", "YAY"), writeConcern);
         }
 
         private ReplyMessage CreateWriteConcernResult(bool ok, string err)
@@ -98,35 +117,42 @@ namespace MongoDB.Driver.Core.Protocol
             return ProtocolHelper.BuildReplyMessage(new[] { doc });
         }
 
-        private class TestWriteOperation : WriteOperation
+        private class TestWriteOperation : WriteOperation<WriteConcernResult>
         {
-            public TestWriteOperation(CollectionNamespace collectionNamespace, BsonBinaryReaderSettings readerSettings, BsonBinaryWriterSettings writerSettings, WriteConcern writeConcern)
-                : base(collectionNamespace, readerSettings, writerSettings, writeConcern)
-            { }
+            public TestWriteOperation(ISession session, CollectionNamespace collection, WriteConcern writeConcern)
+            {
+                Session = session;
+                Collection = collection;
+                WriteConcern = writeConcern;
+            }
 
             public int BufferLengthWithoutWriteConcern { get; set; }
 
-            public WriteConcernResult Execute(IServerChannel channel)
+            public override WriteConcernResult Execute()
             {
-                var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
-                var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
-
-                var deleteMessage = new DeleteMessage(
-                    CollectionNamespace,
-                    new BsonDocument(),
-                    DeleteFlags.Single,
-                    writerSettings);
-
-                SendPacketWithWriteConcernResult sendMessageResult;
-                using (var request = new BufferedRequestPacket())
+                using (var channelProvider = Session.CreateServerChannelProvider(null))
+                using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
                 {
-                    request.AddMessage(deleteMessage);
-                    BufferLengthWithoutWriteConcern = (int)request.Stream.Length;
+                    var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
+                    var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);
 
-                    sendMessageResult = SendPacketWithWriteConcern(channel, request, WriteConcern, writerSettings);
+                    var deleteMessage = new DeleteMessage(
+                        Collection,
+                        new BsonDocument(),
+                        DeleteFlags.Single,
+                        writerSettings);
+
+                    SendPacketWithWriteConcernResult sendMessageResult;
+                    using (var request = new BufferedRequestPacket())
+                    {
+                        request.AddMessage(deleteMessage);
+                        BufferLengthWithoutWriteConcern = (int)request.Stream.Length;
+
+                        sendMessageResult = SendPacketWithWriteConcern(channel, request, WriteConcern, writerSettings);
+                    }
+
+                    return ReadWriteConcernResult(channel, sendMessageResult, readerSettings);
                 }
-
-                return ReadWriteConcernResult(channel, sendMessageResult, readerSettings);
             }
         }
     }

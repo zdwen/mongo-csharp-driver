@@ -13,8 +13,11 @@
 * limitations under the License.
 */
 
+using System;
+using System.Threading;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Operations
@@ -22,41 +25,116 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Base class for an operation.
     /// </summary>
-    public abstract class DatabaseOperation
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    public abstract class DatabaseOperation<TResult> : IOperation<TResult>
     {
         // private fields
-        private readonly CollectionNamespace _collectionNamespace;
-        private readonly BsonBinaryReaderSettings _readerSettings;
-        private readonly BsonBinaryWriterSettings _writerSettings;
+        private CancellationToken _cancellationToken;
+        private bool _closeSessionOnExecute;
+        private BsonBinaryReaderSettings _readerSettings;
+        private ISession _session;
+        private TimeSpan _timeout;
+        private BsonBinaryWriterSettings _writerSettings;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DatabaseOperation" /> class.
+        /// Initializes a new instance of the <see cref="DatabaseOperation{TResult}" /> class.
         /// </summary>
-        /// <param name="collectionNamespace">The namespace.</param>
-        /// <param name="readerSettings">The reader settings.</param>
-        /// <param name="writerSettings">The writer settings.</param>
-        protected DatabaseOperation(
-            CollectionNamespace collectionNamespace,
-            BsonBinaryReaderSettings readerSettings,
-            BsonBinaryWriterSettings writerSettings)
+        protected DatabaseOperation()
         {
-            Ensure.IsNotNull("namespace", collectionNamespace);
-            Ensure.IsNotNull("readerSettings", readerSettings);
-            Ensure.IsNotNull("writerSettings", writerSettings);
-
-            _collectionNamespace = collectionNamespace;
-            _readerSettings = (BsonBinaryReaderSettings)readerSettings.FrozenCopy();
-            _writerSettings = (BsonBinaryWriterSettings)writerSettings.FrozenCopy();
+            _cancellationToken = CancellationToken.None;
+            _readerSettings = BsonBinaryReaderSettings.Defaults;
+            _timeout = TimeSpan.FromSeconds(30);
+            _writerSettings = BsonBinaryWriterSettings.Defaults;
         }
 
-        // protected properties
+        // public properties
         /// <summary>
-        /// Gets the collection namespace the operation will be performed against.
+        /// Gets or sets the cancellation token.
         /// </summary>
-        protected CollectionNamespace CollectionNamespace
+        public CancellationToken CancellationToken
         {
-            get { return _collectionNamespace; }
+            get { return _cancellationToken; }
+            set { _cancellationToken = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [close session on execute].
+        /// </summary>
+        public bool CloseSessionOnExecute
+        {
+            get { return _closeSessionOnExecute; }
+            set { _closeSessionOnExecute = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the reader settings.
+        /// </summary>
+        public BsonBinaryReaderSettings ReaderSettings
+        {
+            get { return _readerSettings; }
+            set
+            {
+                Ensure.IsNotNull("value", value);
+                _readerSettings = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the session.
+        /// </summary>
+        public ISession Session
+        {
+            get { return _session; }
+            set { _session = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the timeout.
+        /// </summary>
+        public TimeSpan Timeout
+        {
+            get { return _timeout; }
+            set { _timeout = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the writer settings.
+        /// </summary>
+        public BsonBinaryWriterSettings WriterSettings
+        {
+            get { return _writerSettings; }
+            set
+            {
+                Ensure.IsNotNull("value", value);
+                _writerSettings = value;
+            }
+        }
+
+        // public methods
+        /// <summary>
+        /// Executes this instance.
+        /// </summary>
+        /// <returns>The result of the execution.</returns>
+        public abstract TResult Execute();
+
+        // protected methods
+        /// <summary>
+        /// Creates the session channel provider.
+        /// </summary>
+        /// <param name="serverSelector">The server selector.</param>
+        /// <param name="isQuery">if set to <c>true</c> the operation is a query.</param>
+        /// <returns>A server channel provider.</returns>
+        protected IServerChannelProvider CreateServerChannelProvider(IServerSelector serverSelector, bool isQuery)
+        {
+            var options = new CreateServerChannelProviderArgs(serverSelector, isQuery)
+            {
+                CancellationToken = _cancellationToken,
+                DisposeSession = CloseSessionOnExecute,
+                Timeout = _timeout
+            };
+
+            return Session.CreateServerChannelProvider(options);
         }
 
         /// <summary>
@@ -86,6 +164,15 @@ namespace MongoDB.Driver.Core.Operations
             var writerSettings = _writerSettings.Clone();
             writerSettings.MaxDocumentSize = server.MaxDocumentSize;
             return writerSettings;
+        }
+
+        /// <summary>
+        /// Validates the required properties.
+        /// </summary>
+        protected virtual void ValidateRequiredProperties()
+        {
+            Ensure.IsNotNull("Session", _session);
+            Ensure.IsInfiniteOrZeroOrPositive("Timeout", _timeout);
         }
     }
 }

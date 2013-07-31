@@ -13,16 +13,19 @@
 * limitations under the License.
 */
 
-namespace MongoDB.Driver.Core.Connections
+
+namespace MongoDB.Driver.Core.Operations
 {
     /// <summary>
-    /// A channel to an identifiable server.
+    /// An operation against the server.
     /// </summary>
-    public interface IServerChannel : IChannel
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    public interface IOperation<TResult>
     {
         /// <summary>
-        /// Gets the server.
+        /// Executes the operation.
         /// </summary>
-        ServerDescription Server { get; }
+        /// <returns>The result of the operation.</returns>
+        TResult Execute();
     }
 }

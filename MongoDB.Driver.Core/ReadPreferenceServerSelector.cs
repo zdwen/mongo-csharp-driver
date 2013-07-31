@@ -28,6 +28,7 @@ namespace MongoDB.Driver.Core
     {
         // private fields
         private readonly ReadPreference _readPreference;
+        private readonly LatencyLimitingServerSelector _latencySelector;
 
         // constructors
         /// <summary>
@@ -37,50 +38,60 @@ namespace MongoDB.Driver.Core
         public ReadPreferenceServerSelector(ReadPreference readPreference)
         {
             _readPreference = readPreference;
+            _latencySelector = new LatencyLimitingServerSelector(readPreference.SecondaryAcceptableLatency);
         }
 
-        // public properties
+        // public methods
         /// <summary>
-        /// Gets the description of the server selector.
+        /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>
-        public override string Description
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
         {
-            get { return string.Format("Read Preference {0}", _readPreference.ToString()); }
+            return string.Format("a read preference of {0} and {1}", _readPreference, _latencySelector);
         }
 
+        // protected methods
         /// <summary>
         /// Selects a server from the connected servers.
         /// </summary>
         /// <param name="servers">The servers.</param>
         /// <returns>The selected server or <c>null</c> if none match.</returns>
-        protected override ServerDescription SelectServerFromConnectedServers(IEnumerable<ServerDescription> servers)
+        protected override IEnumerable<ServerDescription> SelectServersFromConnectedServers(IEnumerable<ServerDescription> servers)
         {
-            ServerDescription selected;
+            IEnumerable<ServerDescription> selected;
             switch(_readPreference.ReadPreferenceMode)
             {
                 case ReadPreferenceMode.Primary:
-                    return servers.FirstOrDefault(n => n.Type.CanWrite());
+                    selected = servers.Where(n => n.Type.CanWrite());
+                    break;
                 case ReadPreferenceMode.PrimaryPreferred:
-                    selected = servers.FirstOrDefault(n => n.Type.CanWrite());
-                    if (selected == null)
+                    selected = servers.Where(n => n.Type.CanWrite());
+                    if (!selected.Any())
                     {
-                        selected = SelectOne(servers.Where(n => n.Type == ServerType.ReplicaSetSecondary));
+                        selected = FilterServersByTags(servers.Where(n => n.Type == ServerType.ReplicaSetSecondary));
                     }
-                    return selected;
+                    break;
                 case ReadPreferenceMode.Secondary:
-                    return SelectOne(servers.Where(n => n.Type == ServerType.ReplicaSetSecondary));
+                    selected = FilterServersByTags(servers.Where(n => n.Type == ServerType.ReplicaSetSecondary));
+                    break;
                 case ReadPreferenceMode.SecondaryPreferred:
-                    selected = SelectOne(servers.Where(n => n.Type == ServerType.ReplicaSetSecondary));
-                    if (selected == null)
+                    selected = FilterServersByTags(servers.Where(n => n.Type == ServerType.ReplicaSetSecondary));
+                    if (!selected.Any())
                     {
-                        selected = servers.FirstOrDefault(n => n.Type.CanWrite());
+                        selected = servers.Where(n => n.Type.CanWrite());
                     }
-                    return selected;
+                    break;
                 case ReadPreferenceMode.Nearest:
-                    return SelectOne(servers.Where(n => n.Type.CanWrite() || n.Type == ServerType.ReplicaSetSecondary));
+                    selected = FilterServersByTags(servers.Where(n => n.Type.CanWrite() || n.Type == ServerType.ReplicaSetSecondary));
+                    break;
+                default:
+                    throw new InvalidOperationException(string.Format("Invalid ReadPreferenceMode {0}", _readPreference.ReadPreferenceMode));
             }
 
-            throw new InvalidOperationException(string.Format("Invalid ReadPreferenceMode {0}", _readPreference.ReadPreferenceMode));
+            return _latencySelector.SelectServers(selected);
         }
 
         // private methods
@@ -95,9 +106,8 @@ namespace MongoDB.Driver.Core
             return tagSet.All(ts => server.ReplicaSetInfo.Tags.Any(x => x.Key == ts.Name && x.Value == ts.Value));
         }
 
-        private ServerDescription SelectOne(IEnumerable<ServerDescription> servers)
+        private IEnumerable<ServerDescription> FilterServersByTags(IEnumerable<ServerDescription> servers)
         {
-            TimeSpan? first = null;
             var tagSets = _readPreference.TagSets;
             if (tagSets == null)
             {
@@ -105,30 +115,16 @@ namespace MongoDB.Driver.Core
             }
             foreach (var tagSet in tagSets)
             {
-                var selected = servers.Where(n => DoesTagSetMatchServer(tagSet, n))
-                    .OrderBy(n => n.AveragePingTime)
-                    .TakeWhile(n => // take while doesn't behave like it should...
-                    {
-                        if (first.HasValue)
-                        {
-                            return n.AveragePingTime < first.Value.Add(_readPreference.SecondaryAcceptableLatency);
-                        }
-                        else
-                        {
-                            first = n.AveragePingTime;
-                            return true;
-                        }
-                    })
-                    .RandomOrDefault();
+                var selected = servers.Where(n => DoesTagSetMatchServer(tagSet, n));
 
                 // stop processing now that we've found a matching one...
-                if (selected != null)
+                if (selected.Any())
                 {
                     return selected;
                 }
             }
 
-            return null;
+            return Enumerable.Empty<ServerDescription>();
         }
     }
 }

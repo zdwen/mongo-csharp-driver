@@ -16,12 +16,15 @@ using MongoDB.Driver.Core.Security;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Operations;
+using MongoDB.Driver.Core.Sessions;
 
 namespace MongoDB.DriverUnitTests.Jira
 {
     public static class Program
     {
         private static object _consoleLock = new object();
+        private static DatabaseNamespace _database = new DatabaseNamespace("foo");
+        private static CollectionNamespace _collection = new CollectionNamespace("foo", "bar");
 
         public static void Main()
         {
@@ -49,7 +52,7 @@ namespace MongoDB.DriverUnitTests.Jira
             //streamFactory = new Socks5StreamProxy(new DnsEndPoint("localhost", 1080), streamFactory);
 
             // 2) Create a Connection Factory
-            var connectionFactory = new StreamConnectionFactory(
+            IConnectionFactory connectionFactory = new StreamConnectionFactory(
                 streamFactory,
                 events,
                 traceManager);
@@ -61,114 +64,98 @@ namespace MongoDB.DriverUnitTests.Jira
             //});
             //connectionFactory = new AuthenticatedConnectionFactory(authSettings, connectionFactory);
 
-            // 3a) Create a connection pool factory
-            var connectionPoolFactory = new ConnectionPoolFactory(
-                ConnectionPoolSettings.Create(b =>
-                {
-                    // make this short to watch perf counters
-                    b.SetConnectionMaxLifeTime(TimeSpan.FromSeconds(20));
-                }),
-                connectionFactory,
-                events,
-                traceManager);
-
-            // 3b) Create a channel provider factory
-            var pooledConnectionChannelProviderFactory = new ConnectionPoolChannelProviderFactory(
-                connectionPoolFactory,
+            // 3) Create a Channel Provider Factory
+            IChannelProviderFactory channelProviderFactory = new ConnectionPoolChannelProviderFactory(
+                new ConnectionPoolFactory(
+                    ConnectionPoolSettings.Defaults,
+                    connectionFactory,
+                    events,
+                    traceManager),
                 events,
                 traceManager);
 
             // A pipelined channel provider
             //channelProviderFactory = new PipelinedChannelProviderFactory(connectionFactory, 1);
 
-            // 4) Create a Node Factory
-            var nodeFactory = new ClusterableServerFactory(
+            // 4) Create a Clusterable Server Factory
+            var clusterableServerFactory = new ClusterableServerFactory(
                 false,
                 ClusterableServerSettings.Defaults,
-                pooledConnectionChannelProviderFactory,
+                channelProviderFactory,
                 connectionFactory,
                 events,
                 traceManager);
 
-            // 5) Create a Node Manager
-            var cluster = new ReplicaSetCluster(
-                ReplicaSetClusterSettings.Defaults,
-                new[] 
-                {
-                    new DnsEndPoint("work-laptop", 30000),
-                    //new DnsEndPoint("work-laptop", 30001),
-                    //new DnsEndPoint("work-laptop", 30002) 
-                },
-                nodeFactory);
+            // 5) Create a Cluster
+            var cluster = new SingleServerCluster(new DnsEndPoint("localhost", 27017), clusterableServerFactory);
+
+            //var cluster = new ReplicaSetCluster(
+            //    ReplicaSetClusterSettings.Defaults,
+            //    new[] 
+            //    {
+            //        new DnsEndPoint("work-laptop", 30000),
+            //        //new DnsEndPoint("work-laptop", 30001),
+            //        //new DnsEndPoint("work-laptop", 30002) 
+            //    },
+            //    nodeFactory);
             cluster.Initialize();
 
-            Console.WriteLine("Clearing Data");
-            ClearData(cluster);
-            Console.WriteLine("Inserting Seed Data");
-            InsertData(cluster);
+            using (var session = new ClusterSession(cluster))
+            {
+                Console.WriteLine("Clearing Data");
+                ClearData(session);
+                Console.WriteLine("Inserting Seed Data");
+                InsertData(session);
+            }
 
             Console.WriteLine("Running Tests (errors will show up as + (query error) or * (insert/update error))");
             for (int i = 0; i < 7; i++)
             {
-                ThreadPool.QueueUserWorkItem(_ => DoWork(cluster));
+                ThreadPool.QueueUserWorkItem(_ => DoWork(new ClusterSession(cluster)));
             }
 
-            DoWork(cluster); // blocking
+            DoWork(new ClusterSession(cluster)); // blocking
         }
 
-        private static void ClearData(ICluster cluster)
+        private static void ClearData(ISession session)
         {
-            using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
-            using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
+            var commandOp = new CommandOperation<CommandResult>()
             {
-                var commandOp = new CommandOperation<CommandResult>(
-                    new DatabaseNamespace("foo"),
-                    new BsonBinaryReaderSettings(),
-                    new BsonBinaryWriterSettings(),
-                    new BsonDocument("dropDatabase", 1),
-                    QueryFlags.None,
-                    null,
-                    ReadPreference.Primary,
-                    null,
-                    BsonSerializer.LookupSerializer(typeof(CommandResult)));
+                Command = new BsonDocument("dropDatabase", 1),
+                Database = _database,
+                Serializer = BsonSerializer.LookupSerializer(typeof(CommandResult)),
+                Session = session
+            };
 
-                commandOp.Execute(channel);
-            }
+            commandOp.Execute();
         }
 
-        private static void InsertData(ICluster cluster)
+        private static void InsertData(ISession session)
         {
-            using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
-            using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
+            for (int i = 0; i < 10000; i++)
             {
-                for (int i = 0; i < 10000; i++)
-                {
-                    Insert(channel, new BsonDocument("i", i));
-                }
+                Insert(session, new BsonDocument("i", i));
             }
         }
 
-        private static void DoWork(ICluster cluster)
+        private static void DoWork(ISession session)
         {
             var rand = new Random();
             while (true)
             {
                 var i = rand.Next(0, 10000);
                 BsonDocument doc;
+                IEnumerator<BsonDocument> result = null;
                 try
                 {
-                    using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.SecondaryPreferred), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
-                    using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
+                    result = Query(session, new BsonDocument("i", i));
+                    if (result.MoveNext())
                     {
-                        var result = Query(channel, new BsonDocument("i", i));
-                        if (result.MoveNext())
-                        {
-                            doc = result.Current;
-                        }
-                        else
-                        {
-                            doc = null;
-                        }
+                        doc = result.Current;
+                    }
+                    else
+                    {
+                        doc = null;
                     }
 
                     //Console.Write(".");
@@ -178,16 +165,16 @@ namespace MongoDB.DriverUnitTests.Jira
                     Console.Write("+");
                     continue;
                 }
+                finally
+                {
+                    result.Dispose();
+                }
 
                 if (doc == null)
                 {
                     try
                     {
-                        using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
-                        using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
-                        {
-                            Insert(channel, new BsonDocument().Add("i", i));
-                        }
+                        Insert(session, new BsonDocument().Add("i", i));
                         //Console.Write(".");
                     }
                     catch (Exception)
@@ -201,11 +188,7 @@ namespace MongoDB.DriverUnitTests.Jira
                     {
                         var query = new BsonDocument("_id", doc["_id"]);
                         var update = new BsonDocument("$set", new BsonDocument("i", i + 1));
-                        using (var node = cluster.SelectServer(new ReadPreferenceServerSelector(ReadPreference.Primary), TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
-                        using (var channel = node.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
-                        {
-                            Update(channel, query, update);
-                        }
+                        Update(session, query, update);
                         //Console.Write(".");
                     }
                     catch (Exception)
@@ -216,76 +199,46 @@ namespace MongoDB.DriverUnitTests.Jira
             }
         }
 
-        private static void Insert(IServerChannel connection, BsonDocument document)
+        private static void Insert(ISession session, BsonDocument document)
         {
-            var insertOp = new InsertOperation(
-                new CollectionNamespace("foo", "bar"),
-                new BsonBinaryReaderSettings(),
-                new BsonBinaryWriterSettings(),
-                WriteConcern.Acknowledged,
-                true,
-                false,
-                typeof(BsonDocument),
-                new[] { document },
-                InsertFlags.None,
-                0);
+            var insertOp = new InsertOperation()
+            {
+                Collection = _collection,
+                Documents = new [] { document },
+                DocumentType = typeof(BsonDocument),
+                Session = session
+            };
 
-            insertOp.Execute(connection);
+            insertOp.Execute();
         }
 
-        private static IEnumerator<BsonDocument> Query(IServerChannel connection, BsonDocument query)
+        private static IEnumerator<BsonDocument> Query(ISession session, BsonDocument query)
         {
-            var queryOp = new QueryOperation<BsonDocument>(
-                new CollectionNamespace("foo", "bar"),
-                new BsonBinaryReaderSettings(),
-                new BsonBinaryWriterSettings(),
-                1,
-                null,
-                QueryFlags.SlaveOk,
-                0,
-                null,
-                query,
-                ReadPreference.Nearest,
-                null,
-                new BsonDocumentSerializer(),
-                0);
+            var queryOp = new QueryOperation<BsonDocument>()
+            {
+                Collection = _collection,
+                Limit = 1,
+                Query = query,
+                ReadPreference = ReadPreference.Nearest,
+                Serializer = BsonDocumentSerializer.Instance,
+                Session = session
+            };
 
-            return queryOp.Execute(new QueryConnectionProvider(connection));
+            return queryOp.Execute();
         }
 
-        private class QueryConnectionProvider : ICursorChannelProvider
+        private static void Update(ISession session, BsonDocument query, BsonDocument update)
         {
-            private readonly IServerChannel _connection;
-
-            public QueryConnectionProvider(IServerChannel connection)
+            var updateOp = new UpdateOperation()
             {
-                _connection = connection;
-            }
+                Collection = _collection,
+                Flags = UpdateFlags.Multi,
+                Query = query,
+                Session = session,
+                Update = update,
+            };
 
-            public ServerDescription Server
-            {
-                get { return _connection.Server; }
-            }
-
-            public IServerChannel GetChannel()
-            {
-                return _connection;
-            }
-        }
-
-        private static void Update(IServerChannel connection, BsonDocument query, BsonDocument update)
-        {
-            var updateOp = new UpdateOperation(
-                new CollectionNamespace("foo", "bar"),
-                new BsonBinaryReaderSettings(),
-                new BsonBinaryWriterSettings(),
-                WriteConcern.Acknowledged,
-                query,
-                update,
-                UpdateFlags.Multi,
-                false);
-
-            updateOp.Execute(connection);
+            updateOp.Execute();
         }
     }
 }

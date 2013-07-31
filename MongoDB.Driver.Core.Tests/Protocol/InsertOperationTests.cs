@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
+using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Connections;
-using MongoDB.Driver.Core.Mocks;
 using MongoDB.Driver.Core.Operations;
+using MongoDB.Driver.Core.Sessions;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -28,16 +25,22 @@ namespace MongoDB.Driver.Core.Protocol
         public void Should_send_the_proper_number_of_getLastError_messages(bool useWriteConcern, InsertFlags flags, int numBatches, int numGetLastErrors)
         {
             var writeConcern = useWriteConcern ? WriteConcern.Acknowledged : WriteConcern.Unacknowledged;
-            var channel = Substitute.For<IServerChannel>();
-            channel.Server.Returns(ServerDescriptionBuilder.Build(b =>
+            var channel = Substitute.For<IChannel>();
+            channel.Receive(null).ReturnsForAnyArgs(c => CreateWriteConcernResult(true, null));
+
+            var channelProvider = Substitute.For<IServerChannelProvider>();
+            channelProvider.Server.Returns(ServerDescriptionBuilder.Build(b =>
             {
                 b.MaxDocumentSize(BATCH_SIZE);
                 b.MaxMessageSize(BATCH_SIZE);
             }));
-            channel.Receive(null).ReturnsForAnyArgs(c => CreateWriteConcernResult(true, null));
+            channelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None).ReturnsForAnyArgs(channel);
 
-            var subject = CreateSubject(flags, writeConcern, numBatches);
-            subject.Execute(channel);
+            var session = Substitute.For<ISession>();
+            session.CreateServerChannelProvider(null).ReturnsForAnyArgs(channelProvider);
+
+            var subject = CreateSubject(session, flags, writeConcern, numBatches);
+            subject.Execute();
 
             channel.ReceivedWithAnyArgs(numGetLastErrors).Receive(null);
         }
@@ -69,19 +72,18 @@ namespace MongoDB.Driver.Core.Protocol
             }
         }
 
-        private InsertOperation CreateSubject(InsertFlags flags, WriteConcern writeConcern, int numBatches)
+        private InsertOperation CreateSubject(ISession session, InsertFlags flags, WriteConcern writeConcern, int numBatches)
         {
-            return new InsertOperation(
-                new CollectionNamespace("admin", "YAY"),
-                new BsonBinaryReaderSettings(),
-                new BsonBinaryWriterSettings(),
-                writeConcern,
-                false, // don't generate ids, it would change the size of the documents...
-                true,
-                typeof(BsonDocument),
-                CreateDocumentBatch(numBatches),
-                flags,
-                0);
+            return new InsertOperation()
+            {
+                AssignIdOnInsert = false,
+                Collection = new CollectionNamespace("admin", "YAY"),
+                Documents = CreateDocumentBatch(numBatches),
+                DocumentType = typeof(BsonDocument),
+                Flags = flags,
+                Session = session,
+                WriteConcern = writeConcern
+            };
         }
 
         private ReplyMessage CreateWriteConcernResult(bool ok, string err)

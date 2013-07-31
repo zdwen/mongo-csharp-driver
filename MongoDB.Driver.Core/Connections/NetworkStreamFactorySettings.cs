@@ -48,9 +48,9 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="tcpSendBufferSize">The size of the TCP send buffer.</param>
         public NetworkStreamFactorySettings(TimeSpan connectTimeout, TimeSpan readTimeout, TimeSpan writeTimeout, int tcpReceiveBufferSize, int tcpSendBufferSize)
         {
-            Ensure.IsInfiniteOrPositive("connectTimeout", connectTimeout);
-            Ensure.IsInfiniteOrPositive("readTimeout", readTimeout);
-            Ensure.IsInfiniteOrPositive("writeTimeout", writeTimeout);
+            Ensure.IsInfiniteOrZeroOrPositive("connectTimeout", connectTimeout);
+            Ensure.IsInfiniteOrZeroOrPositive("readTimeout", readTimeout);
+            Ensure.IsInfiniteOrZeroOrPositive("writeTimeout", writeTimeout);
             Ensure.IsGreaterThan("tcpReceiveBufferSize", tcpReceiveBufferSize, 0);
             Ensure.IsGreaterThan("tcpSendBufferSize", tcpSendBufferSize, 0);
 

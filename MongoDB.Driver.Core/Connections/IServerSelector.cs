@@ -23,15 +23,10 @@ namespace MongoDB.Driver.Core.Connections
     public interface IServerSelector
     {
         /// <summary>
-        /// Gets the description of the server selector.
-        /// </summary>
-        string Description { get; }
-
-        /// <summary>
-        /// Selects a server from the provided servers.
+        /// Refines the list of servers.
         /// </summary>
         /// <param name="servers">The servers.</param>
-        /// <returns>The selected server or <c>null</c> if none match.</returns>
-        ServerDescription SelectServer(IEnumerable<ServerDescription> servers);
+        /// <returns>The selected servers or an empty enumerable if none match.</returns>
+        IEnumerable<ServerDescription> SelectServers(IEnumerable<ServerDescription> servers);
     }
 }

@@ -25,6 +25,9 @@ using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
 {
+    /// <summary>
+    /// Creates a <see cref="ConnectionPool"/>.
+    /// </summary>
     public class ConnectionPoolFactory : IConnectionPoolFactory
     {
         // private fields
@@ -34,6 +37,13 @@ namespace MongoDB.Driver.Core.Connections
         private readonly TraceManager _traceManager;
 
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConnectionPoolFactory" /> class.
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        /// <param name="connectionFactory">The connection factory.</param>
+        /// <param name="events">The events.</param>
+        /// <param name="traceManager">The trace manager.</param>
         public ConnectionPoolFactory(ConnectionPoolSettings settings, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
         {
             Ensure.IsNotNull("settings", settings);

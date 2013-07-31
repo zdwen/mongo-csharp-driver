@@ -15,10 +15,10 @@
 
 using System.Linq;
 using MongoDB.Bson;
-using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Operations
@@ -27,106 +27,160 @@ namespace MongoDB.Driver.Core.Operations
     /// Represents a Command operation.
     /// </summary>
     /// <typeparam name="TCommandResult">The type of the command result.</typeparam>
-    public class CommandOperation<TCommandResult> : ReadOperation where TCommandResult : CommandResult
+    public class CommandOperation<TCommandResult> : ReadOperation<TCommandResult> where TCommandResult : CommandResult
     {
         // private fields
-        private readonly object _command;
-        private readonly QueryFlags _flags;
-        private readonly BsonDocument _options;
-        private readonly ReadPreference _readPreference;
-        private readonly IBsonSerializationOptions _serializationOptions;
-        private readonly IBsonSerializer _serializer;
+        private object _command;
+        private DatabaseNamespace _database;
+        private QueryFlags _flags;
+        private BsonDocument _options;
+        private ReadPreference _readPreference;
+        private IBsonSerializationOptions _serializationOptions;
+        private IBsonSerializer _serializer;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandOperation{TCommandResult}" /> class.
         /// </summary>
-        /// <param name="databaseNamespace">Name of the database.</param>
-        /// <param name="readerSettings">The reader settings.</param>
-        /// <param name="writerSettings">The writer settings.</param>
-        /// <param name="command">The command.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="options">The options.</param>
-        /// <param name="readPreference">The read preference.</param>
-        /// <param name="serializationOptions">The serialization options.</param>
-        /// <param name="serializer">The serializer.</param>
-        public CommandOperation(
-            DatabaseNamespace databaseNamespace,
-            BsonBinaryReaderSettings readerSettings,
-            BsonBinaryWriterSettings writerSettings,
-            object command,
-            QueryFlags flags,
-            BsonDocument options,
-            ReadPreference readPreference,
-            IBsonSerializationOptions serializationOptions,
-            IBsonSerializer serializer)
-            : base(databaseNamespace.CommandCollection, readerSettings, writerSettings)
+        public CommandOperation()
         {
-            Ensure.IsNotNull("command", command);
-            Ensure.IsNotNull("serializer", serializer);
+            _readPreference = ReadPreference.Primary;
+        }
 
-            _command = command;
-            _flags = flags;
-            _options = options;
-            _readPreference = readPreference;
-            _serializationOptions = serializationOptions;
-            _serializer = serializer;
+        // public properties
+        /// <summary>
+        /// Gets or sets the command.
+        /// </summary>
+        public object Command
+        {
+            get { return _command; }
+            set { _command = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the database.
+        /// </summary>
+        public DatabaseNamespace Database
+        {
+            get { return _database; }
+            set { _database = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the flags.
+        /// </summary>
+        public QueryFlags Flags
+        {
+            get { return _flags; }
+            set { _flags = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the options.
+        /// </summary>
+        public BsonDocument Options
+        {
+            get { return _options; }
+            set { _options = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the read preference.
+        /// </summary>
+        public ReadPreference ReadPreference
+        {
+            get { return _readPreference; }
+            set { _readPreference = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the serialization options.
+        /// </summary>
+        public IBsonSerializationOptions SerializationOptions
+        {
+            get { return _serializationOptions; }
+            set { _serializationOptions = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the serializer.
+        /// </summary>
+        public IBsonSerializer Serializer
+        {
+            get { return _serializer; }
+            set { _serializer = value; }
         }
 
         // public methods
         /// <summary>
         /// Executes the Command operation.
         /// </summary>
-        /// <param name="channel">The channel.</param>
         /// <returns>The command result.</returns>
-        public TCommandResult Execute(IServerChannel channel)
+        /// <exception cref="MongoOperationException"></exception>
+        public override TCommandResult Execute()
         {
-            Ensure.IsNotNull("connection", channel);
+            ValidateRequiredProperties();
 
-            var readerSettings = GetServerAdjustedReaderSettings(channel.Server);
-            var writerSettings = GetServerAdjustedWriterSettings(channel.Server);
-            var wrappedQuery = WrapQuery(channel.Server, _command, _options, _readPreference);
-
-            var queryMessage = new QueryMessage(
-                CollectionNamespace,
-                wrappedQuery,
-                _flags,
-                0,
-                -1,
-                null,
-                writerSettings);
-
-            using (var packet = new BufferedRequestPacket())
+            using (var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true))
+            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
             {
-                packet.AddMessage(queryMessage);
-                channel.Send(packet);
-            }
+                var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
+                var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);
+                var wrappedQuery = WrapQuery(channelProvider.Server, _command, _options, _readPreference);
 
-            var receiveArgs = new ChannelReceiveArgs(queryMessage.RequestId);
-            using (var reply = channel.Receive(receiveArgs))
-            {
-                reply.ThrowIfQueryFailureFlagIsSet();
-                if (reply.NumberReturned == 0)
+                var queryMessage = new QueryMessage(
+                    Database.CommandCollection,
+                    wrappedQuery,
+                    _flags,
+                    0,
+                    -1,
+                    null,
+                    writerSettings);
+
+                using (var packet = new BufferedRequestPacket())
                 {
-                    var commandDocument = _command.ToBsonDocument();
-                    var commandName = commandDocument.ElementCount == 0 ? "(no name)" : commandDocument.GetElement(0).Name;
-                    var message = string.Format("Command '{0}' failed. No response returned.", commandName);
-                    throw new MongoOperationException(message);
+                    packet.AddMessage(queryMessage);
+                    channel.Send(packet);
                 }
 
-                var commandResult = reply.DeserializeDocuments<TCommandResult>(_serializer, _serializationOptions, readerSettings).Single();
-                commandResult.Command = _command;
-
-                if (!commandResult.Ok)
+                var receiveArgs = new ChannelReceiveArgs(queryMessage.RequestId);
+                using (var reply = channel.Receive(receiveArgs))
                 {
-                    var commandDocument = _command.ToBsonDocument();
-                    var commandName = commandDocument.ElementCount == 0 ? "(no name)" : commandDocument.GetElement(0).Name;
-                    var message = string.Format("Command '{0}' failed.", commandName);
-                    throw new MongoOperationException(message, commandResult.ToBsonDocument());
-                }
+                    reply.ThrowIfQueryFailureFlagIsSet();
+                    if (reply.NumberReturned == 0)
+                    {
+                        var commandDocument = _command.ToBsonDocument();
+                        var commandName = commandDocument.ElementCount == 0 ? "(no name)" : commandDocument.GetElement(0).Name;
+                        var message = string.Format("Command '{0}' failed. No response returned.", commandName);
+                        throw new MongoOperationException(message);
+                    }
 
-                return commandResult;
+                    var commandResult = reply.DeserializeDocuments<TCommandResult>(_serializer, _serializationOptions, readerSettings).Single();
+                    commandResult.Command = _command;
+
+                    if (!commandResult.Ok)
+                    {
+                        var commandDocument = _command.ToBsonDocument();
+                        var commandName = commandDocument.ElementCount == 0 ? "(no name)" : commandDocument.GetElement(0).Name;
+                        var message = string.Format("Command '{0}' failed.", commandName);
+                        throw new MongoOperationException(message, commandResult.ToBsonDocument());
+                    }
+
+                    return commandResult;
+                }
             }
+        }
+
+        // protected methods
+        /// <summary>
+        /// Validates the required properties.
+        /// </summary>
+        protected override void ValidateRequiredProperties()
+        {
+            base.ValidateRequiredProperties();
+            Ensure.IsNotNull("Command", _command);
+            Ensure.IsNotNull("Database", _database);
+            Ensure.IsNotNull("Serializer", _serializer);
         }
     }
 }

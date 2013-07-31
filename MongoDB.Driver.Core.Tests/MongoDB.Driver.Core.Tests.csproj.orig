@@ -72,8 +72,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connections\IsMasterResultHelperTests.cs" />
+<<<<<<< HEAD
     <Compile Include="Connections\StreamConnectionTests.cs" />
-<Compile Include="LatencyMinimizingServerSelectorTests.cs" />
+=======
+    <Compile Include="Connections\DefaultConnectionTests.cs" />
+    <Compile Include="LatencyMinimizingServerSelectorTests.cs" />
+>>>>>>> refactored IServerSelector to return multiple servers.  Added ISession an implementations and refactored Operations to be based upon sessions.  This gives a better API for high-level code.
     <Compile Include="ProtocolHelper.cs" />
     <Compile Include="Connections\CommandHelperTests.cs" />
     <Compile Include="Connections\ConnectionPoolTests.cs" />

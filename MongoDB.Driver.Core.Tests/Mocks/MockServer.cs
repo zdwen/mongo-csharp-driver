@@ -41,9 +41,9 @@ namespace MongoDB.Driver.Core.Mocks
 
         public override event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
 
-        public override IServerChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
+        public override IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            return Substitute.For<IServerChannel>();
+            return Substitute.For<IChannel>();
         }
 
         protected override void Dispose(bool disposing)

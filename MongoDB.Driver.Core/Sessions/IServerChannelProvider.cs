@@ -13,14 +13,16 @@
 * limitations under the License.
 */
 
+using System;
+using System.Threading;
 using MongoDB.Driver.Core.Connections;
 
-namespace MongoDB.Driver.Core.Operations
+namespace MongoDB.Driver.Core.Sessions
 {
     /// <summary>
-    /// Represents a source of channels.
+    /// Represents a source of channels from a session.
     /// </summary>
-    public interface ICursorChannelProvider
+    public interface IServerChannelProvider : IDisposable
     {
         /// <summary>
         /// Gets the server.
@@ -30,7 +32,9 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets a channel.
         /// </summary>
+        /// <param name="timeout">The timeout.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A channel.</returns>
-        IServerChannel GetChannel();
+        IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken);
     }
 }
