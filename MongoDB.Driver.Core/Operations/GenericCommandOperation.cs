@@ -31,7 +31,7 @@ namespace MongoDB.Driver.Core.Operations
     /// Represents a generic command.
     /// </summary>
     /// <typeparam name="TCommandResult">The type of the command result.</typeparam>
-    public sealed class GenericCommandOperation<TCommandResult> : CommandOperationBase<TCommandResult, TCommandResult> where TCommandResult : CommandResult
+    public sealed class GenericCommandOperation<TCommandResult> : CommandOperationBase<TCommandResult> where TCommandResult : CommandResult
     {
         // private fields
         private object _command;
@@ -138,7 +138,7 @@ namespace MongoDB.Driver.Core.Operations
                     Serializer = _serializer
                 };
 
-                return Execute(channelProvider, args);
+                return Execute<TCommandResult>(channelProvider, args);
             }
         }
 

@@ -98,7 +98,7 @@
     <Compile Include="Connections\IRequestPacket.cs" />
     <Compile Include="MongoQueryException.cs" />
     <Compile Include="Operations\AggregateCommandResult.cs" />
-    <Compile Include="Operations\AggregateCommandResultSerializer.cs" />
+    <Compile Include="Operations\Serializers\AggregateCommandResultSerializer.cs" />
     <Compile Include="Operations\AggregationOperation.cs" />
     <Compile Include="Operations\CommandOperationBase.cs" />
     <Compile Include="Operations\Cursor.cs" />

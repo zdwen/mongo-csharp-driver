@@ -25,7 +25,7 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Base class for command operations.
     /// </summary>
-    public abstract class CommandOperationBase<TResult, TCommandResult> : QueryOperationBase<TResult> where TCommandResult : CommandResult
+    public abstract class CommandOperationBase<TResult> : QueryOperationBase<TResult>
     {
         // protected methods
         /// <summary>
@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="channelProvider">The channel provider.</param>
         /// <param name="args">The args.</param>
         /// <returns>The result of the execution.</returns>
-        protected TCommandResult Execute(IServerChannelProvider channelProvider, ExecutionArgs args)
+        protected TCommandResult Execute<TCommandResult>(IServerChannelProvider channelProvider, ExecutionArgs args) where TCommandResult : CommandResult
         {
             var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
             var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);

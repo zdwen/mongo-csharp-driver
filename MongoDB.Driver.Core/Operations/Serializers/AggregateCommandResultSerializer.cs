@@ -21,7 +21,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using System.Collections.Generic;
 
-namespace MongoDB.Driver.Core.Operations
+namespace MongoDB.Driver.Core.Operations.Serializers
 {
     /// <summary>
     /// Represents a serializer for a DistinctCommandResult with values of type TValue.

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver.Core.Operations.Serializers;
 using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
@@ -14,7 +15,7 @@ namespace MongoDB.Driver.Core.Operations
     /// Operation to execute an aggregation framework command.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>
-    public sealed class AggregationOperation<TResult> : CommandOperationBase<IEnumerator<TResult>, AggregateCommandResult<TResult>>
+    public sealed class AggregationOperation<TResult> : CommandOperationBase<IEnumerator<TResult>>
     {
         // private fields
         private int _batchSize;
@@ -125,7 +126,7 @@ namespace MongoDB.Driver.Core.Operations
                 Serializer = aggregateCommandResultSerializer
             };
 
-            var result = Execute(channelProvider, args);
+            var result = Execute<AggregateCommandResult<TResult>>(channelProvider, args);
 
             return new Cursor<TResult>(
                 channelProvider,
