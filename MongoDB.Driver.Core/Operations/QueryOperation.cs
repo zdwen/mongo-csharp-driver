@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System;
 using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -27,7 +28,7 @@ namespace MongoDB.Driver.Core.Operations
     /// Represents a Query operation.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class QueryOperation<TDocument> : QueryOperationBase<IEnumerator<TDocument>>
+    public sealed class QueryOperation<TDocument> : QueryOperationBase<ICursor<TDocument>>
     {
         // private fields
         private int _batchSize;
@@ -37,6 +38,7 @@ namespace MongoDB.Driver.Core.Operations
         private int _limit;
         private BsonDocument _options;
         private object _query;
+        private Func<ICursorStatistics, bool> _prefetchFunc;
         private ReadPreference _readPreference;
         private IBsonSerializer _serializer;
         private IBsonSerializationOptions _serializationOptions;
@@ -116,6 +118,16 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
+        /// Gets or sets Func used to decide when to prefetch the next batch.  This 
+        /// can increase client-side performance when network latency is high.
+        /// </summary>
+        public Func<ICursorStatistics, bool> PrefetchFunc
+        {
+            get { return _prefetchFunc; }
+            set { _prefetchFunc = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the read preference.
         /// </summary>
         public ReadPreference ReadPreference
@@ -156,7 +168,7 @@ namespace MongoDB.Driver.Core.Operations
         /// Executes the Query operation.
         /// </summary>
         /// <returns>An enumerator to enumerate over the results.</returns>
-        public override IEnumerator<TDocument> Execute()
+        public override ICursor<TDocument> Execute()
         {
             EnsureRequiredProperties();
 
@@ -187,6 +199,7 @@ namespace MongoDB.Driver.Core.Operations
                     _collection,
                     numberToReturn,
                     result.Documents,
+                    _prefetchFunc,
                     Serializer,
                     SerializationOptions,
                     Timeout,

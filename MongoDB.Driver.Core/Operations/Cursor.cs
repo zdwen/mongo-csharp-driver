@@ -29,13 +29,14 @@ namespace MongoDB.Driver.Core.Operations
     /// Represents a cursor.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class Cursor<TDocument> : IEnumerator<TDocument>
+    public sealed class Cursor<TDocument> : ICursor<TDocument>
     {
         // private fields
         private readonly CancellationToken _cancellationToken;
         private readonly IServerChannelProvider _channelProvider;
         private readonly CollectionNamespace _collection;
         private readonly int _numberToReturn;
+        private readonly Func<ICursorStatistics, bool> _prefetchFunc;
         private readonly BsonBinaryReaderSettings _readerSettings;
         private readonly IBsonSerializer _serializer;
         private readonly IBsonSerializationOptions _serializationOptions;
@@ -43,8 +44,11 @@ namespace MongoDB.Driver.Core.Operations
         private long _cursorId;
         private bool _disposed;
         private List<TDocument> _currentBatch;
-        private List<TDocument> _nextBatch;
-        private int _currentIndex;
+        private long _currentBatchNumber; // what batch number we are currently on
+        private int _currentBatchIndex; // the current index into _currentBatch
+        private long _currentIndex; // the total number of documents current iterated
+        private ManualResetEventSlim _prefetchWait;
+        private volatile List<TDocument> _nextBatch;
 
         // constructors
         /// <summary>
@@ -55,12 +59,13 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="collection">The collection.</param>
         /// <param name="numberToReturn">Size of the batch.</param>
         /// <param name="firstBatch">The first batch.</param>
+        /// <param name="prefetchFunc">The prefetch func.</param>
         /// <param name="serializer">The serializer.</param>
         /// <param name="serializationOptions">The serialization options.</param>
         /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="readerSettings">The reader settings.</param>
-        public Cursor(IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int numberToReturn, IEnumerable<TDocument> firstBatch, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
+        public Cursor(IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int numberToReturn, IEnumerable<TDocument> firstBatch, Func<ICursorStatistics, bool> prefetchFunc, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
         {
             Ensure.IsNotNull("channelProvider", channelProvider);
             Ensure.IsNotNull("collection", collection);
@@ -73,15 +78,25 @@ namespace MongoDB.Driver.Core.Operations
             _collection = collection;
             _numberToReturn = numberToReturn;
             _currentBatch = firstBatch.ToList();
+            _prefetchFunc = prefetchFunc;
             _serializer = serializer;
             _serializationOptions = serializationOptions;
             _timeout = timeout;
             _cancellationToken = cancellationToken;
             _readerSettings = readerSettings;
-            _currentIndex = -1;
+            _currentBatchIndex = -1;
+            _prefetchWait = new ManualResetEventSlim(true);
         }
 
         // public properties
+        /// <summary>
+        /// Gets the collection.
+        /// </summary>
+        public CollectionNamespace Collection
+        {
+            get { return _collection; }
+        }
+
         /// <summary>
         /// Gets the element in the collection at the current position of the enumerator.
         /// </summary>
@@ -91,15 +106,61 @@ namespace MongoDB.Driver.Core.Operations
             get
             {
                 ThrowIfDisposed();
-                if (_currentIndex == -1)
+                if (_currentBatchIndex == -1)
                 {
                     throw new InvalidOperationException("There is no current item.  Ensure a call to MoveNext() returns successfully.");
                 }
 
-                return _currentBatch[_currentIndex];
+                return _currentBatch[_currentBatchIndex];
             }
         }
 
+        /// <summary>
+        /// Gets the current batch that is being enumerated.
+        /// </summary>
+        public long CurrentBatch
+        {
+            get { return _currentBatchNumber; }
+        }
+
+        /// <summary>
+        /// Gets the number of documents in the current batch.
+        /// </summary>
+        public long CurrentBatchCount
+        {
+            get { return _currentBatch.Count; }
+        }
+
+        /// <summary>
+        /// Gets the index of the current document in the current batch.
+        /// </summary>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public long CurrentBatchIndex
+        {
+            get { return _currentBatchIndex; }
+        }
+
+        /// <summary>
+        /// Gets the index of the current document.
+        /// </summary>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public long CurrentIndex
+        {
+            get { return _currentIndex; }
+        }
+
+        /// <summary>
+        /// Gets the type of the document.
+        /// </summary>
+        /// <value>
+        /// The type of the document.
+        /// </value>
+        public Type DocumentType
+        {
+            get { return typeof(TDocument); }
+        }
+
+        // implicit properties
         /// <summary>
         /// Gets the element in the collection at the current position of the enumerator.
         /// </summary>
@@ -123,6 +184,7 @@ namespace MongoDB.Driver.Core.Operations
                 }
                 finally
                 {
+                    _prefetchWait.Dispose();
                     _channelProvider.Dispose();
                     _disposed = true;
                 }
@@ -138,15 +200,22 @@ namespace MongoDB.Driver.Core.Operations
         public bool MoveNext()
         {
             ThrowIfDisposed();
+            _currentBatchIndex++;
             _currentIndex++;
-            if (_currentIndex < _currentBatch.Count)
+            if (_currentBatchIndex < _currentBatch.Count)
             {
-                // NOTE: we can prefetch the next batch here if we want, maybe at 80% or something?
+                if (_nextBatch == null && _prefetchFunc != null && _prefetchFunc(this))
+                {
+                    _prefetchWait.Reset();
+                    ThreadPool.QueueUserWorkItem(_ => GetNextBatch());
+                }
+
                 return true;
             }
 
             while (_cursorId != 0)
             {
+                _prefetchWait.Wait();
                 if (_nextBatch == null)
                 {
                     GetNextBatch();
@@ -155,7 +224,8 @@ namespace MongoDB.Driver.Core.Operations
                 if (_nextBatch != null)
                 {
                     _currentBatch = _nextBatch;
-                    _currentIndex = 0;
+                    _currentBatchIndex = 0;
+                    _currentBatchNumber++;
                     return true;
                 }
             }

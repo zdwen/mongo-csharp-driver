@@ -15,12 +15,13 @@ namespace MongoDB.Driver.Core.Operations
     /// Operation to execute an aggregation framework command.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>
-    public sealed class AggregationOperation<TResult> : CommandOperationBase<IEnumerator<TResult>>
+    public sealed class AggregationOperation<TResult> : CommandOperationBase<ICursor<TResult>>
     {
         // private fields
         private int _batchSize;
         private CollectionNamespace _collection;
         private object[] _pipeline;
+        private Func<ICursorStatistics, bool> _prefetchFunc;
         private ReadPreference _readPreference;
         private IBsonSerializer _serializer;
         private IBsonSerializationOptions _serializationOptions;
@@ -63,6 +64,16 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
+        /// Gets or sets Func used to decide when to prefetch the next batch.  This 
+        /// can increase client-side performance when network latency is high.
+        /// </summary>
+        public Func<ICursorStatistics, bool> PrefetchFunc
+        {
+            get { return _prefetchFunc; }
+            set { _prefetchFunc = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the read preference.
         /// </summary>
         public ReadPreference ReadPreference
@@ -94,7 +105,7 @@ namespace MongoDB.Driver.Core.Operations
         /// Executes the specified operation behavior.
         /// </summary>
         /// <returns></returns>
-        public override IEnumerator<TResult> Execute()
+        public override ICursor<TResult> Execute()
         {
             EnsureRequiredProperties();
 
@@ -134,6 +145,7 @@ namespace MongoDB.Driver.Core.Operations
                 _collection,
                 _batchSize,
                 result.Results,
+                _prefetchFunc,
                 _serializer,
                 _serializationOptions,
                 Timeout,
