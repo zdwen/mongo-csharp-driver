@@ -40,16 +40,6 @@ namespace MongoDB.Driver.Core.Operations
             _checkUpdateDocument = true;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UpdateOperation" /> class.
-        /// </summary>
-        /// <param name="session">The session.</param>
-        public UpdateOperation(ISession session)
-            : this()
-        {
-            Session = session;
-        }
-
         // public properties
         /// <summary>
         /// Gets or sets a value indicating whether to check the update document.  What does this mean???
@@ -94,7 +84,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <returns>A WriteConcern result (or null if WriteConcern was not enabled).</returns>
         public override WriteConcernResult Execute()
         {
-            ValidateRequiredProperties();
+            EnsureRequiredProperties();
 
             using (var channelProvider = CreateServerChannelProvider(WritableServerSelector.Instance, false))
             {
@@ -117,11 +107,11 @@ namespace MongoDB.Driver.Core.Operations
 
         // protected methods
         /// <summary>
-        /// Validates the required properties.
+        /// Ensures that required properties have been set or provides intelligent defaults.
         /// </summary>
-        protected override void ValidateRequiredProperties()
+        protected override void EnsureRequiredProperties()
         {
-            base.ValidateRequiredProperties();
+            base.EnsureRequiredProperties();
             Ensure.IsNotNull("Query", _query);
             Ensure.IsNotNull("Update", _update);
         }

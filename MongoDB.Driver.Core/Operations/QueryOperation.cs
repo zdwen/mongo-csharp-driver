@@ -51,16 +51,6 @@ namespace MongoDB.Driver.Core.Operations
             _readPreference = ReadPreference.Primary;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="QueryOperation{TDocument}" /> class.
-        /// </summary>
-        /// <param name="session">The session.</param>
-        public QueryOperation(ISession session)
-            : this()
-        {
-            Session = session;
-        }
-
         // public properties
         /// <summary>
         /// Gets or sets the size of the batch.
@@ -168,7 +158,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <returns>An enumerator to enumerate over the results.</returns>
         public override IEnumerator<TDocument> Execute()
         {
-            ValidateRequiredProperties();
+            EnsureRequiredProperties();
 
             // NOTE: not disposing of channel provider here because it will get disposed
             // by the cursor
@@ -207,15 +197,22 @@ namespace MongoDB.Driver.Core.Operations
 
         // protected methods
         /// <summary>
-        /// Validates the required properties.
+        /// Ensures that required properties have been set or provides intelligent defaults.
         /// </summary>
-        protected override void ValidateRequiredProperties()
+        protected override void EnsureRequiredProperties()
         {
-            base.ValidateRequiredProperties();
+            base.EnsureRequiredProperties();
             Ensure.IsNotNull("Collection", _collection);
             Ensure.IsNotNull("Query", _query);
             Ensure.IsNotNull("ReadPreference", _readPreference);
-            Ensure.IsNotNull("Serializer", _serializer);
+            if (_serializer == null)
+            {
+                _serializer = BsonSerializer.LookupSerializer(typeof(TDocument));
+                if (_serializationOptions == null)
+                {
+                    _serializationOptions = _serializer.GetDefaultSerializationOptions();
+                }
+            }
         }
 
         // private methods

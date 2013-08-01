@@ -96,7 +96,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <returns></returns>
         public override IEnumerator<TResult> Execute()
         {
-            ValidateRequiredProperties();
+            EnsureRequiredProperties();
 
             var command = new BsonDocument
             {
@@ -145,13 +145,20 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Validates the required properties.
         /// </summary>
-        protected override void ValidateRequiredProperties()
+        protected override void EnsureRequiredProperties()
         {
-            base.ValidateRequiredProperties();
+            base.EnsureRequiredProperties();
             Ensure.IsNotNull("Collection", _collection);
             Ensure.IsNotNull("Pipeline", _pipeline);
             Ensure.IsNotNull("ReadPreference", _readPreference);
-            Ensure.IsNotNull("Serializer", _serializer);
+            if (_serializer == null)
+            {
+                _serializer = BsonSerializer.LookupSerializer(typeof(TResult));
+                if (_serializationOptions == null)
+                {
+                    _serializationOptions = _serializer.GetDefaultSerializationOptions();
+                }
+            }
         }
     }
 }

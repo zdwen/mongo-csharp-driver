@@ -130,7 +130,6 @@ namespace MongoDB.DriverUnitTests.Jira
                 {
                     new BsonDocument("$match", new BsonDocument())
                 },
-                Serializer = new BsonDocumentSerializer(),
                 Session = session
             };
 
@@ -149,7 +148,6 @@ namespace MongoDB.DriverUnitTests.Jira
             {
                 Command = new BsonDocument("dropDatabase", 1),
                 Database = _database,
-                Serializer = BsonSerializer.LookupSerializer(typeof(CommandResult)),
                 Session = session
             };
 
@@ -246,7 +244,6 @@ namespace MongoDB.DriverUnitTests.Jira
                 Limit = 1,
                 Query = query,
                 ReadPreference = ReadPreference.Nearest,
-                Serializer = BsonDocumentSerializer.Instance,
                 Session = session
             };
 

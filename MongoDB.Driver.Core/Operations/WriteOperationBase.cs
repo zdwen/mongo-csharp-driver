@@ -57,11 +57,11 @@ namespace MongoDB.Driver.Core.Operations
 
         // protected methods
         /// <summary>
-        /// Validates the required properties.
+        /// Ensures that required properties have been set or provides intelligent defaults.
         /// </summary>
-        protected override void ValidateRequiredProperties()
+        protected override void EnsureRequiredProperties()
         {
-            base.ValidateRequiredProperties();
+            base.EnsureRequiredProperties();
             Ensure.IsNotNull("Collection", _collection);
             Ensure.IsNotNull("WriteConcern", _writeConcern);
         }

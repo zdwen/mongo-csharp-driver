@@ -50,16 +50,6 @@ namespace MongoDB.Driver.Core.Operations
             _readPreference = ReadPreference.Primary;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GenericCommandOperation{TCommandResult}" /> class.
-        /// </summary>
-        /// <param name="session">The session.</param>
-        public GenericCommandOperation(ISession session)
-            : this()
-        {
-            Session = session;
-        }
-
         // public properties
         /// <summary>
         /// Gets or sets the command.
@@ -125,7 +115,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <returns>The command result.</returns>
         public override TCommandResult Execute()
         {
-            ValidateRequiredProperties();
+            EnsureRequiredProperties();
 
             using (var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), _isQuery))
             {
@@ -144,15 +134,22 @@ namespace MongoDB.Driver.Core.Operations
 
         // protected methods
         /// <summary>
-        /// Validates the required properties.
+        /// Ensures that required properties have been set or provides intelligent defaults.
         /// </summary>
-        protected override void ValidateRequiredProperties()
+        protected override void EnsureRequiredProperties()
         {
-            base.ValidateRequiredProperties();
+            base.EnsureRequiredProperties();
             Ensure.IsNotNull("Command", _command);
             Ensure.IsNotNull("Database", _database);
             Ensure.IsNotNull("ReadPreference", _readPreference);
-            Ensure.IsNotNull("Serializer", _serializer);
+            if (_serializer == null)
+            {
+                _serializer = BsonSerializer.LookupSerializer(typeof(TCommandResult));
+                if (_serializationOptions == null)
+                {
+                    _serializationOptions = _serializer.GetDefaultSerializationOptions();
+                }
+            }
         }
     }
 }

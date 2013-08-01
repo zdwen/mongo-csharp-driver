@@ -46,16 +46,6 @@ namespace MongoDB.Driver.Core.Operations
             _checkInsertDocuments = true;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="InsertOperation" /> class.
-        /// </summary>
-        /// <param name="session">The session.</param>
-        public InsertOperation(ISession session)
-            : this()
-        {
-            Session = session;
-        }
-
         // public properties
         /// <summary>
         /// Gets or sets a value indicating whether to assign an id to documents missing them.
@@ -118,7 +108,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <returns>A list of WriteConcernResults (or null if WriteConcern is not enabled).</returns>
         public override IEnumerable<WriteConcernResult> Execute()
         {
-            ValidateRequiredProperties();
+            EnsureRequiredProperties();
             using (var channelProvider = CreateServerChannelProvider(WritableServerSelector.Instance, false))
             {
                 var protocol = new InsertProtocol(

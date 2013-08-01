@@ -37,15 +37,6 @@ namespace MongoDB.Driver.Core.Operations
         {
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RemoveOperation" /> class.
-        /// </summary>
-        /// <param name="session">The session.</param>
-        public RemoveOperation(ISession session)
-        {
-            Session = session;
-        }
-
         // public properties
         /// <summary>
         /// Gets or sets the delete flags.
@@ -72,7 +63,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <returns>A WriteConcern result (or null if WriteConcern was not enabled).</returns>
         public override WriteConcernResult Execute()
         {
-            ValidateRequiredProperties();
+            EnsureRequiredProperties();
 
             using (var channelProvider = CreateServerChannelProvider(WritableServerSelector.Instance, false))
             {
@@ -96,11 +87,11 @@ namespace MongoDB.Driver.Core.Operations
 
         // protected methods
         /// <summary>
-        /// Validates the required properties.
+        /// Ensures that required properties have been set or provides intelligent defaults.
         /// </summary>
-        protected override void ValidateRequiredProperties()
+        protected override void EnsureRequiredProperties()
         {
-            base.ValidateRequiredProperties();
+            base.EnsureRequiredProperties();
             Ensure.IsNotNull("Query", _query);
         }
     }

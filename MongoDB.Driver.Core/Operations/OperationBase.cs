@@ -159,9 +159,9 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
-        /// Validates the required properties.
+        /// Ensures that required properties have been set or provides intelligent defaults.
         /// </summary>
-        protected virtual void ValidateRequiredProperties()
+        protected virtual void EnsureRequiredProperties()
         {
             Ensure.IsNotNull("ReaderSettings", _readerSettings);
             Ensure.IsNotNull("Session", _session);
