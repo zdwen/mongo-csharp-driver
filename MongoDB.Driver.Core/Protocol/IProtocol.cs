@@ -14,29 +14,25 @@
 */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// Flags sent with an <see cref="OpCode.Reply"/>.
+    /// Represents an interaction with the server.
     /// </summary>
-    [Flags]
-    public enum ReplyFlags
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    public interface IProtocol<TResult>
     {
         /// <summary>
-        /// The cursor was not found.
+        /// Executes the specified channel.
         /// </summary>
-        CursorNotFound = 1,
-
-        /// <summary>
-        /// The query failed.
-        /// </summary>
-        QueryFailure = 2,
-
-        /// <summary>
-        /// The server is await capable.
-        /// </summary>
-        AwaitCapable = 8
+        /// <param name="channel">The channel.</param>
+        /// <returns>The result of the execution.</returns>
+        TResult Execute(IChannel channel);
     }
 }
-

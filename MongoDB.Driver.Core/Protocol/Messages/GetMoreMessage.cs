@@ -13,29 +13,36 @@
 * limitations under the License.
 */
 
+using System.IO;
 using MongoDB.Bson.IO;
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
-    /// Represents a KillCursors message.
+    /// Represents a GetMore message.
     /// </summary>
-    public sealed class KillCursorsMessage : RequestMessage
+    public sealed class GetMoreMessage : RequestMessage
     {
         // private fields
-        private readonly long[] _cursorIds;
+        private readonly long _cursorId;
+        private readonly CollectionNamespace _collectionNamespace;
+        private readonly int _numberToReturn;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="KillCursorsMessage" /> class.
+        /// Initializes a new instance of the <see cref="GetMoreMessage" /> class.
         /// </summary>
-        /// <param name="cursorIds">The cursor ids.</param>
-        public KillCursorsMessage(long[] cursorIds)
-            : base(OpCode.KillCursors)
+        /// <param name="collectionNamespace">The namespace.</param>
+        /// <param name="cursorId">The cursor id.</param>
+        /// <param name="numberToReturn">The number to return.</param>
+        public GetMoreMessage(CollectionNamespace collectionNamespace, long cursorId, int numberToReturn)
+            : base(OpCode.GetMore)
         {
-            _cursorIds = cursorIds;
+            _collectionNamespace = collectionNamespace;
+            _numberToReturn = numberToReturn;
+            _cursorId = cursorId;
         }
-        
+
         // protected methods
         /// <summary>
         /// Writes the body of the message a stream.
@@ -44,11 +51,9 @@ namespace MongoDB.Driver.Core.Protocol
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
             streamWriter.WriteInt32(0); // reserved
-            streamWriter.WriteInt32(_cursorIds.Length); // numberOfCursorIDs
-            for (int i = 0; i < _cursorIds.Length; i++)
-            {
-                streamWriter.WriteInt64(_cursorIds[i]);
-            }
+            streamWriter.WriteCString(_collectionNamespace.FullName);
+            streamWriter.WriteInt32(_numberToReturn);
+            streamWriter.WriteInt64(_cursorId);
         }
     }
 }

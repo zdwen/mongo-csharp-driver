@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.Operations
     /// Base class for an operation.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>
-    public abstract class DatabaseOperation<TResult> : IOperation<TResult>
+    public abstract class OperationBase<TResult> : IOperation<TResult>
     {
         // private fields
         private CancellationToken _cancellationToken;
@@ -38,9 +38,9 @@ namespace MongoDB.Driver.Core.Operations
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DatabaseOperation{T}" /> class.
+        /// Initializes a new instance of the <see cref="OperationBase{TResult}" /> class.
         /// </summary>
-        protected DatabaseOperation()
+        protected OperationBase()
         {
             _cancellationToken = CancellationToken.None;
             _readerSettings = BsonBinaryReaderSettings.Defaults;
@@ -73,11 +73,7 @@ namespace MongoDB.Driver.Core.Operations
         public BsonBinaryReaderSettings ReaderSettings
         {
             get { return _readerSettings; }
-            set
-            {
-                Ensure.IsNotNull("value", value);
-                _readerSettings = value;
-            }
+            set { _readerSettings = value; }
         }
 
         /// <summary>
@@ -104,18 +100,14 @@ namespace MongoDB.Driver.Core.Operations
         public BsonBinaryWriterSettings WriterSettings
         {
             get { return _writerSettings; }
-            set
-            {
-                Ensure.IsNotNull("value", value);
-                _writerSettings = value;
-            }
+            set { _writerSettings = value; }
         }
 
         // public methods
         /// <summary>
-        /// Executes this instance.
+        /// Executes the operation.
         /// </summary>
-        /// <returns>The result of the execution.</returns>
+        /// <returns>An operation channel provider.</returns>
         public abstract TResult Execute();
 
         // protected methods
@@ -124,13 +116,13 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         /// <param name="serverSelector">The server selector.</param>
         /// <param name="isQuery">if set to <c>true</c> the operation is a query.</param>
-        /// <returns>A server channel provider.</returns>
+        /// <returns>A session channel provider.</returns>
         protected IServerChannelProvider CreateServerChannelProvider(IServerSelector serverSelector, bool isQuery)
         {
             var options = new CreateServerChannelProviderArgs(serverSelector, isQuery)
             {
                 CancellationToken = _cancellationToken,
-                DisposeSession = CloseSessionOnExecute,
+                DisposeSession = _closeSessionOnExecute,
                 Timeout = _timeout
             };
 
@@ -171,8 +163,10 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         protected virtual void ValidateRequiredProperties()
         {
+            Ensure.IsNotNull("ReaderSettings", _readerSettings);
             Ensure.IsNotNull("Session", _session);
             Ensure.IsInfiniteOrZeroOrPositive("Timeout", _timeout);
+            Ensure.IsNotNull("WriterSettings", _writerSettings);
         }
     }
 }

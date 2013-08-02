@@ -13,15 +13,15 @@ using MongoDB.Driver.Core.Support;
 using NSubstitute;
 using NUnit.Framework;
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Operations
 {
     [TestFixture]
-    public class ReadOperationTests
+    public class QueryOperationBaseTests
     {
         [Test]
         public void WrapQuery_should_return_original_query_when_not_using_a_shard_router_and_no_options_are_specified()
         {
-            var subject = new TestReadOperation();
+            var subject = new TestQueryOperation();
             var server = ServerDescriptionBuilder.Build(x => x.Type(ServerType.StandAlone));
 
             var query = new BsonDocument("x", 1);
@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Protocol
         [Test]
         public void WrapQuery_should_add_options_when_they_are_present()
         {
-            var subject = new TestReadOperation();
+            var subject = new TestQueryOperation();
             var server = ServerDescriptionBuilder.Build(x => x.Type(ServerType.StandAlone));
 
             var query = new BsonDocument("x", 1);
@@ -59,7 +59,7 @@ namespace MongoDB.Driver.Core.Protocol
         [TestCase(ReadPreferenceMode.SecondaryPreferred, false, false)]
         public void WrapQuery_should_add_read_preference_when_targetting_a_secondary_on_a_sharded_system_with_tagsets(ReadPreferenceMode readPreferenceMode, bool useTagSets, bool shouldBeWrapped)
         {
-            var subject = new TestReadOperation();
+            var subject = new TestQueryOperation();
             var server = ServerDescriptionBuilder.Build(x => x.Type(ServerType.ShardRouter));
 
             var query = new BsonDocument("x", 1);
@@ -90,9 +90,9 @@ namespace MongoDB.Driver.Core.Protocol
             }
         }
 
-        private class TestReadOperation : ReadOperation<BsonDocument>
+        private class TestQueryOperation : QueryOperationBase<BsonDocument>
         {
-            public TestReadOperation()
+            public TestQueryOperation()
             {
             }
 

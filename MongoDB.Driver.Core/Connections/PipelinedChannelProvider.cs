@@ -18,6 +18,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
 using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Protocol.Messages;
 
 namespace MongoDB.Driver.Core.Connections
 {

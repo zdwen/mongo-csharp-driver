@@ -15,21 +15,28 @@
 
 using System;
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
-    /// Flags used in an <see cref="InsertMessage"/>.
+    /// Flags sent with an <see cref="OpCode.Reply"/>.
     /// </summary>
     [Flags]
-    public enum InsertFlags
+    public enum ReplyFlags
     {
         /// <summary>
-        /// No flags.
+        /// The cursor was not found.
         /// </summary>
-        None = 0,
+        CursorNotFound = 1,
+
         /// <summary>
-        /// Continue with the remaining documents even if one of the documents resulted in an error.
+        /// The query failed.
         /// </summary>
-        ContinueOnError = 1
+        QueryFailure = 2,
+
+        /// <summary>
+        /// The server is await capable.
+        /// </summary>
+        AwaitCapable = 8
     }
 }
+

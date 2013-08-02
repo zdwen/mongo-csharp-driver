@@ -13,13 +13,11 @@
 * limitations under the License.
 */
 
-using System;
 using System.Collections.Generic;
-using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
-using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
@@ -29,7 +27,7 @@ namespace MongoDB.Driver.Core.Operations
     /// Represents a Query operation.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public class QueryOperation<TDocument> : ReadOperation<IEnumerator<TDocument>>
+    public sealed class QueryOperation<TDocument> : QueryOperationBase<IEnumerator<TDocument>>
     {
         // private fields
         private int _batchSize;
@@ -40,8 +38,8 @@ namespace MongoDB.Driver.Core.Operations
         private BsonDocument _options;
         private object _query;
         private ReadPreference _readPreference;
-        private IBsonSerializationOptions _serializationOptions;
         private IBsonSerializer _serializer;
+        private IBsonSerializationOptions _serializationOptions;
         private int _skip;
 
         // constructors
@@ -51,6 +49,16 @@ namespace MongoDB.Driver.Core.Operations
         public QueryOperation()
         {
             _readPreference = ReadPreference.Primary;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueryOperation{TDocument}" /> class.
+        /// </summary>
+        /// <param name="session">The session.</param>
+        public QueryOperation(ISession session)
+            : this()
+        {
+            Session = session;
         }
 
         // public properties
@@ -127,21 +135,21 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
-        /// Gets or sets the serialization options.
-        /// </summary>
-        public IBsonSerializationOptions SerializationOptions
-        {
-            get { return _serializationOptions; }
-            set { _serializationOptions = value; }
-        }
-
-        /// <summary>
         /// Gets or sets the serializer.
         /// </summary>
         public IBsonSerializer Serializer
         {
             get { return _serializer; }
             set { _serializer = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the serialization options.
+        /// </summary>
+        public IBsonSerializationOptions SerializationOptions
+        {
+            get { return _serializationOptions; }
+            set { _serializationOptions = value; }
         }
 
         /// <summary>
@@ -162,28 +170,38 @@ namespace MongoDB.Driver.Core.Operations
         {
             ValidateRequiredProperties();
 
-            // since we're going to block anyway when a tailable cursor is temporarily out of data
-            // we might as well do it as efficiently as possible
-            var flags = _flags;
-            if ((flags & QueryFlags.TailableCursor) != 0)
-            {
-                flags |= QueryFlags.AwaitData;
-            }
+            // NOTE: not disposing of channel provider here because it will get disposed
+            // by the cursor
+            var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true);
 
-            var count = 0;
-            var limit = (_limit >= 0) ? _limit : -_limit;
+            var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
+            var numberToReturn = CalculateNumberToReturn();
+            var protocol = new QueryProtocol<TDocument>(
+                collection: _collection,
+                fields: _fields,
+                flags: _flags,
+                numberToReturn: numberToReturn,
+                query: WrapQuery(channelProvider.Server, _query, _options, _readPreference),
+                readerSettings: readerSettings,
+                serializer: _serializer,
+                serializationOptions: _serializationOptions,
+                skip: _skip,
+                writerSettings: GetServerAdjustedWriterSettings(channelProvider.Server));
 
-            using (var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true))
+            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
             {
-                foreach (var document in DeserializeDocuments(channelProvider))
-                {
-                    if (limit != 0 && count == limit)
-                    {
-                        yield break;
-                    }
-                    yield return document;
-                    count++;
-                }
+                var result = protocol.Execute(channel);
+                return new Cursor<TDocument>(
+                    channelProvider,
+                    result.CursorId,
+                    _collection,
+                    numberToReturn,
+                    result.Documents,
+                    Serializer,
+                    SerializationOptions,
+                    Timeout,
+                    CancellationToken,
+                    readerSettings);
             }
         }
 
@@ -196,144 +214,31 @@ namespace MongoDB.Driver.Core.Operations
             base.ValidateRequiredProperties();
             Ensure.IsNotNull("Collection", _collection);
             Ensure.IsNotNull("Query", _query);
+            Ensure.IsNotNull("ReadPreference", _readPreference);
             Ensure.IsNotNull("Serializer", _serializer);
         }
 
         // private methods
-        private IEnumerable<TDocument> DeserializeDocuments(IServerChannelProvider channelProvider)
+        private int CalculateNumberToReturn()
         {
-            var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
-
-            long cursorId = 0;
-            try
-            {
-                using (var reply = GetFirstBatch(channelProvider))
-                {
-                    cursorId = reply.CursorId;
-                    foreach (var document in reply.DeserializeDocuments<TDocument>(_serializer, _serializationOptions, readerSettings))
-                    {
-                        yield return document;
-                    }
-                }
-
-                while (cursorId != 0)
-                {
-                    ReplyFlags replyFlags = 0;
-                    using (var reply = GetNextBatch(channelProvider, cursorId))
-                    {
-                        cursorId = reply.CursorId;
-                        replyFlags = reply.Flags;
-                        foreach (var document in reply.DeserializeDocuments<TDocument>(_serializer, _serializationOptions, readerSettings))
-                        {
-                            yield return document;
-                        }
-                    }
-
-                    if (cursorId != 0 && (_flags & QueryFlags.TailableCursor) != 0)
-                    {
-                        if ((replyFlags & ReplyFlags.AwaitCapable) == 0)
-                        {
-                            Thread.Sleep(TimeSpan.FromMilliseconds(100));
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                if (cursorId != 0)
-                {
-                    KillCursor(channelProvider, cursorId);
-                }
-            }
-        }
-
-        private ReplyMessage GetFirstBatch(IServerChannelProvider channelProvider)
-        {
-            // some of these weird conditions are necessary to get commands to run correctly
-            // specifically numberToReturn has to be 1 or -1 for commands
-            int numberToReturn;
             if (_limit < 0)
             {
-                numberToReturn = _limit;
+                return _limit;
             }
             else if (_limit == 0)
             {
-                numberToReturn = _batchSize;
+                return _batchSize;
             }
             else if (_batchSize == 0)
             {
-                numberToReturn = _limit;
+                return _limit;
             }
             else if (_limit < _batchSize)
             {
-                numberToReturn = _limit;
-            }
-            else
-            {
-                numberToReturn = _batchSize;
+                return _limit;
             }
 
-            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
-            {
-                var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);
-                var wrappedQuery = WrapQuery(channelProvider.Server, _query, _options, _readPreference);
-
-                var queryMessage = new QueryMessage(
-                    Collection,
-                    wrappedQuery,
-                    _flags,
-                    _skip,
-                    numberToReturn,
-                    _fields,
-                    writerSettings);
-
-                using(var packet = new BufferedRequestPacket())
-                {
-                    packet.AddMessage(queryMessage);
-                    channel.Send(packet);
-                }
-
-                var receiveArgs = new ChannelReceiveArgs(queryMessage.RequestId);
-                var reply = channel.Receive(receiveArgs);
-                reply.ThrowIfQueryFailureFlagIsSet();
-
-                return reply;
-            }
-        }
-
-        private ReplyMessage GetNextBatch(IServerChannelProvider channelProvider, long cursorId)
-        {
-            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
-            {
-                var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
-                var getMoreMessage = new GetMoreMessage(Collection, cursorId, _batchSize);
-
-                using (var packet = new BufferedRequestPacket())
-                {
-                    packet.AddMessage(getMoreMessage);
-                    channel.Send(packet);
-                }
-
-                var receiveArgs = new ChannelReceiveArgs(getMoreMessage.RequestId);
-                var reply = channel.Receive(receiveArgs);
-                reply.ThrowIfQueryFailureFlagIsSet();
-
-                return reply;
-            }
-        }
-
-        private void KillCursor(IServerChannelProvider channelProvider, long cursorId)
-        {
-            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
-            {
-                var killCursorsMessage = new KillCursorsMessage(new[] { cursorId });
-
-                using (var packet = new BufferedRequestPacket())
-                {
-                    packet.AddMessage(killCursorsMessage);
-                    channel.Send(packet);
-                }
-            }
+            return _batchSize;
         }
     }
 }

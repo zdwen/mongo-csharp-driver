@@ -16,19 +16,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
-using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Sessions;
-using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Operations
 {
     /// <summary>
-    /// Represents a batch Insert operation.
+    /// Executes an insert.
     /// </summary>
-    public class InsertOperation : WriteOperation<IEnumerable<WriteConcernResult>>
+    public sealed class InsertOperation : WriteOperationBase<IEnumerable<WriteConcernResult>>
     {
         // private fields
         private bool _assignIdOnInsert;
@@ -46,6 +44,16 @@ namespace MongoDB.Driver.Core.Operations
         {
             _assignIdOnInsert = true;
             _checkInsertDocuments = true;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InsertOperation" /> class.
+        /// </summary>
+        /// <param name="session">The session.</param>
+        public InsertOperation(ISession session)
+            : this()
+        {
+            Session = session;
         }
 
         // public properties
@@ -105,142 +113,39 @@ namespace MongoDB.Driver.Core.Operations
 
         // public methods
         /// <summary>
-        /// Executes the Insert operation.
+        /// Executes the insert.
         /// </summary>
         /// <returns>A list of WriteConcernResults (or null if WriteConcern is not enabled).</returns>
         public override IEnumerable<WriteConcernResult> Execute()
         {
             ValidateRequiredProperties();
-
             using (var channelProvider = CreateServerChannelProvider(WritableServerSelector.Instance, false))
-            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
             {
-                var maxMessageSize = (_maxMessageSize != 0) ? _maxMessageSize : channelProvider.Server.MaxMessageSize;
-                var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
-                var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);
+                var protocol = new InsertProtocol(
+                    checkInsertDocuments: _checkInsertDocuments,
+                    collection: Collection,
+                    documentType: _documentType,
+                    documents: PrepareDocuments(),
+                    flags: _flags,
+                    maxMessageSize: (_maxMessageSize != 0) ? _maxMessageSize : channelProvider.Server.MaxMessageSize,
+                    readerSettings: GetServerAdjustedReaderSettings(channelProvider.Server),
+                    writeConcern: WriteConcern,
+                    writerSettings: GetServerAdjustedWriterSettings(channelProvider.Server));
 
-                List<WriteConcernResult> results = (WriteConcern.Enabled) ? new List<WriteConcernResult>() : null;
-
-                var continueOnError = (_flags & InsertFlags.ContinueOnError) != 0;
-                Exception finalException = null;
-                foreach (var batch in GetBatches(maxMessageSize, writerSettings))
+                using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
                 {
-                    // Dispose of the Request as soon as possible to release the buffer(s)
-                    SendPacketWithWriteConcernResult sendBatchResult;
-                    using (batch.Packet)
-                    {
-                        sendBatchResult = SendBatchWithWriteConcern(channel, batch, continueOnError, writerSettings);
-                        batch.Packet = null;
-                    }
-
-                    WriteConcernResult writeConcernResult;
-                    try
-                    {
-                        writeConcernResult = ReadWriteConcernResult(channel, sendBatchResult, readerSettings);
-                    }
-                    catch (MongoWriteConcernException ex)
-                    {
-                        writeConcernResult = ex.Result;
-                        if (continueOnError)
-                        {
-                            finalException = ex;
-                        }
-                        else if (WriteConcern.Enabled)
-                        {
-                            results.Add(writeConcernResult);
-                            ex.Data["results"] = results;
-                            throw;
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }
-
-                    if (WriteConcern.Enabled)
-                    {
-                        results.Add(writeConcernResult);
-                    }
+                    return protocol.Execute(channel);
                 }
-
-                if (WriteConcern.Enabled && finalException != null)
-                {
-                    finalException.Data["results"] = results;
-                    throw finalException;
-                }
-
-                return results;
             }
-        }
-
-        // protected methods
-        /// <summary>
-        /// Validates the required properties.
-        /// </summary>
-        protected override void ValidateRequiredProperties()
-        {
-            base.ValidateRequiredProperties();
-            Ensure.IsNotNull("Documents", _documents);
-            Ensure.IsNotNull("DocumentType", _documentType);
         }
 
         // private methods
-        private IEnumerable<Batch> GetBatches(int maxMessageSize, BsonBinaryWriterSettings writerSettings)
+        private IEnumerable PrepareDocuments()
         {
-            var enumerator = _documents.GetEnumerator();
-            try
+            foreach (var document in _documents)
             {
-                byte[] overflowDocument = null;
-                do
-                {
-                    var insertMessage = new InsertMessage(
-                        Collection,
-                        _flags,
-                        _checkInsertDocuments,
-                        writerSettings);
-
-                    var packet = new BufferedRequestPacket();
-                    try
-                    {
-                        packet.AddMessage(insertMessage);
-
-                        if (overflowDocument != null)
-                        {
-                            insertMessage.AddDocument(packet.Stream, overflowDocument);
-                            overflowDocument = null;
-                        }
-
-                        while (enumerator.MoveNext())
-                        {
-                            var document = enumerator.Current;
-                            PrepareDocument(document);
-
-                            insertMessage.AddDocument(packet.Stream, _documentType, document);
-                            if (insertMessage.MessageLength > maxMessageSize)
-                            {
-                                overflowDocument = insertMessage.RemoveLastDocument(packet.Stream);
-                                break;
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        packet.Dispose();
-                        throw;
-                    }
-
-                    // ownership of the Request transfers to the caller and the caller must call Dispose on the Request
-                    yield return new Batch { Packet = packet, IsLast = overflowDocument == null };
-                }
-                while (overflowDocument != null);
-            }
-            finally
-            {
-                var disposable = enumerator as IDisposable;
-                if (disposable != null)
-                {
-                    disposable.Dispose();
-                }
+                PrepareDocument(document);
+                yield return document;
             }
         }
 
@@ -267,23 +172,6 @@ namespace MongoDB.Driver.Core.Operations
                     }
                 }
             }
-        }
-
-        private SendPacketWithWriteConcernResult SendBatchWithWriteConcern(IChannel channel, Batch batch, bool continueOnError, BsonBinaryWriterSettings writerSettings)
-        {
-            var writeConcern = WriteConcern;
-            if (!writeConcern.Enabled && !continueOnError && !batch.IsLast)
-            {
-                writeConcern = WriteConcern.Acknowledged;
-            }
-            return SendPacketWithWriteConcern(channel, batch.Packet, writeConcern, writerSettings);
-        }
-
-        // nested classes
-        private class Batch
-        {
-            public BufferedRequestPacket Packet;
-            public bool IsLast;
         }
     }
 }

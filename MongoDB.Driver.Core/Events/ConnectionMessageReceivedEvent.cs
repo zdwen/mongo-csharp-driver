@@ -15,6 +15,7 @@
 
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Protocol.Messages;
 
 namespace MongoDB.Driver.Core.Events
 {

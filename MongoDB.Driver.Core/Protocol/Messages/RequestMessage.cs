@@ -19,7 +19,7 @@ using System.Text;
 using System.Threading;
 using MongoDB.Bson.IO;
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
     /// Represents a Request message.

@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Base class for operations that issue a query against the database.
     /// </summary>
-    public abstract class ReadOperation<T> : DatabaseOperation<T>
+    public abstract class QueryOperationBase<T> : OperationBase<T>
     {
         // protected methods
         /// <summary>

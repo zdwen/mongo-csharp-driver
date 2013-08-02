@@ -15,7 +15,7 @@
 
 using System;
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
     /// Flags used in a <see cref="UpdateMessage"/>.

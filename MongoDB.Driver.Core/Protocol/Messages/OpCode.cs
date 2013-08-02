@@ -14,7 +14,7 @@
 */
 
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
     /// Operation codes for the MongoDB wire protocol.

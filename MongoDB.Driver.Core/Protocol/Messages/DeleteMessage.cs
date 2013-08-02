@@ -17,47 +17,37 @@ using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Support;
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
-    /// Represents a Query message.
+    /// Represents a Delete message.
     /// </summary>
-    public sealed class QueryMessage : RequestMessage
+    public sealed class DeleteMessage : RequestMessage
     {
         // private fields
-        private readonly QueryFlags _flags;
+        private readonly DeleteFlags _flags;
         private readonly CollectionNamespace _collectionNamespace;
-        private readonly int _numberToReturn;
-        private readonly int _numberToSkip;
-        private readonly object _query;
-        private readonly object _returnFieldSelector;
+        private readonly object _selector;
         private readonly BsonBinaryWriterSettings _writerSettings;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryMessage" /> class.
+        /// Initializes a new instance of the <see cref="DeleteMessage" /> class.
         /// </summary>
         /// <param name="collectionNamespace">The namespace.</param>
-        /// <param name="query">The query.</param>
+        /// <param name="selector">The selector.</param>
         /// <param name="flags">The flags.</param>
-        /// <param name="numberToSkip">The number to skip.</param>
-        /// <param name="numberToReturn">The number to return.</param>
-        /// <param name="returnFieldSelector">The return field selector.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public QueryMessage(CollectionNamespace collectionNamespace, object query, QueryFlags flags, int numberToSkip, int numberToReturn, object returnFieldSelector, BsonBinaryWriterSettings writerSettings)
-            : base(OpCode.Query)
+        public DeleteMessage(CollectionNamespace collectionNamespace, object selector, DeleteFlags flags, BsonBinaryWriterSettings writerSettings)
+            : base(OpCode.Delete)
         {
             Ensure.IsNotNull("collectionNamespace", collectionNamespace);
-            Ensure.IsNotNull("query", query);
+            Ensure.IsNotNull("selector", selector);
             Ensure.IsNotNull("writerSettings", writerSettings);
-            // NOTE: returnFieldSelector is allowed to be null as it is not required by the protocol
 
             _collectionNamespace = collectionNamespace;
             _flags = flags;
-            _numberToSkip = numberToSkip;
-            _numberToReturn = numberToReturn;
-            _returnFieldSelector = returnFieldSelector;
-            _query = query;
+            _selector = selector;
             _writerSettings = writerSettings;
         }
 
@@ -68,21 +58,14 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="streamWriter">The stream.</param>
         protected override void WriteBodyTo(BsonStreamWriter streamWriter)
         {
-            streamWriter.WriteInt32((int)_flags);
+            streamWriter.WriteInt32(0); // reserved
             streamWriter.WriteCString(_collectionNamespace.FullName);
-            streamWriter.WriteInt32(_numberToSkip);
-            streamWriter.WriteInt32(_numberToReturn);
-
+            streamWriter.WriteInt32((int)_flags);
+            
             using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, _writerSettings))
             {
-                // TODO: pass in a serializer?
-                BsonSerializer.Serialize(bsonWriter, _query.GetType(), _query, null);
-
-                if (_returnFieldSelector != null)
-                {
-                    // TODO: pass in a serializer?
-                    BsonSerializer.Serialize(bsonWriter, _returnFieldSelector.GetType(), _returnFieldSelector, null); // returnFieldSelector
-                }
+                // TODO: pass in a serializer for this guy?
+                BsonSerializer.Serialize(bsonWriter, _selector.GetType(), _selector, null);
             }
         }
     }

@@ -22,7 +22,7 @@ using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
     /// Represents a Reply message from the server.
@@ -205,7 +205,6 @@ namespace MongoDB.Driver.Core.Protocol
         /// <summary>
         /// Throws if query failure flag is set.
         /// </summary>
-        /// <exception cref="MongoQueryException"></exception>
         public void ThrowIfQueryFailureFlagIsSet()
         {
             if ((_flags & ReplyFlags.QueryFailure) != 0)

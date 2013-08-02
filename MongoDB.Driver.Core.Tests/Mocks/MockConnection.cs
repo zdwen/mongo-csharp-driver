@@ -10,6 +10,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Protocol.Messages;
 using NUnit.Framework;
 
 namespace MongoDB.Driver.Core.Mocks
@@ -54,7 +55,7 @@ namespace MongoDB.Driver.Core.Mocks
             if (_responseQueue.Count > 0)
             {
                 var replyDocs = _responseQueue.Dequeue()();
-                return ProtocolHelper.BuildReplyMessage(replyDocs);
+                return ProtocolMessageHelper.BuildReplyMessage(replyDocs);
             }
 
             _isOpen = false;
@@ -71,7 +72,7 @@ namespace MongoDB.Driver.Core.Mocks
 
             if (message is BufferedRequestPacket)
             {
-                var doc = ProtocolHelper.ReadQueryMessage((BufferedRequestPacket)message);
+                var doc = ProtocolMessageHelper.ReadQueryMessage((BufferedRequestPacket)message);
                 // get the last one here in case a response is changed 
                 var registeredResponse = _responses.LastOrDefault(x => x.Item1(doc));
                 if (registeredResponse != null)

@@ -73,14 +73,14 @@
   <ItemGroup>
     <Compile Include="Connections\IsMasterResultHelperTests.cs" />
     <Compile Include="Connections\StreamConnectionTests.cs" />
-<Compile Include="LatencyMinimizingServerSelectorTests.cs" />
-    <Compile Include="ProtocolHelper.cs" />
+    <Compile Include="LatencyMinimizingServerSelectorTests.cs" />
+    <Compile Include="Operations\QueryOperationBaseTests.cs" />
+    <Compile Include="ProtocolMessageHelper.cs" />
     <Compile Include="Connections\CommandHelperTests.cs" />
     <Compile Include="Connections\ConnectionPoolTests.cs" />
     <Compile Include="Mocks\MockChannel.cs" />
     <Compile Include="Mocks\MockChannelProvider.cs" />
-    <Compile Include="Protocol\ReadOperationTests.cs" />
-    <Compile Include="Protocol\InsertOperationTests.cs" />
+    <Compile Include="Protocol\InsertProtocolTests.cs" />
     <Compile Include="Mocks\MockConnection.cs" />
     <Compile Include="Mocks\MockConnectionFactory.cs" />
     <Compile Include="Mocks\MockReplicaSet.cs" />
@@ -91,7 +91,7 @@
     <Compile Include="Connections\SingleServerClusterTests.cs" />
     <Compile Include="Mocks\MockServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Protocol\WriteOperationTests.cs" />
+    <Compile Include="Protocol\WriteProtocolBaseTests.cs" />
     <Compile Include="ReadPreferenceServerSelectorTests.cs" />
     <Compile Include="Security\MongoCredentialTests.cs" />
   </ItemGroup>

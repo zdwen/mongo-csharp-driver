@@ -14,6 +14,7 @@
 */
 
 using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
@@ -22,7 +23,7 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Represents a Remove operation.
     /// </summary>
-    public class RemoveOperation : WriteOperation<WriteConcernResult>
+    public sealed class RemoveOperation : WriteOperationBase<WriteConcernResult>
     {
         // private fields
         private DeleteFlags _flags;
@@ -34,6 +35,15 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         public RemoveOperation()
         {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RemoveOperation" /> class.
+        /// </summary>
+        /// <param name="session">The session.</param>
+        public RemoveOperation(ISession session)
+        {
+            Session = session;
         }
 
         // public properties
@@ -57,7 +67,7 @@ namespace MongoDB.Driver.Core.Operations
 
         // public methods
         /// <summary>
-        /// Executes the Remove operation.
+        /// Executes the remove.
         /// </summary>
         /// <returns>A WriteConcern result (or null if WriteConcern was not enabled).</returns>
         public override WriteConcernResult Execute()
@@ -65,21 +75,22 @@ namespace MongoDB.Driver.Core.Operations
             ValidateRequiredProperties();
 
             using (var channelProvider = CreateServerChannelProvider(WritableServerSelector.Instance, false))
-            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
             {
                 var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
                 var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);
 
-                var deleteMessage = new DeleteMessage(Collection, _query, _flags, writerSettings);
+                var protocol = new DeleteProtocol(
+                    collection: Collection,
+                    flags: _flags,
+                    query: _query,
+                    readerSettings: GetServerAdjustedReaderSettings(channelProvider.Server),
+                    writeConcern: WriteConcern,
+                    writerSettings: GetServerAdjustedWriterSettings(channelProvider.Server));
 
-                SendPacketWithWriteConcernResult sendMessageResult;
-                using (var packet = new BufferedRequestPacket())
+                using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
                 {
-                    packet.AddMessage(deleteMessage);
-                    sendMessageResult = SendPacketWithWriteConcern(channel, packet, WriteConcern, writerSettings);
+                    return protocol.Execute(channel);
                 }
-
-                return ReadWriteConcernResult(channel, sendMessageResult, readerSettings);
             }
         }
 

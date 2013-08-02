@@ -18,6 +18,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Protocol;
+using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections

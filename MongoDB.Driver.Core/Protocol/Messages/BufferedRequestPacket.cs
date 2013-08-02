@@ -17,7 +17,7 @@ using System;
 using System.IO;
 using MongoDB.Driver.Core.Connections;
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
     /// Represents an <see cref="IRequestPacket"/> that contains one or more Messages that have been written to a backing Stream.

@@ -17,6 +17,7 @@ using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Operations;
 using MongoDB.Driver.Core.Sessions;
+using MongoDB.Driver.Core.Protocol.Messages;
 
 namespace MongoDB.DriverUnitTests.Jira
 {
@@ -108,6 +109,9 @@ namespace MongoDB.DriverUnitTests.Jira
                 InsertData(session);
             }
 
+            Console.WriteLine("Running aggregation as a cursor.");
+            RunAggregation(new ClusterSession(cluster));
+
             Console.WriteLine("Running Tests (errors will show up as + (query error) or * (insert/update error))");
             for (int i = 0; i < 7; i++)
             {
@@ -117,9 +121,31 @@ namespace MongoDB.DriverUnitTests.Jira
             DoWork(new ClusterSession(cluster)); // blocking
         }
 
+        private static void RunAggregation(ISession session)
+        {
+            var aggregation = new AggregationOperation<BsonDocument>()
+            {
+                Collection = _collection,
+                Pipeline = new [] 
+                {
+                    new BsonDocument("$match", new BsonDocument())
+                },
+                Serializer = new BsonDocumentSerializer(),
+                Session = session
+            };
+
+            using (var result = aggregation.Execute())
+            {
+                while(result.MoveNext())
+                {
+                    Console.WriteLine(result.Current);
+                }
+            }
+        }
+
         private static void ClearData(ISession session)
         {
-            var commandOp = new CommandOperation<CommandResult>()
+            var commandOp = new GenericCommandOperation<CommandResult>()
             {
                 Command = new BsonDocument("dropDatabase", 1),
                 Database = _database,

@@ -15,21 +15,21 @@
 
 using System;
 
-namespace MongoDB.Driver.Core.Protocol
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
-    /// Flags used in a <see cref="DeleteMessage"/>.
+    /// Flags used in an <see cref="InsertMessage"/>.
     /// </summary>
     [Flags]
-    public enum DeleteFlags
+    public enum InsertFlags
     {
         /// <summary>
         /// No flags.
         /// </summary>
         None = 0,
         /// <summary>
-        /// Remove only a single document.
+        /// Continue with the remaining documents even if one of the documents resulted in an error.
         /// </summary>
-        Single = 1
+        ContinueOnError = 1
     }
 }

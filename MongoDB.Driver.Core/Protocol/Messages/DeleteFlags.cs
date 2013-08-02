@@ -14,32 +14,22 @@
 */
 
 using System;
-using System.Net;
-using MongoDB.Driver.Core.Protocol;
-using MongoDB.Driver.Core.Protocol.Messages;
 
-namespace MongoDB.Driver.Core.Connections
+namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
-    /// A channel.
+    /// Flags used in a <see cref="DeleteMessage"/>.
     /// </summary>
-    public interface IChannel : IDisposable
+    [Flags]
+    public enum DeleteFlags
     {
         /// <summary>
-        /// Gets the DNS end point.
+        /// No flags.
         /// </summary>
-        DnsEndPoint DnsEndPoint { get; }
-
+        None = 0,
         /// <summary>
-        /// Receives a message.
+        /// Remove only a single document.
         /// </summary>
-        /// <returns>The reply.</returns>
-        ReplyMessage Receive(ChannelReceiveArgs args);
-
-        /// <summary>
-        /// Sends the packet.
-        /// </summary>
-        /// <param name="packet">The packet.</param>
-        void Send(IRequestPacket packet);
+        Single = 1
     }
 }
