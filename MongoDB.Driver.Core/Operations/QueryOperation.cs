@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Core.Operations
     /// Represents a Query operation.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class QueryOperation<TDocument> : QueryOperationBase<ICursor<TDocument>>
+    public sealed class QueryOperation<TDocument> : QueryOperationBase<ICursor<TDocument>>, IEnumerable<TDocument>
     {
         // private fields
         private int _batchSize;
@@ -206,6 +206,25 @@ namespace MongoDB.Driver.Core.Operations
                     CancellationToken,
                     readerSettings);
             }
+        }
+
+        /// <summary>
+        /// Gets the enumerator.
+        /// </summary>
+        /// <returns>An enumerator.</returns>
+        public IEnumerator<TDocument> GetEnumerator()
+        {
+            return Execute();
+        }
+
+        // implicit methods
+        /// <summary>
+        /// Returns an enumerator that iterates through a collection.
+        /// </summary>
+        /// <returns>An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.</returns>
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         // protected methods

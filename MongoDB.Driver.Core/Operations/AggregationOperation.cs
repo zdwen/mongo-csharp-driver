@@ -15,7 +15,7 @@ namespace MongoDB.Driver.Core.Operations
     /// Operation to execute an aggregation framework command.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>
-    public sealed class AggregationOperation<TResult> : CommandOperationBase<ICursor<TResult>>
+    public sealed class AggregationOperation<TResult> : CommandOperationBase<ICursor<TResult>>, IEnumerable<TResult>
     {
         // private fields
         private int _batchSize;
@@ -151,6 +151,25 @@ namespace MongoDB.Driver.Core.Operations
                 Timeout,
                 CancellationToken,
                 GetServerAdjustedReaderSettings(channelProvider.Server));
+        }
+
+        /// <summary>
+        /// Gets the enumerator. This implicitly calls Execute.
+        /// </summary>
+        /// <returns>An enumerator.</returns>
+        public IEnumerator<TResult> GetEnumerator()
+        {
+            return Execute();
+        }
+
+        // implicit methods
+        /// <summary>
+        /// Returns an enumerator that iterates through a collection.
+        /// </summary>
+        /// <returns>An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.</returns>
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         // protected methods
