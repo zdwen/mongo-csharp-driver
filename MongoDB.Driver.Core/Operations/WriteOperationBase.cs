@@ -13,6 +13,8 @@
 * limitations under the License.
 */
 
+using System;
+using System.Linq;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Operations
@@ -23,6 +25,9 @@ namespace MongoDB.Driver.Core.Operations
     /// <typeparam name="TResult">The type of the result.</typeparam>
     public abstract class WriteOperationBase<TResult> : OperationBase<TResult>
     {
+        // private static fields
+        private static readonly int[] __duplicateKeyCodes = new[] { 11000, 11001, 12582 };
+
         // private fields
         private CollectionNamespace _collection;
         private WriteConcern _writeConcern;
@@ -64,6 +69,24 @@ namespace MongoDB.Driver.Core.Operations
             base.EnsureRequiredProperties();
             Ensure.IsNotNull("Collection", _collection);
             Ensure.IsNotNull("WriteConcern", _writeConcern);
+        }
+
+        /// <summary>
+        /// Maps the exception to a more specific version if it matches.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        /// <returns>The mapped exception or the original if no mapping took place.</returns>
+        protected Exception MapException(MongoWriteConcernException exception)
+        {
+            if (exception.Result.Code.HasValue && __duplicateKeyCodes.Contains(exception.Result.Code.Value))
+            {
+                return new MongoDuplicateKeyException(
+                    "An attempt was made to insert a record with a duplicat key.", 
+                    exception.Result, 
+                    exception);
+            }
+
+            return exception;
         }
     }
 }

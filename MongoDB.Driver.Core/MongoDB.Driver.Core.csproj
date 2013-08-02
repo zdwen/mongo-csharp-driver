@@ -86,6 +86,7 @@
     <Compile Include="Connections\IStreamFactory.cs" />
     <Compile Include="Connections\NetworkStreamFactory.cs" />
     <Compile Include="Connections\IsMasterResult.cs" />
+    <Compile Include="MongoDuplicateKeyException.cs" />
     <Compile Include="DatabaseNamespace.cs" />
     <Compile Include="LatencyLimitingServerSelector.cs" />
     <Compile Include="MongoOperationException.cs" />
@@ -126,7 +127,7 @@
     <Compile Include="Protocol\Messages\KillCursorsMessage.cs" />
     <Compile Include="Protocol\Messages\DeleteMessage.cs" />
     <Compile Include="Protocol\Messages\GetMoreMessage.cs" />
-    <Compile Include="Protocol\MongoCursorNotFoundException.cs" />
+    <Compile Include="MongoCursorNotFoundException.cs" />
     <Compile Include="Protocol\Messages\ReplyMessage.cs" />
     <Compile Include="Protocol\Messages\RequestMessage.cs" />
     <Compile Include="Security\AuthenticatedConnection.cs" />
@@ -248,7 +249,7 @@
     <Compile Include="Support\MongoUtils.cs" />
     <Compile Include="Protocol\Messages\InsertFlags.cs" />
     <Compile Include="Connections\MongoConnectTimeoutException.cs" />
-    <Compile Include="Protocol\MongoProtocolException.cs" />
+    <Compile Include="MongoProtocolException.cs" />
     <Compile Include="Protocol\Messages\QueryFlags.cs" />
     <Compile Include="Protocol\Messages\DeleteFlags.cs" />
     <Compile Include="Protocol\Messages\ReplyFlags.cs" />

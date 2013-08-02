@@ -124,7 +124,14 @@ namespace MongoDB.Driver.Core.Operations
 
                 using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
                 {
-                    return protocol.Execute(channel);
+                    try
+                    {
+                        return protocol.Execute(channel);
+                    }
+                    catch (MongoWriteConcernException ex)
+                    {
+                        throw MapException(ex);
+                    }
                 }
             }
         }

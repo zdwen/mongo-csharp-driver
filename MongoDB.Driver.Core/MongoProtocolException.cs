@@ -18,29 +18,39 @@ using System;
 namespace MongoDB.Driver.Core
 {
     /// <summary>
-    /// An exception representing a server error.
+    /// Throw when the MongoDB Wire Protocol has been violated.
     /// </summary>
     [Serializable]
-    public class MongoCursorNotFoundException : MongoOperationException
+    public class MongoProtocolException : MongoDriverException
     {
+        // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoCursorNotFoundException" /> class.
+        /// Initializes a new instance of the <see cref="MongoProtocolException" /> class.
         /// </summary>
-        public MongoCursorNotFoundException() 
-            : base("Cursor not found.")
-        {
+        /// <param name="message">The message.</param>
+        public MongoProtocolException(string message) 
+            : base(message) 
+        { 
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoCursorNotFoundException" /> class.
+        /// Initializes a new instance of the <see cref="MongoProtocolException" /> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="inner">The inner.</param>
+        public MongoProtocolException(string message, Exception inner) 
+            : base(message, inner) 
+        { 
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MongoProtocolException" /> class.
         /// </summary>
         /// <param name="info">The info.</param>
         /// <param name="context">The context.</param>
-        protected MongoCursorNotFoundException(
+        protected MongoProtocolException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) 
-        { 
-        }
+            : base(info, context) { }
     }
 }
