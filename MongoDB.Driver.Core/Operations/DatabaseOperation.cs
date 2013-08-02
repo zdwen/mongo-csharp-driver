@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Operations
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DatabaseOperation{TResult}" /> class.
+        /// Initializes a new instance of the <see cref="DatabaseOperation{T}" /> class.
         /// </summary>
         protected DatabaseOperation()
         {
