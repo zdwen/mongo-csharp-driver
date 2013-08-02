@@ -34,14 +34,7 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
                     Session = session
                 };
 
-                try
-                {
-                    op.Execute();
-                }
-                catch(Exception ex)
-                {
-                    _exception = ex;
-                }
+                _exception = Catch(() => op.Execute());
             }
         }
 

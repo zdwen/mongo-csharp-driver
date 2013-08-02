@@ -35,7 +35,6 @@ namespace MongoDB.Driver.Core
             _cluster.Initialize();
         }
 
-
         [TestFixtureTearDown]
         public void FixtureTearDown()
         {

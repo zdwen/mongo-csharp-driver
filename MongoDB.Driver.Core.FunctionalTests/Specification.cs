@@ -21,6 +21,19 @@ namespace MongoDB.Driver.Core
         
         protected abstract void When();
 
+        protected Exception Catch(Action action)
+        {
+            Exception result = null;
+            try
+            {
+                action();
+            }
+            catch(Exception ex)
+            {
+                result = ex;
+            }
+            return result;
+        }
 
         public class ThenAttribute : TestAttribute
         { }

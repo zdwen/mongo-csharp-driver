@@ -6,31 +6,31 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using NUnit.Framework;
 
-namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
+namespace MongoDB.Driver.Core.Operations.QueryOpeartionSpecs
 {
-    [TestFixture]
-    public class When_inserting_a_document_with_a_duplicate_id : Specification
+    public class When_a_query_fails : Specification
     {
         private Exception _exception;
 
         protected override void Given()
         {
-            InsertData(new BsonDocument("_id", 1));
+            InsertData(new BsonDocument("loc", new BsonArray(new double[] { 1, 2 })));
         }
 
         protected override void When()
         {
             using (var session = BeginSession())
             {
-                var op = new InsertOperation()
+                var findOp = new QueryOperation<BsonDocument>
                 {
                     Collection = _collection,
-                    Documents = new[] { new BsonDocument("_id", 1) },
-                    DocumentType = typeof(BsonDocument),
+                    // this is an invalid query specification, $near requires an array 
+                    // as well as a 2d index
+                    Query = new BsonDocument("loc", new BsonDocument("$near", 2)),
                     Session = session
                 };
 
-                _exception = Catch(() => op.Execute());
+                _exception = Catch(() => findOp.Execute());
             }
         }
 
@@ -41,9 +41,9 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
         }
 
         [And]
-        public void And_it_should_be_a_MongoDuplicateKeyException()
+        public void And_it_should_be_a_MongoQueryFailureException()
         {
-            Assert.IsInstanceOf<MongoDuplicateKeyException>(_exception);
+            Assert.IsInstanceOf<MongoQueryException>(_exception);
         }
     }
 }
