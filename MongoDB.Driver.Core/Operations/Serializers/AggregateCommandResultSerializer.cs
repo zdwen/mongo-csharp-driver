@@ -14,12 +14,11 @@
 */
 
 using System;
+using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
-using System.Collections.Generic;
 
 namespace MongoDB.Driver.Core.Operations.Serializers
 {
@@ -34,14 +33,6 @@ namespace MongoDB.Driver.Core.Operations.Serializers
         private readonly IBsonSerializationOptions _resultSerializationOptions;
 
         // constructors
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AggregateCommandResultSerializer{TResult}"/> class.
-        /// </summary>
-        public AggregateCommandResultSerializer()
-            : this(BsonSerializer.LookupSerializer(typeof(TResult)), null)
-        {
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateCommandResultSerializer{TValue}" /> class.
         /// </summary>

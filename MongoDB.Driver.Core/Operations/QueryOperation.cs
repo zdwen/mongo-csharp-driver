@@ -194,17 +194,17 @@ namespace MongoDB.Driver.Core.Operations
             {
                 var result = protocol.Execute(channel);
                 return new Cursor<TDocument>(
-                    channelProvider,
-                    result.CursorId,
-                    _collection,
-                    numberToReturn,
-                    result.Documents,
-                    _prefetchFunc,
-                    Serializer,
-                    SerializationOptions,
-                    Timeout,
-                    CancellationToken,
-                    readerSettings);
+                    channelProvider: channelProvider,
+                    cursorId: result.CursorId,
+                    collection: _collection,
+                    numberToReturn: numberToReturn,
+                    firstBatch: result.Documents,
+                    prefetchFunc: _prefetchFunc,
+                    serializer: Serializer,
+                    serializationOptions: SerializationOptions,
+                    timeout: Timeout,
+                    cancellationToken: CancellationToken,
+                    readerSettings: readerSettings);
             }
         }
 

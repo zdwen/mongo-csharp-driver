@@ -127,7 +127,9 @@ namespace MongoDB.Driver.Core.Operations
                 }
             }
 
-            var aggregateCommandResultSerializer = new AggregateCommandResultSerializer<TResult>(_serializer, _serializationOptions);
+            var aggregateCommandResultSerializer = new AggregateCommandResultSerializer<TResult>(
+                _serializer, 
+                _serializationOptions);
 
             var args = new ExecutionArgs
             {
@@ -140,17 +142,17 @@ namespace MongoDB.Driver.Core.Operations
             var result = Execute<AggregateCommandResult<TResult>>(channelProvider, args);
 
             return new Cursor<TResult>(
-                channelProvider,
-                result.CursorId,
-                _collection,
-                _batchSize,
-                result.Results,
-                _prefetchFunc,
-                _serializer,
-                _serializationOptions,
-                Timeout,
-                CancellationToken,
-                GetServerAdjustedReaderSettings(channelProvider.Server));
+                channelProvider: channelProvider,
+                cursorId: result.CursorId,
+                collection: _collection,
+                numberToReturn: _batchSize,
+                firstBatch: result.Results,
+                prefetchFunc: _prefetchFunc,
+                serializer: _serializer,
+                serializationOptions: _serializationOptions,
+                timeout: Timeout,
+                cancellationToken: CancellationToken,
+                readerSettings: GetServerAdjustedReaderSettings(channelProvider.Server));
         }
 
         /// <summary>

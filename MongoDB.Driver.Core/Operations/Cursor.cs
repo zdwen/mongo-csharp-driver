@@ -44,9 +44,9 @@ namespace MongoDB.Driver.Core.Operations
         private long _cursorId;
         private bool _disposed;
         private List<TDocument> _currentBatch;
-        private long _currentBatchNumber; // what batch number we are currently on
-        private int _currentBatchIndex; // the current index into _currentBatch
-        private long _currentIndex; // the total number of documents current iterated
+        private long _currentBatchNumber; // effectively, how many get-mores have been issued
+        private int _currentBatchIndex; // the index into _currentBatch
+        private long _currentIndex; // the total number of documents that have been iterated
         private ManualResetEventSlim _prefetchWait;
         private volatile List<TDocument> _nextBatch;
 
@@ -94,7 +94,11 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         public CollectionNamespace Collection
         {
-            get { return _collection; }
+            get
+            {
+                ThrowIfDisposed();
+                return _collection;
+            }
         }
 
         /// <summary>
@@ -120,7 +124,11 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         public long CurrentBatch
         {
-            get { return _currentBatchNumber; }
+            get
+            {
+                ThrowIfDisposed();
+                return _currentBatchNumber;
+            }
         }
 
         /// <summary>
@@ -128,7 +136,11 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         public long CurrentBatchCount
         {
-            get { return _currentBatch.Count; }
+            get
+            {
+                ThrowIfDisposed();
+                return _currentBatch.Count;
+            }
         }
 
         /// <summary>
@@ -137,7 +149,11 @@ namespace MongoDB.Driver.Core.Operations
         /// <exception cref="System.NotImplementedException"></exception>
         public long CurrentBatchIndex
         {
-            get { return _currentBatchIndex; }
+            get
+            {
+                ThrowIfDisposed();
+                return _currentBatchIndex;
+            }
         }
 
         /// <summary>
@@ -146,7 +162,11 @@ namespace MongoDB.Driver.Core.Operations
         /// <exception cref="System.NotImplementedException"></exception>
         public long CurrentIndex
         {
-            get { return _currentIndex; }
+            get
+            {
+                ThrowIfDisposed();
+                return _currentIndex;
+            }
         }
 
         /// <summary>
@@ -157,7 +177,11 @@ namespace MongoDB.Driver.Core.Operations
         /// </value>
         public Type DocumentType
         {
-            get { return typeof(TDocument); }
+            get
+            {
+                ThrowIfDisposed();
+                return typeof(TDocument);
+            }
         }
 
         // implicit properties
@@ -181,6 +205,10 @@ namespace MongoDB.Driver.Core.Operations
                 try
                 {
                     KillCursorIfNecessary();
+                }
+                catch
+                {
+                    // We don't need to know if there was an error killing a cursor...
                 }
                 finally
                 {

@@ -67,9 +67,6 @@ namespace MongoDB.Driver.Core.Operations
 
             using (var channelProvider = CreateServerChannelProvider(WritableServerSelector.Instance, false))
             {
-                var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
-                var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);
-
                 var protocol = new DeleteProtocol(
                     collection: Collection,
                     flags: _flags,

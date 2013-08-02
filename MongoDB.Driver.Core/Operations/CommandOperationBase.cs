@@ -71,7 +71,7 @@ namespace MongoDB.Driver.Core.Operations
                     var commandDocument = args.Command.ToBsonDocument();
                     var commandName = commandDocument.ElementCount == 0 ? "(no name)" : commandDocument.GetElement(0).Name;
                     var message = string.Format("Command '{0}' failed.", commandName);
-                    throw new MongoOperationException(message, commandResult.ToBsonDocument());
+                    throw new MongoOperationException(message, commandResult.Response);
                 }
 
                 return commandResult;
