@@ -39,7 +39,7 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
         }
 
         [Test]
-        public void All_the_document_should_come_back()
+        public void All_the_documents_should_come_back()
         {
             Assert.AreEqual(3, _results.Count);
         }
