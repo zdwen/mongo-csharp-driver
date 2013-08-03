@@ -34,14 +34,14 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
             }
         }
 
-        [Then]
-        public void Then_an_exception_should_be_thrown()
+        [Test]
+        public void An_exception_should_be_thrown()
         {
             Assert.IsNotNull(_exception);
         }
 
-        [And]
-        public void And_it_should_be_a_MongoDuplicateKeyException()
+        [Test]
+        public void The_exception_should_be_a_MongoDuplicateKeyException()
         {
             Assert.IsInstanceOf<MongoDuplicateKeyException>(_exception);
         }

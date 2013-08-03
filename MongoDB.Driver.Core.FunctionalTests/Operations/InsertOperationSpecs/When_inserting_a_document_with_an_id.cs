@@ -30,33 +30,24 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
             }
         }
 
-        [Then]
-        public void Then_then_local_document_should_still_have_an_id()
+        [Test]
+        public void The_local_document_should_still_have_an_id()
         {
             Assert.IsTrue(_docToInsert.Elements.Any(x => x.Name == "_id"));
         }
 
-        [Then]
-        public void And_the_id_should_be_unchanged()
+        [Test]
+        public void The_local_document_id_should_be_unchanged()
         {
             Assert.AreEqual(1, _docToInsert["_id"].AsInt32);
         }
 
-        [And]
-        public void And_the_document_should_exist_in_the_database()
+        [Test]
+        public void The_document_should_exist_in_the_database()
         {
-            using (var session = BeginSession())
-            {
-                var findOp = new QueryOperation<BsonDocument>
-                {
-                    Collection = _collection,
-                    Query = new BsonDocument("_id", 1),
-                    Session = session
-                };
-
-                var result = findOp.Single();
-                Assert.AreEqual(1, _docToInsert["_id"].AsInt32);
-            }
+            var result = FindOne<BsonDocument>(new BsonDocument("_id", 1));
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result["_id"].AsInt32);
         }
     }
 }

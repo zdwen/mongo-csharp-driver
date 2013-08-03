@@ -34,11 +34,5 @@ namespace MongoDB.Driver.Core
             }
             return result;
         }
-
-        public class ThenAttribute : TestAttribute
-        { }
-
-        public class AndAttribute : TestAttribute
-        { }
     }
 }

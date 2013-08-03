@@ -6,31 +6,30 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using NUnit.Framework;
 
-namespace MongoDB.Driver.Core.Operations.AggregationOperation
+namespace MongoDB.Driver.Core.Operations.UpdateOperationSpecs
 {
-    [TestFixture]
-    public class When_executing_an_invalid_pipeline : Specification
+    public class When_updating_with_an_invalid_update_specification : Specification
     {
         private Exception _exception;
 
         protected override void Given()
         {
-            InsertData(
-                new BsonDocument("x", 1),
-                new BsonDocument("x", 2),
-                new BsonDocument("x", 3));
+            InsertData(new BsonDocument("_id", 1).Add("x", 2));
         }
 
         protected override void When()
         {
-            var pipeline = new[] { new BsonDocument("$invalid", new BsonDocument()) };
-
             using (var session = BeginSession())
             {
-                var op = new AggregationOperation<BsonDocument>
+                var op = new UpdateOperation
                 {
                     Collection = _collection,
-                    Pipeline = pipeline,
+                    Query = new BsonDocument("_id", 1),
+                    Update = new BsonDocument
+                    {
+                        { "$inc", new BsonDocument("x", 1) },
+                        { "invalid", 23 }
+                    },
                     Session = session
                 };
 
@@ -45,9 +44,9 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
         }
 
         [Test]
-        public void The_exception_should_be_a_MongoOperationException()
+        public void The_exception_should_be_a_MongoWriteConcernException()
         {
-            Assert.IsInstanceOf<MongoOperationException>(_exception);
+            Assert.IsInstanceOf<MongoWriteConcernException>(_exception);
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using NUnit.Framework;
 
-namespace MongoDB.Driver.Core.Operations.QueryOpeartionSpecs
+namespace MongoDB.Driver.Core.Operations.QueryOperationSpecs
 {
     public class When_a_query_fails : Specification
     {
@@ -34,14 +34,14 @@ namespace MongoDB.Driver.Core.Operations.QueryOpeartionSpecs
             }
         }
 
-        [Then]
-        public void Then_an_exception_should_be_thrown()
+        [Test]
+        public void An_exception_should_be_thrown()
         {
             Assert.IsNotNull(_exception);
         }
 
-        [And]
-        public void And_it_should_be_a_MongoQueryFailureException()
+        [Test]
+        public void The_exception_should_be_a_MongoQueryFailureException()
         {
             Assert.IsInstanceOf<MongoQueryException>(_exception);
         }

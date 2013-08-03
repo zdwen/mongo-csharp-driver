@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Connections;
@@ -24,10 +25,14 @@ namespace MongoDB.Driver.Core
         {
             _database = SuiteSetup.Database;
 
-            var collectionName = GetType()
-                .FullName
-                .Substring("MongoDB.Driver.Core".Length)
-                .Replace(".", "_");
+            var type = GetType();
+            var lastDotIndex = type.Namespace.LastIndexOf('.');
+            var collectionName = type.Namespace.Substring(lastDotIndex + 1) + "_" + type.Name;
+
+            if (_database.DatabaseName.Length + collectionName.Length > 100)
+            {
+                collectionName = collectionName.Substring(0, 100 - _database.DatabaseName.Length);
+            }
 
             _collection = new CollectionNamespace(_database.DatabaseName, collectionName);
 
@@ -38,6 +43,18 @@ namespace MongoDB.Driver.Core
         [TestFixtureTearDown]
         public void FixtureTearDown()
         {
+            using (var session = new ClusterSession(_cluster))
+            {
+                var command = new GenericCommandOperation<CommandResult>
+                {
+                    Command = new BsonDocument("drop", _collection.CollectionName),
+                    Database = _database,
+                    Session = session
+                };
+
+                command.Execute();
+            }
+
             _cluster.Dispose();
             _cluster = null;
         }
@@ -45,6 +62,38 @@ namespace MongoDB.Driver.Core
         public ISession BeginSession()
         {
             return new ClusterSession(_cluster);
+        }
+
+        public IEnumerable<T> Find<T>(BsonDocument query)
+        {
+            using (var session = BeginSession())
+            {
+                var findOp = new QueryOperation<T>
+                {
+                    Collection = _collection,
+                    Limit = 1,
+                    Query = query,
+                    Session = session
+                };
+
+                return findOp.ToList();
+            }
+        }
+
+        public T FindOne<T>(BsonDocument query)
+        {
+            using (var session = BeginSession())
+            {
+                var findOp = new QueryOperation<T>
+                {
+                    Collection = _collection,
+                    Limit = 1,
+                    Query = query,
+                    Session = session
+                };
+
+                return findOp.FirstOrDefault();
+            }
         }
 
         public void InsertData<T>(params T[] documents)
