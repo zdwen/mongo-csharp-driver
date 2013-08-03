@@ -146,7 +146,6 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets the index of the current document in the current batch.
         /// </summary>
-        /// <exception cref="System.NotImplementedException"></exception>
         public long CurrentBatchIndex
         {
             get
@@ -159,7 +158,6 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets the index of the current document.
         /// </summary>
-        /// <exception cref="System.NotImplementedException"></exception>
         public long CurrentIndex
         {
             get
@@ -172,9 +170,6 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets the type of the document.
         /// </summary>
-        /// <value>
-        /// The type of the document.
-        /// </value>
         public Type DocumentType
         {
             get
@@ -235,7 +230,11 @@ namespace MongoDB.Driver.Core.Operations
                 if (_nextBatch == null && _prefetchFunc != null && _prefetchFunc(this))
                 {
                     _prefetchWait.Reset();
-                    ThreadPool.QueueUserWorkItem(_ => GetNextBatch());
+                    ThreadPool.QueueUserWorkItem(_ => 
+                    {
+                        GetNextBatch();
+                        _prefetchWait.Set();
+                    });
                 }
 
                 return true;
@@ -252,6 +251,7 @@ namespace MongoDB.Driver.Core.Operations
                 if (_nextBatch != null)
                 {
                     _currentBatch = _nextBatch;
+                    _nextBatch = null;
                     _currentBatchIndex = 0;
                     _currentBatchNumber++;
                     return true;
