@@ -56,6 +56,8 @@
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_with_a_duplicate_id.cs" />
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_without_an_id.cs" />
     <Compile Include="Operations\QueryOperationSpecs\When_a_query_fails.cs" />
+    <Compile Include="Operations\RemoveOperation\When_removing_a_document_with_an_valid_query.cs" />
+    <Compile Include="Operations\RemoveOperation\When_removing_a_document_with_a_valid_query.cs" />
     <Compile Include="Operations\UpdateOperationSpecs\When_updating_with_an_invalid_update_specification.cs" />
     <Compile Include="Operations\UpdateOperationSpecs\When_updating_a_document_with_a_valid_update_specification.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
