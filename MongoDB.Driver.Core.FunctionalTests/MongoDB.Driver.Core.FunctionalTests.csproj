@@ -51,10 +51,12 @@
     <Compile Include="DatabaseTest.cs" />
     <Compile Include="ITestSettings.cs" />
     <Compile Include="Operations\AggregationOperationSpecs\When_executing_an_invalid_pipeline.cs" />
-    <Compile Include="Operations\AggregationOperationSpecs\When_executing_a_valid_pipeline.cs" />
+    <Compile Include="Operations\AggregationOperationSpecs\When_executing_an_aggregation_pipeline.cs" />
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_with_an_id.cs" />
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_with_a_duplicate_id.cs" />
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_without_an_id.cs" />
+    <Compile Include="Operations\QueryOperationSpecs\When_querying_with_a_prefetch_func.cs" />
+    <Compile Include="Operations\QueryOperationSpecs\When_querying_and_results_occur_over_multiple_batches.cs" />
     <Compile Include="Operations\QueryOperationSpecs\When_a_query_fails.cs" />
     <Compile Include="Operations\RemoveOperation\When_removing_a_document_with_an_valid_query.cs" />
     <Compile Include="Operations\RemoveOperation\When_removing_a_document_with_a_valid_query.cs" />

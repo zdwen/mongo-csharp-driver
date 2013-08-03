@@ -9,16 +9,19 @@ using NUnit.Framework;
 namespace MongoDB.Driver.Core.Operations.AggregationOperation
 {
     [TestFixture]
-    public class When_executing_a_valid_pipeline : Specification
+    public class When_executing_an_aggregation_pipeline : Specification
     {
         private List<BsonDocument> _results;
 
         protected override void Given()
         {
-            InsertData(
-                new BsonDocument("x", 1),
-                new BsonDocument("x", 2),
-                new BsonDocument("x", 3));
+            var docs = new List<BsonDocument>();
+            for (int i = 0; i < 100; i++)
+            {
+                docs.Add(new BsonDocument("_id", i));
+            }
+
+            InsertData(docs.ToArray());
         }
 
         protected override void When()
@@ -29,6 +32,7 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
             {
                 var op = new AggregationOperation<BsonDocument>
                 {
+                    BatchSize = 50, // will be 2 batches when talkign with server >= 2.6
                     Collection = _collection,
                     Pipeline = pipeline,
                     Session = session
@@ -39,9 +43,9 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
         }
 
         [Test]
-        public void All_the_documents_should_come_back()
+        public void All_the_documents_should_be_returned()
         {
-            Assert.AreEqual(3, _results.Count);
+            Assert.AreEqual(100, _results.Count);
         }
     }
 }
