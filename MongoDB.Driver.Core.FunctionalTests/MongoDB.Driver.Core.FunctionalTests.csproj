@@ -52,6 +52,8 @@
     <Compile Include="ITestSettings.cs" />
     <Compile Include="Operations\AggregationOperationSpecs\When_executing_an_invalid_pipeline.cs" />
     <Compile Include="Operations\AggregationOperationSpecs\When_executing_an_aggregation_pipeline.cs" />
+    <Compile Include="Operations\GenericCommandOperationSpecs\When_running_an_invalid_command.cs" />
+    <Compile Include="Operations\GenericCommandOperationSpecs\When_running_a_valid_command.cs" />
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_with_an_id.cs" />
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_with_a_duplicate_id.cs" />
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_without_an_id.cs" />

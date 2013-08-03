@@ -52,7 +52,19 @@ namespace MongoDB.Driver.Core
                     Session = session
                 };
 
-                command.Execute();
+                try
+                {
+                    command.Execute();
+                }
+                catch (MongoOperationException ex)
+                {
+                    // this might occur if the collection was never created.  We don't care
+                    // in this case.
+                    if (ex.Response["errmsg"].AsString != "ns not found")
+                    {
+                        throw;
+                    }
+                }
             }
 
             _cluster.Dispose();
