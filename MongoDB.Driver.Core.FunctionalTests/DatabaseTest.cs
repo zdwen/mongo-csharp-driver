@@ -76,6 +76,27 @@ namespace MongoDB.Driver.Core
             return new ClusterSession(_cluster);
         }
 
+        public void CreateCappedCollection()
+        {
+            using (var session = BeginSession())
+            {
+                var op = new GenericCommandOperation<CommandResult>
+                {
+                    Command = new BsonDocument
+                    {
+                        { "create", _collection.CollectionName },
+                        { "capped", true },
+                        { "max", 1000 },
+                        { "size", 1000 }
+                    },
+                    Database = _database,
+                    Session = session
+                };
+
+                op.Execute();
+            }
+        }
+
         public IEnumerable<T> Find<T>(BsonDocument query)
         {
             using (var session = BeginSession())
