@@ -14,6 +14,7 @@
 */
 
 using System.Collections.Generic;
+using MongoDB.Driver.Core.Sessions;
 
 namespace MongoDB.Driver.Core.Operations
 {
@@ -23,6 +24,14 @@ namespace MongoDB.Driver.Core.Operations
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     public interface ICursor<TDocument> : ICursorStatistics, IEnumerator<TDocument>
     {
+        /// <summary>
+        /// Gets the channel provider.
+        /// </summary>
+        IServerChannelProvider ChannelProvider { get; }
 
+        /// <summary>
+        /// Gets the cursor id.
+        /// </summary>
+        long CursorId { get; }
     }
 }

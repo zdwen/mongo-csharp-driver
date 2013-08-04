@@ -36,7 +36,6 @@ namespace MongoDB.Driver.Core.Operations
         private readonly IServerChannelProvider _channelProvider;
         private readonly CollectionNamespace _collection;
         private readonly int _numberToReturn;
-        private readonly Func<ICursorStatistics, bool> _prefetchFunc;
         private readonly BsonBinaryReaderSettings _readerSettings;
         private readonly IBsonSerializer _serializer;
         private readonly IBsonSerializationOptions _serializationOptions;
@@ -47,8 +46,6 @@ namespace MongoDB.Driver.Core.Operations
         private long _currentBatchNumber; // effectively, how many get-mores have been issued
         private int _currentBatchIndex; // the index into _currentBatch
         private long _currentIndex; // the total number of documents that have been iterated
-        private ManualResetEventSlim _prefetchWait;
-        private volatile List<TDocument> _nextBatch;
 
         // constructors
         /// <summary>
@@ -59,13 +56,12 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="collection">The collection.</param>
         /// <param name="numberToReturn">Size of the batch.</param>
         /// <param name="firstBatch">The first batch.</param>
-        /// <param name="prefetchFunc">The prefetch func.</param>
         /// <param name="serializer">The serializer.</param>
         /// <param name="serializationOptions">The serialization options.</param>
         /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="readerSettings">The reader settings.</param>
-        public Cursor(IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int numberToReturn, IEnumerable<TDocument> firstBatch, Func<ICursorStatistics, bool> prefetchFunc, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
+        public Cursor(IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int numberToReturn, IEnumerable<TDocument> firstBatch, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
         {
             Ensure.IsNotNull("channelProvider", channelProvider);
             Ensure.IsNotNull("collection", collection);
@@ -78,17 +74,23 @@ namespace MongoDB.Driver.Core.Operations
             _collection = collection;
             _numberToReturn = numberToReturn;
             _currentBatch = firstBatch.ToList();
-            _prefetchFunc = prefetchFunc;
             _serializer = serializer;
             _serializationOptions = serializationOptions;
             _timeout = timeout;
             _cancellationToken = cancellationToken;
             _readerSettings = readerSettings;
             _currentBatchIndex = -1;
-            _prefetchWait = new ManualResetEventSlim(true);
         }
 
         // public properties
+        /// <summary>
+        /// Gets the channel provider.
+        /// </summary>
+        public IServerChannelProvider ChannelProvider
+        {
+            get { return _channelProvider; }
+        }
+
         /// <summary>
         /// Gets the collection.
         /// </summary>
@@ -168,6 +170,14 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
+        /// Gets the cursor id.
+        /// </summary>
+        public long CursorId
+        {
+            get { return _cursorId; }
+        }
+
+        /// <summary>
         /// Gets the type of the document.
         /// </summary>
         public Type DocumentType
@@ -207,7 +217,6 @@ namespace MongoDB.Driver.Core.Operations
                 }
                 finally
                 {
-                    _prefetchWait.Dispose();
                     _channelProvider.Dispose();
                     _disposed = true;
                 }
@@ -227,31 +236,16 @@ namespace MongoDB.Driver.Core.Operations
             _currentIndex++;
             if (_currentBatchIndex < _currentBatch.Count)
             {
-                if (_nextBatch == null && _prefetchFunc != null && _prefetchFunc(this))
-                {
-                    _prefetchWait.Reset();
-                    ThreadPool.QueueUserWorkItem(_ => 
-                    {
-                        GetNextBatch();
-                        _prefetchWait.Set();
-                    });
-                }
-
                 return true;
             }
 
+            _currentBatch = null;
             while (_cursorId != 0)
             {
-                _prefetchWait.Wait();
-                if (_nextBatch == null)
-                {
-                    GetNextBatch();
-                }
+                GetNextBatch();
 
-                if (_nextBatch != null)
+                if (_currentBatch != null)
                 {
-                    _currentBatch = _nextBatch;
-                    _nextBatch = null;
                     _currentBatchIndex = 0;
                     _currentBatchNumber++;
                     return true;
@@ -290,7 +284,7 @@ namespace MongoDB.Driver.Core.Operations
                 var docs = result.Documents.ToList();
                 if (docs.Count > 0)
                 {
-                    _nextBatch = docs;
+                    _currentBatch = docs;
                 }
             }
         }

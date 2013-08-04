@@ -38,7 +38,6 @@ namespace MongoDB.Driver.Core.Operations
         private int _limit;
         private BsonDocument _options;
         private object _query;
-        private Func<ICursorStatistics, bool> _prefetchFunc;
         private ReadPreference _readPreference;
         private IBsonSerializer _serializer;
         private IBsonSerializationOptions _serializationOptions;
@@ -118,16 +117,6 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
-        /// Gets or sets Func used to decide when to prefetch the next batch.  This 
-        /// can increase client-side performance when network latency is high.
-        /// </summary>
-        public Func<ICursorStatistics, bool> PrefetchFunc
-        {
-            get { return _prefetchFunc; }
-            set { _prefetchFunc = value; }
-        }
-
-        /// <summary>
         /// Gets or sets the read preference.
         /// </summary>
         public ReadPreference ReadPreference
@@ -199,7 +188,6 @@ namespace MongoDB.Driver.Core.Operations
                     collection: _collection,
                     numberToReturn: numberToReturn,
                     firstBatch: result.Documents,
-                    prefetchFunc: _prefetchFunc,
                     serializer: Serializer,
                     serializationOptions: SerializationOptions,
                     timeout: Timeout,
