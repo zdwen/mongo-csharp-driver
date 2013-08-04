@@ -88,6 +88,11 @@ namespace MongoDB.Driver.Core.Protocol
             {
                 reply.ThrowIfQueryFailureFlagIsSet();
 
+                if (reply.Flags.HasFlag(ReplyFlags.CursorNotFound))
+                {
+                    throw new MongoCursorNotFoundException();
+                }
+
                 var docs = reply.DeserializeDocuments<TDocument>(_serializer, _serializationOptions, _readerSettings);
                 return new CursorBatch<TDocument>(reply.CursorId, docs.ToList());
             }
