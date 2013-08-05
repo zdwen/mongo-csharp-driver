@@ -52,6 +52,8 @@
     <Compile Include="ITestSettings.cs" />
     <Compile Include="Operations\AggregationOperationSpecs\When_executing_an_invalid_pipeline.cs" />
     <Compile Include="Operations\AggregationOperationSpecs\When_executing_an_aggregation_pipeline.cs" />
+    <Compile Include="Operations\CursorSpecs\When_the_limit_is_hit_on_the_second_batch.cs" />
+    <Compile Include="Operations\CursorSpecs\When_the_limit_is_hit_on_the_initial_batch.cs" />
     <Compile Include="Operations\CursorSpecs\When_a_cursor_does_not_exist_on_the_server.cs" />
     <Compile Include="Operations\CursorSpecs\When_using_a_tailable_cursor.cs" />
     <Compile Include="Operations\GenericCommandOperationSpecs\When_running_an_invalid_command.cs" />
