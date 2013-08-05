@@ -16,7 +16,7 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
         protected override void Given()
         {
             var docs = new List<BsonDocument>();
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 10; i++)
             {
                 docs.Add(new BsonDocument("_id", i));
             }
@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
             {
                 var op = new AggregationOperation<BsonDocument>
                 {
-                    BatchSize = 50, // will be 2 batches when talkign with server >= 2.6
+                    BatchSize = 2,
                     Collection = _collection,
                     Pipeline = pipeline,
                     Session = session
@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
         [Test]
         public void All_the_documents_should_be_returned()
         {
-            Assert.AreEqual(100, _results.Count);
+            Assert.AreEqual(10, _results.Count);
         }
     }
 }

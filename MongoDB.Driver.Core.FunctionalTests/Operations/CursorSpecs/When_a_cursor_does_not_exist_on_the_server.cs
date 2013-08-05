@@ -19,7 +19,7 @@ namespace MongoDB.Driver.Core.Operations.CursorSpecs
         protected override void Given()
         {
             var list = new List<BsonDocument>();
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 10; i++)
             {
                 list.Add(new BsonDocument("_id", i));
             }
@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Core.Operations.CursorSpecs
             var session = BeginSession();
             var op = new QueryOperation<BsonDocument>
             {
-                BatchSize = 50,
+                BatchSize = 2,
                 CloseSessionOnExecute = true,
                 Collection = _collection,
                 Query = new BsonDocument(),

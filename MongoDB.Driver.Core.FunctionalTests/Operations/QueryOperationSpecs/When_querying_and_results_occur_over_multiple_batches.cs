@@ -15,7 +15,7 @@ namespace MongoDB.Driver.Core.Operations.QueryOperationSpecs
         protected override void Given()
         {
             var docs = new List<BsonDocument>();
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 10; i++)
             {
                 docs.Add(new BsonDocument("_id", i));
             }
@@ -30,7 +30,7 @@ namespace MongoDB.Driver.Core.Operations.QueryOperationSpecs
                 var findOp = new QueryOperation<BsonDocument>
                 {
                     Collection = _collection,
-                    BatchSize = 50, // will cause 2 batches...
+                    BatchSize = 2,
                     Query = new BsonDocument(),
                     Session = session
                 };
@@ -42,7 +42,7 @@ namespace MongoDB.Driver.Core.Operations.QueryOperationSpecs
         [Test]
         public void All_the_documents_should_be_returned()
         {
-            Assert.AreEqual(100, _results.Count);
+            Assert.AreEqual(10, _results.Count);
         }
     }
 }
