@@ -134,6 +134,7 @@ namespace MongoDB.Driver.Core.Operations
                 channelProvider: channelProvider,
                 cursorId: result.CursorId,
                 collection: _collection,
+                limit: 0,
                 numberToReturn: _batchSize,
                 firstBatch: result.Results,
                 serializer: _serializer,

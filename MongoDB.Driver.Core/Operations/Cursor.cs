@@ -35,6 +35,7 @@ namespace MongoDB.Driver.Core.Operations
         private readonly CancellationToken _cancellationToken;
         private readonly IServerChannelProvider _channelProvider;
         private readonly CollectionNamespace _collection;
+        private readonly int _limit;
         private readonly int _numberToReturn;
         private readonly BsonBinaryReaderSettings _readerSettings;
         private readonly IBsonSerializer _serializer;
@@ -54,6 +55,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="channelProvider">The channel provider.</param>
         /// <param name="cursorId">The cursor id.</param>
         /// <param name="collection">The collection.</param>
+        /// <param name="limit">The limit.</param>
         /// <param name="numberToReturn">Size of the batch.</param>
         /// <param name="firstBatch">The first batch.</param>
         /// <param name="serializer">The serializer.</param>
@@ -61,7 +63,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="readerSettings">The reader settings.</param>
-        public Cursor(IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int numberToReturn, IEnumerable<TDocument> firstBatch, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
+        public Cursor(IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int limit, int numberToReturn, IEnumerable<TDocument> firstBatch, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
         {
             Ensure.IsNotNull("channelProvider", channelProvider);
             Ensure.IsNotNull("collection", collection);
@@ -72,6 +74,7 @@ namespace MongoDB.Driver.Core.Operations
             _channelProvider = channelProvider;
             _cursorId = cursorId;
             _collection = collection;
+            _limit = limit;
             _numberToReturn = numberToReturn;
             _currentBatch = firstBatch.ToList();
             _serializer = serializer;
@@ -80,6 +83,7 @@ namespace MongoDB.Driver.Core.Operations
             _cancellationToken = cancellationToken;
             _readerSettings = readerSettings;
             _currentBatchIndex = -1;
+            _currentIndex = -1;
         }
 
         // public properties
@@ -234,6 +238,11 @@ namespace MongoDB.Driver.Core.Operations
             ThrowIfDisposed();
             _currentBatchIndex++;
             _currentIndex++;
+            if (_limit > 0 && _currentIndex >= _limit)
+            {
+                return false;
+            }
+
             if (_currentBatchIndex < _currentBatch.Count)
             {
                 return true;
