@@ -119,7 +119,7 @@ namespace MongoDB.Driver.Core.Operations
 
             using (var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), _isQuery))
             {
-                var args = new ExecutionArgs
+                var args = new ExecuteArgs
                 {
                     Command = _command,
                     Database = _database,

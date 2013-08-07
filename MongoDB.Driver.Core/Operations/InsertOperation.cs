@@ -130,7 +130,13 @@ namespace MongoDB.Driver.Core.Operations
                     }
                     catch (MongoWriteConcernException ex)
                     {
-                        throw MapException(ex);
+                        Exception newException;
+                        if(TryMapException(ex, out newException))
+                        {
+                            throw newException;
+                        }
+
+                        throw;
                     }
                 }
             }

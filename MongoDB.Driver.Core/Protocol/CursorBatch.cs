@@ -23,10 +23,10 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// The result of an operation that returns a cursor.
+    /// The result of a protocol execution that returns a cursor.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class CursorResult<TDocument>
+    public sealed class CursorBatch<TDocument>
     {
         // private fields
         private readonly long _cursorId;
@@ -34,11 +34,11 @@ namespace MongoDB.Driver.Core.Protocol
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="CursorResult{TDocument}" /> class.
+        /// Initializes a new instance of the <see cref="CursorBatch{TDocument}" /> class.
         /// </summary>
         /// <param name="cursorId">The cursor id.</param>
         /// <param name="documents">The documents.</param>
-        public CursorResult(long cursorId, IEnumerable<TDocument> documents)
+        public CursorBatch(long cursorId, IEnumerable<TDocument> documents)
         {
             Ensure.IsNotNull("documents", documents);
 

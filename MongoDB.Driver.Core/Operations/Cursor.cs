@@ -19,6 +19,7 @@ using System.Linq;
 using System.Threading;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
@@ -29,7 +30,7 @@ namespace MongoDB.Driver.Core.Operations
     /// Represents a cursor.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class Cursor<TDocument> : ICursor<TDocument>
+    internal sealed class Cursor<TDocument> : ICursor<TDocument>
     {
         // private fields
         private readonly CancellationToken _cancellationToken;
@@ -41,10 +42,10 @@ namespace MongoDB.Driver.Core.Operations
         private readonly IBsonSerializer _serializer;
         private readonly IBsonSerializationOptions _serializationOptions;
         private readonly TimeSpan _timeout;
+        private bool _done;
         private long _cursorId;
         private bool _disposed;
         private List<TDocument> _currentBatch;
-        private long _currentBatchNumber; // effectively, how many get-mores have been issued
         private int _currentBatchIndex; // the index into _currentBatch
         private long _currentIndex; // the total number of documents that have been iterated
 
@@ -68,6 +69,7 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull("channelProvider", channelProvider);
             Ensure.IsNotNull("collection", collection);
             Ensure.IsNotNull("firstBatch", firstBatch);
+            Ensure.IsGreaterThan("limit", _limit, -1);
             Ensure.IsNotNull("serializer", serializer);
             Ensure.IsNotNull("readerSettings", readerSettings);
 
@@ -96,18 +98,6 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
-        /// Gets the collection.
-        /// </summary>
-        public CollectionNamespace Collection
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _collection;
-            }
-        }
-
-        /// <summary>
         /// Gets the element in the collection at the current position of the enumerator.
         /// </summary>
         /// <returns>The element in the collection at the current position of the enumerator.</returns>
@@ -126,54 +116,6 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
-        /// Gets the current batch that is being enumerated.
-        /// </summary>
-        public long CurrentBatch
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _currentBatchNumber;
-            }
-        }
-
-        /// <summary>
-        /// Gets the number of documents in the current batch.
-        /// </summary>
-        public long CurrentBatchCount
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _currentBatch.Count;
-            }
-        }
-
-        /// <summary>
-        /// Gets the index of the current document in the current batch.
-        /// </summary>
-        public long CurrentBatchIndex
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _currentBatchIndex;
-            }
-        }
-
-        /// <summary>
-        /// Gets the index of the current document.
-        /// </summary>
-        public long CurrentIndex
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _currentIndex;
-            }
-        }
-
-        /// <summary>
         /// Gets the cursor id.
         /// </summary>
         public long CursorId
@@ -182,18 +124,14 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
-        /// Gets the type of the document.
+        /// Gets the server.
         /// </summary>
-        public Type DocumentType
+        public ServerDescription Server
         {
-            get
-            {
-                ThrowIfDisposed();
-                return typeof(TDocument);
-            }
+            get { return _channelProvider.Server; }
         }
 
-        // implicit properties
+        // explicit interface implementations
         /// <summary>
         /// Gets the element in the collection at the current position of the enumerator.
         /// </summary>
@@ -236,10 +174,16 @@ namespace MongoDB.Driver.Core.Operations
         public bool MoveNext()
         {
             ThrowIfDisposed();
+            if (_done)
+            {
+                return false;
+            }
+
             _currentBatchIndex++;
             _currentIndex++;
             if (_limit > 0 && _currentIndex >= _limit)
             {
+                _done = true;
                 return false;
             }
 
@@ -248,19 +192,18 @@ namespace MongoDB.Driver.Core.Operations
                 return true;
             }
 
-            _currentBatch = null;
             while (_cursorId != 0)
             {
-                GetNextBatch();
+                _currentBatch = GetNextBatch();
 
                 if (_currentBatch != null)
                 {
                     _currentBatchIndex = 0;
-                    _currentBatchNumber++;
                     return true;
                 }
             }
 
+            _done = true;
             return false;
         }
 
@@ -274,7 +217,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         // private methods
-        private void GetNextBatch()
+        private List<TDocument> GetNextBatch()
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -291,10 +234,7 @@ namespace MongoDB.Driver.Core.Operations
                 var result = protocol.Execute(channel);
                 _cursorId = result.CursorId;
                 var docs = result.Documents.ToList();
-                if (docs.Count > 0)
-                {
-                    _currentBatch = docs;
-                }
+                return docs.Count > 0 ? docs : null;
             }
         }
 

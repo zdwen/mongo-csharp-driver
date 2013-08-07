@@ -186,7 +186,7 @@ namespace MongoDB.Driver.Core.Operations
                     channelProvider: channelProvider,
                     cursorId: result.CursorId,
                     collection: _collection,
-                    limit: _limit,
+                    limit: Math.Abs(_batchSize),
                     numberToReturn: numberToReturn,
                     firstBatch: result.Documents,
                     serializer: Serializer,
@@ -206,7 +206,7 @@ namespace MongoDB.Driver.Core.Operations
             return Execute();
         }
 
-        // implicit methods
+        // explicit interface implementations
         /// <summary>
         /// Returns an enumerator that iterates through a collection.
         /// </summary>

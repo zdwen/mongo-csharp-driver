@@ -14,18 +14,29 @@
 */
 
 
+using MongoDB.Driver.Core.Sessions;
 namespace MongoDB.Driver.Core.Operations
 {
     /// <summary>
     /// An operation against the server.
     /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    public interface IOperation<TResult>
+    /// <typeparam name="TOperationResult">The type of the result.</typeparam>
+    public interface IOperation<TOperationResult>
     {
+        /// <summary>
+        /// Gets or sets a value indicating whether [close session on execute].
+        /// </summary>
+        bool CloseSessionOnExecute { get; set; }
+
+        /// <summary>
+        /// Gets or sets the session.
+        /// </summary>
+        ISession Session { get; set; }
+
         /// <summary>
         /// Executes the operation.
         /// </summary>
         /// <returns>The result of the operation.</returns>
-        TResult Execute();
+        TOperationResult Execute();
     }
 }

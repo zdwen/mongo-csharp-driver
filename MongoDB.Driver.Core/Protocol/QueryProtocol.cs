@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.Protocol
     /// Represents the query protocol.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public class QueryProtocol<TDocument> : IProtocol<CursorResult<TDocument>>
+    public class QueryProtocol<TDocument> : IProtocol<CursorBatch<TDocument>>
     {
         // private fields
         private readonly CollectionNamespace _collection;
@@ -90,7 +90,7 @@ namespace MongoDB.Driver.Core.Protocol
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <returns>The reply message.</returns>
-        public CursorResult<TDocument> Execute(IChannel channel)
+        public CursorBatch<TDocument> Execute(IChannel channel)
         {
             Ensure.IsNotNull("channel", channel);
 
@@ -123,7 +123,7 @@ namespace MongoDB.Driver.Core.Protocol
                 reply.ThrowIfQueryFailureFlagIsSet();
 
                 var docs = reply.DeserializeDocuments<TDocument>(_serializer, _serializationOptions, _readerSettings);
-                return new CursorResult<TDocument>(reply.CursorId, docs.ToList());
+                return new CursorBatch<TDocument>(reply.CursorId, docs.ToList());
             }
         }
     }

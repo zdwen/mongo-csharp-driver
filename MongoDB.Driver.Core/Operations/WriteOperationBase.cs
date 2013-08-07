@@ -76,17 +76,19 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         /// <param name="exception">The exception.</param>
         /// <returns>The mapped exception or the original if no mapping took place.</returns>
-        protected Exception MapException(MongoWriteConcernException exception)
+        protected bool TryMapException(MongoWriteConcernException exception, out Exception newException)
         {
             if (exception.Result.Code.HasValue && __duplicateKeyCodes.Contains(exception.Result.Code.Value))
             {
-                return new MongoDuplicateKeyException(
+                newException = new MongoDuplicateKeyException(
                     "An attempt was made to insert a record with a duplicat key.", 
                     exception.Result, 
                     exception);
+                return true;
             }
 
-            return exception;
+            newException = null;
+            return false;
         }
     }
 }

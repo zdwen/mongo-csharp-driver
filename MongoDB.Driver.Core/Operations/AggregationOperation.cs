@@ -14,8 +14,8 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Operation to execute an aggregation framework command.
     /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    public sealed class AggregationOperation<TResult> : CommandOperationBase<ICursor<TResult>>, IEnumerable<TResult>
+    /// <typeparam name="TDocument">The type of the document.</typeparam>
+    public sealed class AggregationOperation<TDocument> : CommandOperationBase<ICursor<TDocument>>, IEnumerable<TDocument>
     {
         // private fields
         private int _batchSize;
@@ -27,7 +27,7 @@ namespace MongoDB.Driver.Core.Operations
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="AggregationOperation{TResult}" /> class.
+        /// Initializes a new instance of the <see cref="AggregationOperation{TDocument}" /> class.
         /// </summary>
         public AggregationOperation()
         {
@@ -94,7 +94,7 @@ namespace MongoDB.Driver.Core.Operations
         /// Executes the specified operation behavior.
         /// </summary>
         /// <returns></returns>
-        public override ICursor<TResult> Execute()
+        public override ICursor<TDocument> Execute()
         {
             EnsureRequiredProperties();
 
@@ -116,11 +116,11 @@ namespace MongoDB.Driver.Core.Operations
                 }
             }
 
-            var aggregateCommandResultSerializer = new AggregateCommandResultSerializer<TResult>(
+            var aggregateCommandResultSerializer = new AggregateCommandResultSerializer<TDocument>(
                 _serializer, 
                 _serializationOptions);
 
-            var args = new ExecutionArgs
+            var args = new ExecuteArgs
             {
                 Command = command,
                 Database = new DatabaseNamespace(_collection.DatabaseName),
@@ -128,15 +128,15 @@ namespace MongoDB.Driver.Core.Operations
                 Serializer = aggregateCommandResultSerializer
             };
 
-            var result = Execute<AggregateCommandResult<TResult>>(channelProvider, args);
+            var result = Execute<AggregateCommandResult<TDocument>>(channelProvider, args);
 
-            return new Cursor<TResult>(
+            return new Cursor<TDocument>(
                 channelProvider: channelProvider,
                 cursorId: result.CursorId,
                 collection: _collection,
                 limit: 0,
                 numberToReturn: _batchSize,
-                firstBatch: result.Results,
+                firstBatch: result.FirstBatch,
                 serializer: _serializer,
                 serializationOptions: _serializationOptions,
                 timeout: Timeout,
@@ -148,12 +148,12 @@ namespace MongoDB.Driver.Core.Operations
         /// Gets the enumerator. This implicitly calls Execute.
         /// </summary>
         /// <returns>An enumerator.</returns>
-        public IEnumerator<TResult> GetEnumerator()
+        public IEnumerator<TDocument> GetEnumerator()
         {
             return Execute();
         }
 
-        // implicit methods
+        // explicit interface implementations
         /// <summary>
         /// Returns an enumerator that iterates through a collection.
         /// </summary>
@@ -175,7 +175,7 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull("ReadPreference", _readPreference);
             if (_serializer == null)
             {
-                _serializer = BsonSerializer.LookupSerializer(typeof(TResult));
+                _serializer = BsonSerializer.LookupSerializer(typeof(TDocument));
                 if (_serializationOptions == null)
                 {
                     _serializationOptions = _serializer.GetDefaultSerializationOptions();

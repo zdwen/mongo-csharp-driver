@@ -19,14 +19,15 @@ using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver.Core.Protocol;
 
 namespace MongoDB.Driver.Core.Operations.Serializers
 {
     /// <summary>
-    /// Represents a serializer for a DistinctCommandResult with values of type TValue.
+    /// Represents a serializer for the <see cref="AggregationCommandResult{TDocument}"/>.
     /// </summary>
-    /// <typeparam name="TResult">The type of the value.</typeparam>
-    public class AggregateCommandResultSerializer<TResult> : BsonBaseSerializer
+    /// <typeparam name="TDocument">The type of the document.</typeparam>
+    public class AggregateCommandResultSerializer<TDocument> : BsonBaseSerializer
     {
         // private fields
         private readonly IBsonSerializer _resultSerializer;
@@ -34,7 +35,7 @@ namespace MongoDB.Driver.Core.Operations.Serializers
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="AggregateCommandResultSerializer{TValue}" /> class.
+        /// Initializes a new instance of the <see cref="AggregateCommandResultSerializer{TDocument}" /> class.
         /// </summary>
         /// <param name="resultSerializer">The result serializer.</param>
         /// <param name="resultSerializationOptions">The result serialization options.</param>
@@ -56,7 +57,7 @@ namespace MongoDB.Driver.Core.Operations.Serializers
         {
             var response = new BsonDocument();
             long cursorId = 0;
-            IEnumerable<TResult> results = null;
+            IEnumerable<TDocument> firstBatch = null;
 
             bsonReader.ReadStartDocument();
             while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
@@ -64,13 +65,15 @@ namespace MongoDB.Driver.Core.Operations.Serializers
                 var name = bsonReader.ReadName();
                 if (name == "result")
                 {
-                    results = ReadResults(bsonReader);
+                    firstBatch = DeserializeResults(bsonReader);
                 }
                 else if (name == "cursor")
                 {
-                    var cursor = ReadCursor(bsonReader);
-                    cursorId = cursor.Item1;
-                    results = cursor.Item2;
+                    var cursorDocument = new BsonDocument();
+                    var cursorBatch = DeserializeCursor(cursorDocument, bsonReader);
+                    cursorId = cursorBatch.CursorId;
+                    firstBatch = cursorBatch.Documents;
+                    response.Add("cursor", cursorDocument);
                 }
                 else
                 {
@@ -80,44 +83,46 @@ namespace MongoDB.Driver.Core.Operations.Serializers
             }
             bsonReader.ReadEndDocument();
 
-            return new AggregateCommandResult<TResult>(response, cursorId, results);
+            return new AggregateCommandResult<TDocument>(response, cursorId, firstBatch);
         }
 
         // private methods
-        private Tuple<long, IEnumerable<TResult>> ReadCursor(BsonReader bsonReader)
+        private CursorBatch<TDocument> DeserializeCursor(BsonDocument cursorDocument, BsonReader bsonReader)
         {
             long cursorId = 0;
-            IEnumerable<TResult> results = null;
+            IEnumerable<TDocument> firstBatch = null;
             bsonReader.ReadStartDocument();
             while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
             {
                 var name = bsonReader.ReadName();
                 if (name == "id")
                 {
-                    cursorId = (long)new Int64Serializer().Deserialize(bsonReader, typeof(long), null);
+                    cursorId = bsonReader.ReadInt64();
+                    cursorDocument.Add("id", cursorId);
                 }
                 else if (name == "firstBatch")
                 {
-                    results = ReadResults(bsonReader);
+                    firstBatch = DeserializeResults(bsonReader);
                 }
                 else
                 {
-                    bsonReader.SkipValue();
+                    var value = (BsonValue)BsonValueSerializer.Instance.Deserialize(bsonReader, typeof(BsonValue), null);
+                    cursorDocument.Add(name, value);
                 }
             }
             bsonReader.ReadEndDocument();
 
-            return Tuple.Create(cursorId, results);
+            return new CursorBatch<TDocument>(cursorId, firstBatch);
         }
 
-        private IEnumerable<TResult> ReadResults(BsonReader bsonReader)
+        private IEnumerable<TDocument> DeserializeResults(BsonReader bsonReader)
         {
-            var values = new List<TResult>();
+            var values = new List<TDocument>();
 
             bsonReader.ReadStartArray();
             while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
             {
-                values.Add((TResult)_resultSerializer.Deserialize(bsonReader, typeof(TResult), _resultSerializationOptions));
+                values.Add((TDocument)_resultSerializer.Deserialize(bsonReader, typeof(TDocument), _resultSerializationOptions));
             }
             bsonReader.ReadEndArray();
 

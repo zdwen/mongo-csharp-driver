@@ -25,6 +25,7 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Base class for command operations.
     /// </summary>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
     public abstract class CommandOperationBase<TResult> : QueryOperationBase<TResult>
     {
         // protected methods
@@ -34,7 +35,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="channelProvider">The channel provider.</param>
         /// <param name="args">The args.</param>
         /// <returns>The result of the execution.</returns>
-        protected TCommandResult Execute<TCommandResult>(IServerChannelProvider channelProvider, ExecutionArgs args) where TCommandResult : CommandResult
+        protected TCommandResult Execute<TCommandResult>(IServerChannelProvider channelProvider, ExecuteArgs args) where TCommandResult : CommandResult
         {
             var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
             var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);
@@ -43,7 +44,7 @@ namespace MongoDB.Driver.Core.Operations
                 collection: args.Database.CommandCollection,
                 fields: null,
                 flags: args.ReadPreference.ReadPreferenceMode == ReadPreferenceMode.Primary ? QueryFlags.None : QueryFlags.SlaveOk,
-                numberToReturn: 1,
+                numberToReturn: -1,
                 query: WrapQuery(channelProvider.Server, args.Command, null, args.ReadPreference),
                 readerSettings: readerSettings,
                 serializer: args.Serializer,
@@ -62,8 +63,15 @@ namespace MongoDB.Driver.Core.Operations
                     var message = string.Format("Command '{0}' failed. No response returned.", commandName);
                     throw new MongoOperationException(message);
                 }
+                else if (docs.Count > 1)
+                {
+                    var commandDocument = args.Command.ToBsonDocument();
+                    var commandName = commandDocument.ElementCount == 0 ? "(no name)" : commandDocument.GetElement(0).Name;
+                    var message = string.Format("Command '{0}' failed. Too many responses returned.", commandName);
+                    throw new MongoOperationException(message);
+                }
 
-                var commandResult = docs.Single();
+                var commandResult = docs[0];
                 commandResult.Command = args.Command;
 
                 if (!commandResult.Ok)
@@ -82,7 +90,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Arguments for executing a command.
         /// </summary>
-        protected class ExecutionArgs
+        protected class ExecuteArgs
         {
             /// <summary>
             /// Gets or sets the command.

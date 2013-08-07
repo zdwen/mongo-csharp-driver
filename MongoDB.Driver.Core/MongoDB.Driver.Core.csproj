@@ -100,7 +100,6 @@
     <Compile Include="MongoQueryException.cs" />
     <Compile Include="Operations\AggregateCommandResult.cs" />
     <Compile Include="Operations\ICursor.cs" />
-    <Compile Include="Operations\ICursorStatistics.cs" />
     <Compile Include="Operations\Serializers\AggregateCommandResultSerializer.cs" />
     <Compile Include="Operations\AggregationOperation.cs" />
     <Compile Include="Operations\CommandOperationBase.cs" />
@@ -108,7 +107,7 @@
     <Compile Include="Operations\GenericCommandOperation.cs" />
     <Compile Include="Operations\IOperation.cs" />
     <Compile Include="Operations\QueryOperation.cs" />
-    <Compile Include="Protocol\CursorResult.cs" />
+    <Compile Include="Protocol\CursorBatch.cs" />
     <Compile Include="Protocol\DeleteProtocol.cs" />
     <Compile Include="Protocol\GetMoreProtocol.cs" />
     <Compile Include="Protocol\InsertProtocol.cs" />

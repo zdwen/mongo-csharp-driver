@@ -25,8 +25,8 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Base class for an operation.
     /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    public abstract class OperationBase<TResult> : IOperation<TResult>
+    /// <typeparam name="TOperationResult">The type of the result.</typeparam>
+    public abstract class OperationBase<TOperationResult> : IOperation<TOperationResult>
     {
         // private fields
         private CancellationToken _cancellationToken;
@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Operations
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="OperationBase{TResult}" /> class.
+        /// Initializes a new instance of the <see cref="OperationBase{TOperationResult}" /> class.
         /// </summary>
         protected OperationBase()
         {
@@ -107,8 +107,8 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Executes the operation.
         /// </summary>
-        /// <returns>An operation channel provider.</returns>
-        public abstract TResult Execute();
+        /// <returns>The result of the operation.</returns>
+        public abstract TOperationResult Execute();
 
         // protected methods
         /// <summary>
@@ -116,7 +116,7 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         /// <param name="serverSelector">The server selector.</param>
         /// <param name="isQuery">if set to <c>true</c> the operation is a query.</param>
-        /// <returns>A session channel provider.</returns>
+        /// <returns>A server channel provider.</returns>
         protected IServerChannelProvider CreateServerChannelProvider(IServerSelector serverSelector, bool isQuery)
         {
             var options = new CreateServerChannelProviderArgs(serverSelector, isQuery)

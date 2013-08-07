@@ -18,33 +18,36 @@ using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver.Core.Operations.Serializers;
+using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Operations
 {
     /// <summary>
     /// The result of an aggregate command.
     /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <typeparam name="TDocument">The type of the document.</typeparam>
     [Serializable]
     [BsonSerializer(typeof(AggregateCommandResultSerializer<>))]
-    public class AggregateCommandResult<TResult> : CommandResult
+    internal class AggregateCommandResult<TDocument> : CommandResult
     {
         // private fields
         private readonly long _cursorId;
-        private readonly IEnumerable<TResult> _results;
+        private readonly IEnumerable<TDocument> _firstBatch;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="AggregateCommandResult{TResult}" /> class.
+        /// Initializes a new instance of the <see cref="AggregateCommandResult{TDocument}" /> class.
         /// </summary>
         /// <param name="response">The response.</param>
         /// <param name="cursorId">The cursor id.</param>
-        /// <param name="results">The values.</param>
-        internal AggregateCommandResult(BsonDocument response, long cursorId, IEnumerable<TResult> results)
+        /// <param name="firstBatch">The values.</param>
+        public AggregateCommandResult(BsonDocument response, long cursorId, IEnumerable<TDocument> firstBatch)
             : base(response)
         {
+            Ensure.IsNotNull("firstBatch", firstBatch);
+
             _cursorId = cursorId;
-            _results = results;
+            _firstBatch = firstBatch;
         }
 
         // public properties
@@ -57,11 +60,11 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
-        /// Gets the values.
+        /// Gets the first batch.
         /// </summary>
-        public IEnumerable<TResult> Results
+        public IEnumerable<TDocument> FirstBatch
         {
-            get { return _results; }
+            get { return _firstBatch; }
         }
     }
 }
