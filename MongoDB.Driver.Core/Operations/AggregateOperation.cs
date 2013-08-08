@@ -66,6 +66,24 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
+        /// Gets or sets the document serializer.
+        /// </summary>
+        public IBsonSerializer DocumentSerializer
+        {
+            get { return _documentSerializer; }
+            set { _documentSerializer = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the document serialization options.
+        /// </summary>
+        public IBsonSerializationOptions DocumentSerializationOptions
+        {
+            get { return _documentSerializationOptions; }
+            set { _documentSerializationOptions = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the pipeline.
         /// </summary>
         public object[] Pipeline
@@ -81,24 +99,6 @@ namespace MongoDB.Driver.Core.Operations
         {
             get { return _readPreference; }
             set { _readPreference = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the doucment serializer.
-        /// </summary>
-        public IBsonSerializer DocumentSerializer
-        {
-            get { return _documentSerializer; }
-            set { _documentSerializer = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the document serialization options.
-        /// </summary>
-        public IBsonSerializationOptions DocumentSerializationOptions
-        {
-            get { return _documentSerializationOptions; }
-            set { _documentSerializationOptions = value; }
         }
 
         // public methods

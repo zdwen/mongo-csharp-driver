@@ -59,11 +59,7 @@ namespace MongoDB.Driver.Core.Operations
         public int BatchSize
         {
             get { return _batchSize; }
-            set
-            {
-                Ensure.IsGreaterThanOrEqualTo("value", value, 0);
-                _batchSize = value;
-            }
+            set { _batchSize = value; }
         }
 
         /// <summary>
@@ -226,6 +222,7 @@ namespace MongoDB.Driver.Core.Operations
         protected override void EnsureRequiredProperties()
         {
             base.EnsureRequiredProperties();
+            Ensure.IsGreaterThanOrEqualTo("BatchSize", _batchSize, 0);
             Ensure.IsNotNull("Collection", _collection);
             Ensure.IsNotNull("Query", _query);
             Ensure.IsNotNull("ReadPreference", _readPreference);

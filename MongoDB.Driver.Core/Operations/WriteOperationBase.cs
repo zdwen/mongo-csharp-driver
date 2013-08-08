@@ -76,9 +76,7 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         /// <param name="exception">The exception.</param>
         /// <param name="newException">The new exception.</param>
-        /// <returns>
-        /// The mapped exception or the original if no mapping took place.
-        /// </returns>
+        /// <returns><c>true></c> if the exception was mapped; otherwise <c>false</c></returns>
         protected bool TryMapException(MongoWriteConcernException exception, out Exception newException)
         {
             if (exception.Result.Code.HasValue && __duplicateKeyCodes.Contains(exception.Result.Code.Value))
