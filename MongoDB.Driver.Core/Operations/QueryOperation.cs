@@ -59,7 +59,11 @@ namespace MongoDB.Driver.Core.Operations
         public int BatchSize
         {
             get { return _batchSize; }
-            set { _batchSize = value; }
+            set
+            {
+                Ensure.IsGreaterThanOrEqualTo("value", value, 0);
+                _batchSize = value;
+            }
         }
 
         /// <summary>
@@ -156,7 +160,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Executes the Query operation.
         /// </summary>
-        /// <returns>An enumerator to enumerate over the results.</returns>
+        /// <returns>A cursor to enumerate over the results.</returns>
         public override ICursor<TDocument> Execute()
         {
             EnsureRequiredProperties();
@@ -166,12 +170,11 @@ namespace MongoDB.Driver.Core.Operations
             var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true);
 
             var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
-            var numberToReturn = CalculateNumberToReturn();
             var protocol = new QueryProtocol<TDocument>(
                 collection: _collection,
                 fields: _fields,
                 flags: _flags,
-                numberToReturn: numberToReturn,
+                numberToReturn: CalculateNumberToReturnForFirstBatch(),
                 query: WrapQuery(channelProvider.Server, _query, _options, _readPreference),
                 readerSettings: readerSettings,
                 serializer: _serializer,
@@ -186,8 +189,8 @@ namespace MongoDB.Driver.Core.Operations
                     channelProvider: channelProvider,
                     cursorId: result.CursorId,
                     collection: _collection,
-                    limit: Math.Abs(_batchSize),
-                    numberToReturn: numberToReturn,
+                    limit: Math.Abs(_limit),
+                    numberToReturn: _batchSize,
                     firstBatch: result.Documents,
                     serializer: Serializer,
                     serializationOptions: SerializationOptions,
@@ -237,7 +240,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         // private methods
-        private int CalculateNumberToReturn()
+        private int CalculateNumberToReturnForFirstBatch()
         {
             if (_limit < 0)
             {

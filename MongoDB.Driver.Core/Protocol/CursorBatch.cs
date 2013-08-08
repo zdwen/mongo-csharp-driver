@@ -23,7 +23,7 @@ using MongoDB.Driver.Core.Support;
 namespace MongoDB.Driver.Core.Protocol
 {
     /// <summary>
-    /// The result of a protocol execution that returns a cursor.
+    /// The result of fetching one batch of cursor results from the server.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     public sealed class CursorBatch<TDocument>

@@ -1,12 +1,24 @@
-﻿using System;
+﻿/* Copyright 2010-2013 10gen Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Operations.Serializers;
-using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Operations
@@ -15,21 +27,21 @@ namespace MongoDB.Driver.Core.Operations
     /// Operation to execute an aggregation framework command.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public sealed class AggregationOperation<TDocument> : CommandOperationBase<ICursor<TDocument>>, IEnumerable<TDocument>
+    public sealed class AggregateOperation<TDocument> : CommandOperationBase<ICursor<TDocument>>, IEnumerable<TDocument>
     {
         // private fields
         private int _batchSize;
         private CollectionNamespace _collection;
         private object[] _pipeline;
         private ReadPreference _readPreference;
-        private IBsonSerializer _serializer;
-        private IBsonSerializationOptions _serializationOptions;
+        private IBsonSerializer _documentSerializer;
+        private IBsonSerializationOptions _documentSerializationOptions;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="AggregationOperation{TDocument}" /> class.
+        /// Initializes a new instance of the <see cref="AggregateOperation{TDocument}" /> class.
         /// </summary>
-        public AggregationOperation()
+        public AggregateOperation()
         {
             _readPreference = ReadPreference.Primary;
         }
@@ -72,21 +84,21 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
-        /// Gets or sets the serializer.
+        /// Gets or sets the doucment serializer.
         /// </summary>
-        public IBsonSerializer Serializer
+        public IBsonSerializer DocumentSerializer
         {
-            get { return _serializer; }
-            set { _serializer = value; }
+            get { return _documentSerializer; }
+            set { _documentSerializer = value; }
         }
 
         /// <summary>
-        /// Gets or sets the serialization options.
+        /// Gets or sets the document serialization options.
         /// </summary>
-        public IBsonSerializationOptions SerializationOptions
+        public IBsonSerializationOptions DocumentSerializationOptions
         {
-            get { return _serializationOptions; }
-            set { _serializationOptions = value; }
+            get { return _documentSerializationOptions; }
+            set { _documentSerializationOptions = value; }
         }
 
         // public methods
@@ -101,7 +113,7 @@ namespace MongoDB.Driver.Core.Operations
             var command = new BsonDocument
             {
                 { "aggregate", _collection.CollectionName },
-                { "pipeline", new BsonArray(_pipeline) }
+                { "pipeline", new BsonArray(_pipeline.Select(op => op.ToBsonDocument(op.GetType()))) }
             };
 
             // don't dispose of channelProvider. The cursor will do that for us.
@@ -117,10 +129,10 @@ namespace MongoDB.Driver.Core.Operations
             }
 
             var aggregateCommandResultSerializer = new AggregateCommandResultSerializer<TDocument>(
-                _serializer, 
-                _serializationOptions);
+                _documentSerializer, 
+                _documentSerializationOptions);
 
-            var args = new ExecuteArgs
+            var args = new ExecuteCommandProtocolArgs
             {
                 Command = command,
                 Database = new DatabaseNamespace(_collection.DatabaseName),
@@ -128,7 +140,7 @@ namespace MongoDB.Driver.Core.Operations
                 Serializer = aggregateCommandResultSerializer
             };
 
-            var result = Execute<AggregateCommandResult<TDocument>>(channelProvider, args);
+            var result = ExecuteCommandProtocol<AggregateCommandResult<TDocument>>(channelProvider, args);
 
             return new Cursor<TDocument>(
                 channelProvider: channelProvider,
@@ -137,8 +149,8 @@ namespace MongoDB.Driver.Core.Operations
                 limit: 0,
                 numberToReturn: _batchSize,
                 firstBatch: result.FirstBatch,
-                serializer: _serializer,
-                serializationOptions: _serializationOptions,
+                serializer: _documentSerializer,
+                serializationOptions: _documentSerializationOptions,
                 timeout: Timeout,
                 cancellationToken: CancellationToken,
                 readerSettings: GetServerAdjustedReaderSettings(channelProvider.Server));
@@ -173,12 +185,12 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull("Collection", _collection);
             Ensure.IsNotNull("Pipeline", _pipeline);
             Ensure.IsNotNull("ReadPreference", _readPreference);
-            if (_serializer == null)
+            if (_documentSerializer == null)
             {
-                _serializer = BsonSerializer.LookupSerializer(typeof(TDocument));
-                if (_serializationOptions == null)
+                _documentSerializer = BsonSerializer.LookupSerializer(typeof(TDocument));
+                if (_documentSerializationOptions == null)
                 {
-                    _serializationOptions = _serializer.GetDefaultSerializationOptions();
+                    _documentSerializationOptions = _documentSerializer.GetDefaultSerializationOptions();
                 }
             }
         }

@@ -22,8 +22,8 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Base class for operations that issue a query against the database.
     /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    public abstract class QueryOperationBase<TResult> : OperationBase<TResult>
+    /// <typeparam name="TOperationResult">The type of the result.</typeparam>
+    public abstract class QueryOperationBase<TOperationResult> : OperationBase<TOperationResult>
     {
         // protected methods
         /// <summary>

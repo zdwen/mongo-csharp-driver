@@ -165,7 +165,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             Ensure.IsNotNull("ReaderSettings", _readerSettings);
             Ensure.IsNotNull("Session", _session);
-            Ensure.IsInfiniteOrZeroOrPositive("Timeout", _timeout);
+            Ensure.IsInfiniteOrGreaterThanOrEqualToZero("Timeout", _timeout);
             Ensure.IsNotNull("WriterSettings", _writerSettings);
         }
     }

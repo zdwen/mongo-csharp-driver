@@ -101,7 +101,7 @@
     <Compile Include="Operations\AggregateCommandResult.cs" />
     <Compile Include="Operations\ICursor.cs" />
     <Compile Include="Operations\Serializers\AggregateCommandResultSerializer.cs" />
-    <Compile Include="Operations\AggregationOperation.cs" />
+    <Compile Include="Operations\AggregateOperation.cs" />
     <Compile Include="Operations\CommandOperationBase.cs" />
     <Compile Include="Operations\Cursor.cs" />
     <Compile Include="Operations\GenericCommandOperation.cs" />

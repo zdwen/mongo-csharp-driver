@@ -22,8 +22,8 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Base class for write operations.
     /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    public abstract class WriteOperationBase<TResult> : OperationBase<TResult>
+    /// <typeparam name="TOperationResult">The type of the result.</typeparam>
+    public abstract class WriteOperationBase<TOperationResult> : OperationBase<TOperationResult>
     {
         // private static fields
         private static readonly int[] __duplicateKeyCodes = new[] { 11000, 11001, 12582 };
@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Operations
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="WriteOperationBase{TResult}" /> class.
+        /// Initializes a new instance of the <see cref="WriteOperationBase{TOperationResult}" /> class.
         /// </summary>
         public WriteOperationBase()
         {
@@ -75,13 +75,16 @@ namespace MongoDB.Driver.Core.Operations
         /// Maps the exception to a more specific version if it matches.
         /// </summary>
         /// <param name="exception">The exception.</param>
-        /// <returns>The mapped exception or the original if no mapping took place.</returns>
+        /// <param name="newException">The new exception.</param>
+        /// <returns>
+        /// The mapped exception or the original if no mapping took place.
+        /// </returns>
         protected bool TryMapException(MongoWriteConcernException exception, out Exception newException)
         {
             if (exception.Result.Code.HasValue && __duplicateKeyCodes.Contains(exception.Result.Code.Value))
             {
                 newException = new MongoDuplicateKeyException(
-                    "An attempt was made to insert a record with a duplicat key.", 
+                    "An attempt was made to insert a record with a duplicate key.", 
                     exception.Result, 
                     exception);
                 return true;

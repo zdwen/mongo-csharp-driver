@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Threading;
 
 namespace MongoDB.Driver.Core.Support
 {
@@ -28,11 +29,11 @@ namespace MongoDB.Driver.Core.Support
             }
         }
 
-        public static void IsInfiniteOrZeroOrPositive(string argumentName, TimeSpan timeSpan)
+        public static void IsInfiniteOrGreaterThanOrEqualToZero(string argumentName, TimeSpan timeSpan)
         {
-            if (timeSpan.TotalMilliseconds < -1)
+            if (timeSpan < TimeSpan.Zero && timeSpan != Timeout.InfiniteTimeSpan)
             {
-                throw new ArgumentException("Must be either -1 (infinite) or greater.", argumentName);
+                throw new ArgumentException("Must be either infinite (-1 millisecond) or greater than or equal to 0.", argumentName);
             }
         }
 
@@ -40,7 +41,15 @@ namespace MongoDB.Driver.Core.Support
         {
             if (value.CompareTo(comparand) <= 0)
             {
-                throw new ArgumentOutOfRangeException(argumentName, string.Format("Must be greater than {0}", comparand));
+                throw new ArgumentOutOfRangeException(argumentName, string.Format("Must be greater than {0}.", comparand));
+            }
+        }
+
+        public static void IsGreaterThanOrEqualTo<T>(string argumentName, T value, T comparand) where T : IComparable<T>
+        {
+            if (value.CompareTo(comparand) < 0)
+            {
+                throw new ArgumentOutOfRangeException(argumentName, string.Format("Must be greater than or equal to {0}.", comparand));
             }
         }
 
@@ -48,7 +57,7 @@ namespace MongoDB.Driver.Core.Support
         {
             if (value.CompareTo(comparand) >= 0)
             {
-                throw new ArgumentOutOfRangeException(argumentName, string.Format("Must be less than {0}", comparand));
+                throw new ArgumentOutOfRangeException(argumentName, string.Format("Must be less than {0}.", comparand));
             }
         }
     }

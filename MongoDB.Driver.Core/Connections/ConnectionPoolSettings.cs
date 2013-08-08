@@ -49,15 +49,15 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="maxWaitQueueSize">Size of the max wait queue.</param>
         public ConnectionPoolSettings(TimeSpan connectionMaxIdleTime, TimeSpan connectionMaxLifeTime, int maxSize, int minSize, TimeSpan sizeMaintenanceFrequency, int maxWaitQueueSize)
         {
-            Ensure.IsInfiniteOrZeroOrPositive("connectionMaxIdleTime", connectionMaxIdleTime);
-            Ensure.IsInfiniteOrZeroOrPositive("connectionMaxLifeTime", connectionMaxLifeTime);
+            Ensure.IsInfiniteOrGreaterThanOrEqualToZero("connectionMaxIdleTime", connectionMaxIdleTime);
+            Ensure.IsInfiniteOrGreaterThanOrEqualToZero("connectionMaxLifeTime", connectionMaxLifeTime);
             Ensure.IsGreaterThan("maxSize", maxSize, -1);
             Ensure.IsGreaterThan("minSize", minSize, -1);
             if (minSize > maxSize)
             {
                 throw new ArgumentException("Must be less than or equal to maxSize", "minSize");
             }
-            Ensure.IsInfiniteOrZeroOrPositive("sizeMaintenanceFrequency", sizeMaintenanceFrequency);
+            Ensure.IsInfiniteOrGreaterThanOrEqualToZero("sizeMaintenanceFrequency", sizeMaintenanceFrequency);
             Ensure.IsGreaterThan("maxWaitQueueSize", maxWaitQueueSize, -1);
 
             _connectionMaxIdleTime = connectionMaxIdleTime;

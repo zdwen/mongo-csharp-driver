@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Core
         /// <param name="allowedLatency">The allowed latency.</param>
         public LatencyLimitingServerSelector(TimeSpan allowedLatency)
         {
-            Ensure.IsInfiniteOrZeroOrPositive("allowedLatency", allowedLatency);
+            Ensure.IsInfiniteOrGreaterThanOrEqualToZero("allowedLatency", allowedLatency);
 
             _allowedLatency = allowedLatency;
         }

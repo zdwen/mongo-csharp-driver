@@ -45,8 +45,8 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="maxMessageSizeDefault">The max message size default.</param>
         public ClusterableServerSettings(TimeSpan connectRetryFrequency, TimeSpan heartbeatFrequency, int maxDocumentSizeDefault, int maxMessageSizeDefault)
         {
-            Ensure.IsInfiniteOrZeroOrPositive("connectRetryFrequency", connectRetryFrequency);
-            Ensure.IsInfiniteOrZeroOrPositive("heartbeatFrequency", heartbeatFrequency);
+            Ensure.IsInfiniteOrGreaterThanOrEqualToZero("connectRetryFrequency", connectRetryFrequency);
+            Ensure.IsInfiniteOrGreaterThanOrEqualToZero("heartbeatFrequency", heartbeatFrequency);
             Ensure.IsGreaterThan("maxDocumentSizeDefault", maxDocumentSizeDefault, 0);
             Ensure.IsGreaterThan("maxMessageSizeDefault", maxMessageSizeDefault, 0);
             

@@ -97,7 +97,7 @@ namespace MongoDB.Driver.Core.Protocol
             // since we're going to block anyway when a tailable cursor is temporarily out of data
             // we might as well do it as efficiently as possible
             var flags = _flags;
-            if ((flags & QueryFlags.TailableCursor) != 0)
+            if (flags.HasFlag(QueryFlags.TailableCursor))  
             {
                 flags |= QueryFlags.AwaitData;
             }
@@ -105,7 +105,7 @@ namespace MongoDB.Driver.Core.Protocol
             var queryMessage = new QueryMessage(
                 _collection,
                 _query,
-                _flags,
+                flags,
                 _skip,
                 _numberToReturn,
                 _fields,

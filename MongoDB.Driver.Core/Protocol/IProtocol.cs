@@ -25,14 +25,14 @@ namespace MongoDB.Driver.Core.Protocol
     /// <summary>
     /// Represents an interaction with the server.
     /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    public interface IProtocol<TResult>
+    /// <typeparam name="TProtocolResult">The type of the result.</typeparam>
+    public interface IProtocol<TProtocolResult>
     {
         /// <summary>
         /// Executes the specified channel.
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <returns>The result of the execution.</returns>
-        TResult Execute(IChannel channel);
+        TProtocolResult Execute(IChannel channel);
     }
 }

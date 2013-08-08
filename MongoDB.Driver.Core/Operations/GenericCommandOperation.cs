@@ -119,7 +119,7 @@ namespace MongoDB.Driver.Core.Operations
 
             using (var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), _isQuery))
             {
-                var args = new ExecuteArgs
+                var args = new ExecuteCommandProtocolArgs
                 {
                     Command = _command,
                     Database = _database,
@@ -128,7 +128,7 @@ namespace MongoDB.Driver.Core.Operations
                     Serializer = _serializer
                 };
 
-                return Execute<TCommandResult>(channelProvider, args);
+                return ExecuteCommandProtocol<TCommandResult>(channelProvider, args);
             }
         }
 

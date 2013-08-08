@@ -123,7 +123,7 @@ namespace MongoDB.DriverUnitTests.Jira
 
         private static void RunAggregation(ISession session)
         {
-            var aggregation = new AggregationOperation<BsonDocument>()
+            var aggregation = new AggregateOperation<BsonDocument>()
             {
                 Collection = _collection,
                 Pipeline = new [] 

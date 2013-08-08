@@ -68,8 +68,8 @@ namespace MongoDB.Driver.Core.Operations
         {
             Ensure.IsNotNull("channelProvider", channelProvider);
             Ensure.IsNotNull("collection", collection);
+            Ensure.IsGreaterThanOrEqualTo("limit", _limit, 0);
             Ensure.IsNotNull("firstBatch", firstBatch);
-            Ensure.IsGreaterThan("limit", _limit, -1);
             Ensure.IsNotNull("serializer", serializer);
             Ensure.IsNotNull("readerSettings", readerSettings);
 
@@ -194,11 +194,14 @@ namespace MongoDB.Driver.Core.Operations
 
             while (_cursorId != 0)
             {
-                _currentBatch = GetNextBatch();
+                var batch = GetNextBatch();
 
-                if (_currentBatch != null)
+                var documents = batch.Documents.ToList();
+                if (documents.Count > 0)
                 {
+                    _currentBatch = documents;
                     _currentBatchIndex = 0;
+                    _cursorId = batch.CursorId;
                     return true;
                 }
             }
@@ -217,7 +220,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         // private methods
-        private List<TDocument> GetNextBatch()
+        private CursorBatch<TDocument> GetNextBatch()
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -231,10 +234,7 @@ namespace MongoDB.Driver.Core.Operations
 
             using (var channel = _channelProvider.GetChannel(_timeout, _cancellationToken))
             {
-                var result = protocol.Execute(channel);
-                _cursorId = result.CursorId;
-                var docs = result.Documents.ToList();
-                return docs.Count > 0 ? docs : null;
+                return protocol.Execute(channel);
             }
         }
 

@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.Protocol
     /// <summary>
     /// The base class for write based protocols.
     /// </summary>
-    public abstract class WriteProtocolBase<TResult> : IProtocol<TResult>
+    public abstract class WriteProtocolBase<TProtocolResult> : IProtocol<TProtocolResult>
     {
         // private fields
         private readonly CollectionNamespace _collection;
@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Core.Protocol
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="WriteProtocolBase{TResult}" /> class.
+        /// Initializes a new instance of the <see cref="WriteProtocolBase{TProtocolResult}" /> class.
         /// </summary>
         protected WriteProtocolBase(CollectionNamespace collection, 
             BsonBinaryReaderSettings readerSettings,
@@ -93,7 +93,7 @@ namespace MongoDB.Driver.Core.Protocol
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <returns></returns>
-        public abstract TResult Execute(IChannel channel);
+        public abstract TProtocolResult Execute(IChannel channel);
 
         // protected methods
         /// <summary>

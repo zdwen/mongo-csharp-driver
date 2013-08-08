@@ -207,7 +207,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// </summary>
         public void ThrowIfQueryFailureFlagIsSet()
         {
-            if ((_flags & ReplyFlags.QueryFailure) != 0)
+            if (_flags.HasFlag(ReplyFlags.QueryFailure))
             {
                 var response = DeserializeDocuments<BsonDocument>(BsonDocumentSerializer.Instance, null, BsonBinaryReaderSettings.Defaults).Single();
                 var message = string.Format("Query failed with response: {0}.", response.ToJson());
