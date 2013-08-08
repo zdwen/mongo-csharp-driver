@@ -118,42 +118,49 @@ namespace MongoDB.Driver.Core.Operations
 
             // don't dispose of channelProvider. The cursor will do that for us.
             var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true);
-            
-            if (channelProvider.Server.BuildInfo.Version >= new Version(2, 5, 1))
+            try
             {
-                command["cursor"] = new BsonDocument();
-                if (_batchSize > 0)
+                if (channelProvider.Server.BuildInfo.Version >= new Version(2, 5, 1))
                 {
-                    command["cursor"]["batchSize"] = _batchSize;
+                    command["cursor"] = new BsonDocument();
+                    if (_batchSize > 0)
+                    {
+                        command["cursor"]["batchSize"] = _batchSize;
+                    }
                 }
+
+                var aggregateCommandResultSerializer = new AggregateCommandResultSerializer<TDocument>(
+                    _documentSerializer,
+                    _documentSerializationOptions);
+
+                var args = new ExecuteCommandProtocolArgs
+                {
+                    Command = command,
+                    Database = new DatabaseNamespace(_collection.DatabaseName),
+                    ReadPreference = _readPreference,
+                    Serializer = aggregateCommandResultSerializer
+                };
+
+                var result = ExecuteCommandProtocol<AggregateCommandResult<TDocument>>(channelProvider, args);
+
+                return new Cursor<TDocument>(
+                    channelProvider: channelProvider,
+                    cursorId: result.CursorId,
+                    collection: _collection,
+                    limit: 0,
+                    numberToReturn: _batchSize,
+                    firstBatch: result.FirstBatch,
+                    serializer: _documentSerializer,
+                    serializationOptions: _documentSerializationOptions,
+                    timeout: Timeout,
+                    cancellationToken: CancellationToken,
+                    readerSettings: GetServerAdjustedReaderSettings(channelProvider.Server));
             }
-
-            var aggregateCommandResultSerializer = new AggregateCommandResultSerializer<TDocument>(
-                _documentSerializer, 
-                _documentSerializationOptions);
-
-            var args = new ExecuteCommandProtocolArgs
+            catch
             {
-                Command = command,
-                Database = new DatabaseNamespace(_collection.DatabaseName),
-                ReadPreference = _readPreference,
-                Serializer = aggregateCommandResultSerializer
-            };
-
-            var result = ExecuteCommandProtocol<AggregateCommandResult<TDocument>>(channelProvider, args);
-
-            return new Cursor<TDocument>(
-                channelProvider: channelProvider,
-                cursorId: result.CursorId,
-                collection: _collection,
-                limit: 0,
-                numberToReturn: _batchSize,
-                firstBatch: result.FirstBatch,
-                serializer: _documentSerializer,
-                serializationOptions: _documentSerializationOptions,
-                timeout: Timeout,
-                cancellationToken: CancellationToken,
-                readerSettings: GetServerAdjustedReaderSettings(channelProvider.Server));
+                channelProvider.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -183,6 +190,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             base.EnsureRequiredProperties();
             Ensure.IsNotNull("Collection", _collection);
+            Ensure.IsGreaterThanOrEqualTo("BatchSize", _batchSize, 0);
             Ensure.IsNotNull("Pipeline", _pipeline);
             Ensure.IsNotNull("ReadPreference", _readPreference);
             if (_documentSerializer == null)

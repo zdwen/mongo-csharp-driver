@@ -164,35 +164,42 @@ namespace MongoDB.Driver.Core.Operations
             // NOTE: not disposing of channel provider here because it will get disposed
             // by the cursor
             var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true);
-
-            var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
-            var protocol = new QueryProtocol<TDocument>(
-                collection: _collection,
-                fields: _fields,
-                flags: _flags,
-                numberToReturn: CalculateNumberToReturnForFirstBatch(),
-                query: WrapQuery(channelProvider.Server, _query, _options, _readPreference),
-                readerSettings: readerSettings,
-                serializer: _serializer,
-                serializationOptions: _serializationOptions,
-                skip: _skip,
-                writerSettings: GetServerAdjustedWriterSettings(channelProvider.Server));
-
-            using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
+            try
             {
-                var result = protocol.Execute(channel);
-                return new Cursor<TDocument>(
-                    channelProvider: channelProvider,
-                    cursorId: result.CursorId,
+                var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
+                var protocol = new QueryProtocol<TDocument>(
                     collection: _collection,
-                    limit: Math.Abs(_limit),
-                    numberToReturn: _batchSize,
-                    firstBatch: result.Documents,
-                    serializer: Serializer,
-                    serializationOptions: SerializationOptions,
-                    timeout: Timeout,
-                    cancellationToken: CancellationToken,
-                    readerSettings: readerSettings);
+                    fields: _fields,
+                    flags: _flags,
+                    numberToReturn: CalculateNumberToReturnForFirstBatch(),
+                    query: WrapQuery(channelProvider.Server, _query, _options, _readPreference),
+                    readerSettings: readerSettings,
+                    serializer: _serializer,
+                    serializationOptions: _serializationOptions,
+                    skip: _skip,
+                    writerSettings: GetServerAdjustedWriterSettings(channelProvider.Server));
+
+                using (var channel = channelProvider.GetChannel(Timeout, CancellationToken))
+                {
+                    var result = protocol.Execute(channel);
+                    return new Cursor<TDocument>(
+                        channelProvider: channelProvider,
+                        cursorId: result.CursorId,
+                        collection: _collection,
+                        limit: Math.Abs(_limit),
+                        numberToReturn: _batchSize,
+                        firstBatch: result.Documents,
+                        serializer: Serializer,
+                        serializationOptions: SerializationOptions,
+                        timeout: Timeout,
+                        cancellationToken: CancellationToken,
+                        readerSettings: readerSettings);
+                }
+            }
+            catch
+            {
+                channelProvider.Dispose();
+                throw;
             }
         }
 
