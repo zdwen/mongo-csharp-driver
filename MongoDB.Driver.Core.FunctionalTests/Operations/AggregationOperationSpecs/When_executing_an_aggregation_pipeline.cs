@@ -30,7 +30,7 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
 
             using (var session = BeginSession())
             {
-                var op = new AggregationOperation<BsonDocument>
+                var op = new AggregateOperation<BsonDocument>
                 {
                     BatchSize = 2,
                     Collection = _collection,

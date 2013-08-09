@@ -40,7 +40,6 @@ namespace MongoDB.Driver.Core.Operations
 
             _cursor = findOp.Execute();
             while (_cursor.MoveNext()) ;
-            Assert.AreEqual(1, _cursor.CurrentBatch);
         }
 
         [Test]

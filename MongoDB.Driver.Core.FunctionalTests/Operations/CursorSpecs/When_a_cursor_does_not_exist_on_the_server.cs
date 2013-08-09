@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Sessions;
 using NUnit.Framework;
@@ -62,10 +63,30 @@ namespace MongoDB.Driver.Core.Operations.CursorSpecs
 
         private void KillCursor(long id)
         {
-            using (var channel = _cursor.ChannelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None))
+            using (var session = BeginSession())
             {
-                var protocol = new KillCursorsProtocol(new[] { id });
-                protocol.Execute(channel);
+                var args = new CreateServerChannelProviderArgs(new SpecificServerSelector(_cursor.Server), true);
+                using (var channelProvider = session.CreateServerChannelProvider(args))
+                using (var channel = channelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None))
+                {
+                    var protocol = new KillCursorsProtocol(new[] { id });
+                    protocol.Execute(channel);
+                }
+            }
+        }
+
+        private class SpecificServerSelector : IServerSelector
+        {
+            private readonly ServerDescription _server;
+
+            public SpecificServerSelector(ServerDescription server)
+            {
+                _server = server;
+            }
+
+            public IEnumerable<ServerDescription> SelectServers(IEnumerable<ServerDescription> servers)
+            {
+                return servers.Where(x => x.DnsEndPoint.Equals(_server.DnsEndPoint));
             }
         }
     }
