@@ -25,17 +25,13 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
         {
             var pipeline = new[] { new BsonDocument("$invalid", new BsonDocument()) };
 
-            using (var session = BeginSession())
+            var op = new AggregateOperation<BsonDocument>
             {
-                var op = new AggregateOperation<BsonDocument>
-                {
-                    Collection = _collection,
-                    Pipeline = pipeline,
-                    Session = session
-                };
+                Collection = _collection,
+                Pipeline = pipeline
+            };
 
-                _exception = Catch(() => op.Execute());
-            }
+            _exception = Catch(() => ExecuteOperation(op));
         }
 
         [Test]

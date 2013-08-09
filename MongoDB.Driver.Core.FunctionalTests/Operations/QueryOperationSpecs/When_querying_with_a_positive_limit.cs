@@ -25,18 +25,14 @@ namespace MongoDB.Driver.Core.Operations.QueryOperationSpecs
 
         protected override void When()
         {
-            using (var session = BeginSession())
+            var op = new QueryOperation<BsonDocument>
             {
-                var findOp = new QueryOperation<BsonDocument>
-                {
-                    Collection = _collection,
-                    Limit = 2,
-                    Query = new BsonDocument(),
-                    Session = session
-                };
+                Collection = _collection,
+                Limit = 2,
+                Query = new BsonDocument()
+            };
 
-                _results = findOp.ToList();
-            }
+            _results = ReadCursorToEnd(ExecuteOperation(op));
         }
 
         [Test]

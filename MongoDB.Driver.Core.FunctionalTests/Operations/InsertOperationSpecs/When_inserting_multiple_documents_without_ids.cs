@@ -15,24 +15,20 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
 
         protected override void When()
         {
-            using (var session = BeginSession())
+            _docsToInsert = new List<BsonDocument>
             {
-                _docsToInsert = new List<BsonDocument>
-                {
-                    new BsonDocument("x", 2),
-                    new BsonDocument("x", 3),
-                    new BsonDocument("x", 4)
-                };
-                var op = new InsertOperation()
-                {
-                    Collection = _collection,
-                    Documents = _docsToInsert,
-                    DocumentType = typeof(BsonDocument),
-                    Session = session
-                };
+                new BsonDocument("x", 2),
+                new BsonDocument("x", 3),
+                new BsonDocument("x", 4)
+            };
+            var op = new InsertOperation()
+            {
+                Collection = _collection,
+                Documents = _docsToInsert,
+                DocumentType = typeof(BsonDocument)
+            };
 
-                op.Execute();
-            }
+            ExecuteOperation(op);
         }
 
         [Test]

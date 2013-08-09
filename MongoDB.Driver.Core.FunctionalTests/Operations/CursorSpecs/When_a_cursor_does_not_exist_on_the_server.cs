@@ -26,27 +26,21 @@ namespace MongoDB.Driver.Core.Operations.CursorSpecs
             }
             InsertData(list.ToArray());
 
-            var session = BeginSession();
             var op = new QueryOperation<BsonDocument>
             {
                 BatchSize = 2,
-                CloseSessionOnExecute = true,
                 Collection = _collection,
-                Query = new BsonDocument(),
-                Session = session
+                Query = new BsonDocument()
             };
 
-            _cursor = op.Execute();
+            _cursor = ExecuteOperation(op);
         }
 
         protected override void When()
         {
             KillCursor(_cursor.CursorId);
 
-            _exception = Catch(() =>
-            {
-                while (_cursor.MoveNext()) ;
-            });
+            _exception = Catch(() => ReadCursorToEnd(_cursor));
         }
 
         [Test]

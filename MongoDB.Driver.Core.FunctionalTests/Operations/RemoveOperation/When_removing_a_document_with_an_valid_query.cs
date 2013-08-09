@@ -19,19 +19,15 @@ namespace MongoDB.Driver.Core.Operations.RemoveOperationSpecs
 
         protected override void When()
         {
-            using (var session = BeginSession())
+            var op = new RemoveOperation
             {
-                var op = new RemoveOperation
-                {
-                    Collection = _collection,
-                    // this is an invalid query specification, $near requires an array 
-                    // as well as a 2d index
-                    Query = new BsonDocument("loc", new BsonDocument("$near", 2)),
-                    Session = session
-                };
+                Collection = _collection,
+                // this is an invalid query specification, $near requires an array 
+                // as well as a 2d index
+                Query = new BsonDocument("loc", new BsonDocument("$near", 2))
+            };
 
-                _exception = Catch(() => op.Execute());
-            }
+            _exception = Catch(() => ExecuteOperation(op));
         }
 
 

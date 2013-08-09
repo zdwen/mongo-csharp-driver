@@ -19,22 +19,18 @@ namespace MongoDB.Driver.Core.Operations.UpdateOperationSpecs
 
         protected override void When()
         {
-            using (var session = BeginSession())
+            var op = new UpdateOperation
             {
-                var op = new UpdateOperation
+                Collection = _collection,
+                Query = new BsonDocument("_id", 1),
+                Update = new BsonDocument
                 {
-                    Collection = _collection,
-                    Query = new BsonDocument("_id", 1),
-                    Update = new BsonDocument
-                    {
-                        { "$inc", new BsonDocument("x", 1) },
-                        { "invalid", 23 }
-                    },
-                    Session = session
-                };
+                    { "$inc", new BsonDocument("x", 1) },
+                    { "invalid", 23 }
+                }
+            };
 
-                _exception = Catch(() => op.Execute());
-            }
+            _exception = Catch(() => ExecuteOperation(op));
         }
 
         [Test]

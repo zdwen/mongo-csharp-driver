@@ -14,17 +14,13 @@ namespace MongoDB.Driver.Core.Operations.GenericCommandOperationSpecs
 
         protected override void When()
         {
-            using (var session = BeginSession())
+            var op = new GenericCommandOperation<CommandResult>
             {
-                var op = new GenericCommandOperation<CommandResult>
-                {
-                    Command = new BsonDocument("invalid", 1),
-                    Database = _database,
-                    Session = session
-                };
+                Command = new BsonDocument("invalid", 1),
+                Database = _database
+            };
 
-                _exception = Catch(() => op.Execute());
-            }
+            _exception = Catch(() => ExecuteOperation(op));
         }
 
         [Test]

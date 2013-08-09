@@ -17,17 +17,13 @@ namespace MongoDB.Driver.Core.Operations.RemoveOperationSpecs
 
         protected override void When()
         {
-            using (var session = BeginSession())
+            var op = new RemoveOperation
             {
-                var op = new RemoveOperation
-                {
-                    Collection = _collection,
-                    Query = new BsonDocument("_id", 1),
-                    Session = session
-                };
+                Collection = _collection,
+                Query = new BsonDocument("_id", 1)
+            };
 
-                op.Execute();
-            }
+            ExecuteOperation(op);
         }
 
         [Test]

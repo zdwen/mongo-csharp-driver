@@ -97,6 +97,13 @@ namespace MongoDB.Driver.Core
             }
         }
 
+        public TOperationResult ExecuteOperation<TOperationResult>(IOperation<TOperationResult> operation)
+        {
+            operation.Session = BeginSession();
+            operation.CloseSessionOnExecute = true;
+            return operation.Execute();
+        }
+
         public IEnumerable<T> Find<T>(BsonDocument query)
         {
             using (var session = BeginSession())
@@ -143,6 +150,16 @@ namespace MongoDB.Driver.Core
 
                 op.Execute();
             }
+        }
+
+        public List<TDocument> ReadCursorToEnd<TDocument>(ICursor<TDocument> cursor)
+        {
+            var list = new List<TDocument>();
+            while (cursor.MoveNext())
+            {
+                list.Add(cursor.Current);
+            }
+            return list;
         }
     }
 }

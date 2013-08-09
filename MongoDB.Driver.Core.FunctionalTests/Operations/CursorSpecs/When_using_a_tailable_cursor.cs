@@ -22,18 +22,14 @@ namespace MongoDB.Driver.Core.Operations
 
         protected override void When()
         {
-            var session = BeginSession();
             var op = new QueryOperation<BsonDocument>
             {
-                CloseSessionOnExecute = true,
                 Collection = _collection,
                 Flags = QueryFlags.TailableCursor,
-                Query = new BsonDocument("ts", new BsonDocument("$gte", new BsonTimestamp(5, 0))),
-                Session = session
+                Query = new BsonDocument("ts", new BsonDocument("$gte", new BsonTimestamp(5, 0)))
             };
 
-            _cursor = op.Execute();
-
+            _cursor = ExecuteOperation(op);
             _cursor.MoveNext();
         }
 

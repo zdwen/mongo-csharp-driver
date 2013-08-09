@@ -28,18 +28,16 @@ namespace MongoDB.Driver.Core.Operations
 
         protected override void When()
         {
-            var session = BeginSession();
-            var findOp = new QueryOperation<BsonDocument>
+            var op = new QueryOperation<BsonDocument>
             {
                 Collection = _collection,
                 BatchSize = 2,
                 Limit = 4,
-                Query = new BsonDocument(),
-                Session = session
+                Query = new BsonDocument()
             };
 
-            _cursor = findOp.Execute();
-            while (_cursor.MoveNext()) ;
+            _cursor = ExecuteOperation(op);
+            ReadCursorToEnd(_cursor);
         }
 
         [Test]

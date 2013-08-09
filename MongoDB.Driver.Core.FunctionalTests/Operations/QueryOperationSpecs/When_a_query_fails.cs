@@ -19,19 +19,15 @@ namespace MongoDB.Driver.Core.Operations.QueryOperationSpecs
 
         protected override void When()
         {
-            using (var session = BeginSession())
+            var op = new QueryOperation<BsonDocument>
             {
-                var findOp = new QueryOperation<BsonDocument>
-                {
-                    Collection = _collection,
-                    // this is an invalid query specification, $near requires an array 
-                    // as well as a 2d index
-                    Query = new BsonDocument("loc", new BsonDocument("$near", 2)),
-                    Session = session
-                };
+                Collection = _collection,
+                // this is an invalid query specification, $near requires an array 
+                // as well as a 2d index
+                Query = new BsonDocument("loc", new BsonDocument("$near", 2))
+            };
 
-                _exception = Catch(() => findOp.Execute());
-            }
+            _exception = Catch(() => ExecuteOperation(op));
         }
 
         [Test]

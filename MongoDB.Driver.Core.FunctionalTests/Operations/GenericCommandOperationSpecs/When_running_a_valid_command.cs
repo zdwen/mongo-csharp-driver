@@ -14,17 +14,13 @@ namespace MongoDB.Driver.Core.Operations.GenericCommandOperationSpecs
 
         protected override void When()
         {
-            using (var session = BeginSession())
+            var op = new GenericCommandOperation<CommandResult>
             {
-                var op = new GenericCommandOperation<CommandResult>
-                {
-                    Command = new BsonDocument("isMaster", 1),
-                    Database = _database,
-                    Session = session
-                };
+                Command = new BsonDocument("isMaster", 1),
+                Database = _database
+            };
 
-                _result = op.Execute();
-            }
+            _result = ExecuteOperation(op);
         }
 
         [Test]
@@ -32,7 +28,7 @@ namespace MongoDB.Driver.Core.Operations.GenericCommandOperationSpecs
         {
             Assert.IsTrue(_result.Ok);
         }
-        
+
         [Test]
         public void The_result_should_include_the_command()
         {

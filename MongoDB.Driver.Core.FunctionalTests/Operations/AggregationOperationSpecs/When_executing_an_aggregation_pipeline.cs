@@ -26,20 +26,16 @@ namespace MongoDB.Driver.Core.Operations.AggregationOperation
 
         protected override void When()
         {
-            var pipeline = new [] { new BsonDocument("$match", new BsonDocument()) };
+            var pipeline = new[] { new BsonDocument("$match", new BsonDocument()) };
 
-            using (var session = BeginSession())
+            var op = new AggregateOperation<BsonDocument>
             {
-                var op = new AggregateOperation<BsonDocument>
-                {
-                    BatchSize = 2,
-                    Collection = _collection,
-                    Pipeline = pipeline,
-                    Session = session
-                };
+                BatchSize = 2,
+                Collection = _collection,
+                Pipeline = pipeline
+            };
 
-                _results = op.ToList();
-            }
+            _results = ReadCursorToEnd(ExecuteOperation(op));
         }
 
         [Test]
