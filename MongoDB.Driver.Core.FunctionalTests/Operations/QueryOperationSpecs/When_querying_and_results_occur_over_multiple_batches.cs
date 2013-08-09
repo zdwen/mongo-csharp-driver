@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace MongoDB.Driver.Core.Operations.QueryOperationSpecs
 {
-    public class When_querying_without_a_filter : Specification
+    public class When_querying_and_results_occur_over_multiple_batches : Specification
     {
         private List<BsonDocument> _results;
 
