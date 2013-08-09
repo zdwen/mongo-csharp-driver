@@ -195,13 +195,13 @@ namespace MongoDB.Driver.Core.Operations
             while (_cursorId != 0)
             {
                 var batch = GetNextBatch();
+                _cursorId = batch.CursorId;
 
                 var documents = batch.Documents.ToList();
                 if (documents.Count > 0)
                 {
                     _currentBatch = documents;
                     _currentBatchIndex = 0;
-                    _cursorId = batch.CursorId;
                     return true;
                 }
             }

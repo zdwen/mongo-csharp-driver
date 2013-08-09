@@ -44,8 +44,6 @@ namespace MongoDB.Driver.Core.Operations
         public AggregateCommandResult(BsonDocument response, long cursorId, IEnumerable<TDocument> firstBatch)
             : base(response)
         {
-            Ensure.IsNotNull("firstBatch", firstBatch);
-
             _cursorId = cursorId;
             _firstBatch = firstBatch;
         }
