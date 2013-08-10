@@ -48,7 +48,7 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
         }
 
         [Test]
-        public void The_document_should_exist_in_the_database()
+        public void The_documents_should_exist_in_the_database()
         {
             var result = FindOne<BsonDocument>(new BsonDocument("_id", 1));
             Assert.AreEqual(2, result["x"].AsInt32);
