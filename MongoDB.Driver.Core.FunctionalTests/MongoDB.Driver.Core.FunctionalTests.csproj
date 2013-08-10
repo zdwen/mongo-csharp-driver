@@ -64,6 +64,8 @@
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_with_an_id.cs" />
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_with_a_duplicate_id.cs" />
     <Compile Include="Operations\InsertOperationSpecs\When_inserting_a_document_without_an_id.cs" />
+    <Compile Include="Operations\QueryOperationSpecs\When_querying_with_a_skip.cs" />
+    <Compile Include="Operations\QueryOperationSpecs\When_querying_with_field_selection.cs" />
     <Compile Include="Operations\QueryOperationSpecs\When_querying_with_a_positive_limit_and_batch_size.cs" />
     <Compile Include="Operations\QueryOperationSpecs\When_querying_with_a_negative_limit.cs" />
     <Compile Include="Operations\QueryOperationSpecs\When_querying_with_a_positive_limit.cs" />
