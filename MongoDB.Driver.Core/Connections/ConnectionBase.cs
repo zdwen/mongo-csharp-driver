@@ -15,7 +15,6 @@
 
 using System;
 using System.Net;
-using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
 
 namespace MongoDB.Driver.Core.Connections

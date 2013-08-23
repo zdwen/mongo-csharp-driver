@@ -15,7 +15,6 @@
 
 using System;
 using System.Text.RegularExpressions;
-using MongoDB.Bson;
 
 namespace MongoDB.Driver.Core.Connections
 {

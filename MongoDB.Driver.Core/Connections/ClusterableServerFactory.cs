@@ -26,7 +26,6 @@ namespace MongoDB.Driver.Core.Connections
     public sealed class ClusterableServerFactory : IClusterableServerFactory
     {
         // private fields
-        private readonly bool _ipv6;
         private readonly ClusterableServerSettings _settings;
         private readonly IConnectionFactory _connectionFactory;
         private readonly IChannelProviderFactory _channelProviderFactory;
@@ -37,13 +36,12 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes a new instance of the <see cref="ClusterableServerFactory" /> class.
         /// </summary>
-        /// <param name="ipv6">Whether to use ip version 6 addresses.</param>
         /// <param name="settings">The settings.</param>
         /// <param name="channelProviderFactory">The channel provider factory.</param>
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
         /// <param name="traceManager">The trace manager.</param>
-        public ClusterableServerFactory(bool ipv6, ClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
+        public ClusterableServerFactory(ClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("connectionPoolFactory", channelProviderFactory);
@@ -51,7 +49,6 @@ namespace MongoDB.Driver.Core.Connections
             Ensure.IsNotNull("events", events);
             Ensure.IsNotNull("traceManager", traceManager);
 
-            _ipv6 = ipv6;
             _settings = settings;
             _channelProviderFactory = channelProviderFactory;
             _connectionFactory = connectionFactory;

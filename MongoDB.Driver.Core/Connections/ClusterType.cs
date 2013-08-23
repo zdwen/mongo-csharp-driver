@@ -13,31 +13,28 @@
 * limitations under the License.
 */
 
-using System;
-
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Server connection mode.
+    /// Type of a <see cref="ClusterDescription" />.
     /// </summary>
-    [Serializable]
-    public enum ConnectionMode
+    public enum ClusterType
     {
         /// <summary>
-        /// Automatically determine how to connect.
+        /// A cluster type that is unknown.
         /// </summary>
-        Automatic,
+        Unknown,
         /// <summary>
-        /// Connect directly to a server.
+        /// A cluster of a single, standalone server.
         /// </summary>
-        Direct,
+        StandAlone,
         /// <summary>
-        /// Connect to a replica set.
+        /// A replica set.
         /// </summary>
         ReplicaSet,
         /// <summary>
-        /// Connect to one or more shard routers.
+        /// One or more shard routers.
         /// </summary>
-        ShardRouter
+        Sharded
     }
 }

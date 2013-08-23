@@ -80,7 +80,6 @@ namespace MongoDB.DriverUnitTests.Jira
 
             // 4) Create a Clusterable Server Factory
             var clusterableServerFactory = new ClusterableServerFactory(
-                false,
                 ClusterableServerSettings.Defaults,
                 channelProviderFactory,
                 connectionFactory,
@@ -88,17 +87,18 @@ namespace MongoDB.DriverUnitTests.Jira
                 traceManager);
 
             // 5) Create a Cluster
-            var cluster = new SingleServerCluster(new DnsEndPoint("localhost", 27017), clusterableServerFactory);
+            var settings = ClusterSettings.Defaults;
+            // Replica Set
+            //var settings = ClusterSettings.Create(x =>
+            //{
+            //    x.AddHost("localhost", 30000);
+            //    x.AddHost("localhost", 30001);
+            //    x.AddHost("localhost", 30002);
+            //});
 
-            //var cluster = new ReplicaSetCluster(
-            //    ReplicaSetClusterSettings.Defaults,
-            //    new[] 
-            //    {
-            //        new DnsEndPoint("work-laptop", 30000),
-            //        //new DnsEndPoint("work-laptop", 30001),
-            //        //new DnsEndPoint("work-laptop", 30002) 
-            //    },
-            //    nodeFactory);
+            var clusterFactory = new ClusterFactory(clusterableServerFactory);
+            var cluster = clusterFactory.Create(settings);
+
             cluster.Initialize();
 
             using (var session = new ClusterSession(cluster))

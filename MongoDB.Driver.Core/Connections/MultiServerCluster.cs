@@ -18,7 +18,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -26,50 +25,47 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Manages multiple <see cref="IServer"/>s.
     /// </summary>
-    public abstract class MultiServerCluster : ClusterBase
+    internal sealed class MultiServerCluster : Cluster
     {
         // private fields
+        // Writes to _servers are secured underneath this _serversLock.
+        // However, reads are free to be done without a lock.  The only access to
+        // _servers which is done outside a lock should be in the constructor
+        // or in TryGetServer.
         private readonly object _serversLock = new object();
-        private readonly IClusterableServerFactory _serverFactory;
-        private readonly DnsEndPoint[] _seedList;
-        private readonly ConcurrentDictionary<DnsEndPoint, IClusterableServer> _servers;
-        private readonly MultiServerClusterType _type;
-        private MultiServerClusterDescription _currentDescription;
-        private ManualResetEventSlim _selectServerEvent;
-        private int _state;
+        private readonly ConcurrentDictionary<DnsEndPoint, ServerDescriptionPair> _servers;
+        private readonly StateHelper _state;
+        private ClusterType _clusterType;
+        private int _configVersion;
+        private string _replicaSetName;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="MultiServerCluster" /> class.
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <param name="dnsEndPoints">The addresses.</param>
+        /// <param name="settings">The settings.</param>
         /// <param name="serverFactory">The server factory.</param>
-        protected MultiServerCluster(MultiServerClusterType type, IEnumerable<DnsEndPoint> dnsEndPoints, IClusterableServerFactory serverFactory)
+        public MultiServerCluster(ClusterSettings settings, IClusterableServerFactory serverFactory)
+            : base(serverFactory)
         {
-            Ensure.IsNotNull("dnsEndPoints", dnsEndPoints);
-            Ensure.IsNotNull("serverFactory", serverFactory);
+            Ensure.IsNotNull("settings", settings);
 
-            _serverFactory = serverFactory;
-            _servers = new ConcurrentDictionary<DnsEndPoint, IClusterableServer>();
-            _type = type;
-            _selectServerEvent = new ManualResetEventSlim();
-
-            _currentDescription = new MultiServerClusterDescription(_type, Enumerable.Empty<ServerDescription>());
-            _seedList = dnsEndPoints.ToArray();
-        }
-
-        // public properties
-        /// <summary>
-        /// Gets the description.
-        /// </summary>
-        public sealed override ClusterDescription Description
-        {
-            get 
+            _replicaSetName = settings.ReplicaSetName;
+            _clusterType = settings.Type;
+            _configVersion = int.MinValue;
+            _servers = new ConcurrentDictionary<DnsEndPoint, ServerDescriptionPair>();
+            foreach (var host in settings.Hosts)
             {
-                ThrowIfDisposed();
-                return Interlocked.CompareExchange(ref _currentDescription, null, null); 
+                // if we fail to add one, it means the same host
+                // appeared twice and it's ok to not add it in.
+                var server = CreateServer(host);
+                if (!_servers.TryAdd(host, new ServerDescriptionPair(server)))
+                {
+                    server.Dispose();
+                }
             }
+            _state = new StateHelper(State.Uninitialized);
+            PublishClusterDescription();
         }
 
         // public methods
@@ -79,65 +75,18 @@ namespace MongoDB.Driver.Core.Connections
         public override void Initialize()
         {
             ThrowIfDisposed();
-            if (Interlocked.CompareExchange(ref _state, (int)State.Initialized, (int)State.Unitialized) == (int)State.Unitialized)
+            if (_state.TryChange(State.Uninitialized, State.Initialized))
             {
-                foreach (var dnsEndPoint in _seedList)
+                lock (_serversLock)
                 {
-                    AddServer(dnsEndPoint);
+                    foreach (var entry in _servers)
+                    {
+                        entry.Value.Server.DescriptionChanged += ServerDescriptionChanged;
+                        entry.Value.Server.Initialize();
+                    }
                 }
             }
-        }
-
-        /// <summary>
-        /// Selects a server using the specified selector.
-        /// </summary>
-        /// <param name="selector">The selector.</param>
-        /// <param name="timeout">The timeout.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
-        /// <returns>A server.</returns>
-        /// <exception cref="MongoDriverException"></exception>
-        public sealed override IServer SelectServer(IServerSelector selector, TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            Ensure.IsNotNull("selector", selector);
-
-            ThrowIfUninitialized();
-            ThrowIfDisposed();
-
-            Func<IEnumerable<ServerDescription>> getDescriptions = () => ((MultiServerClusterDescription)Interlocked.CompareExchange(ref _currentDescription, null, null)).Servers;
-
-            var timeoutAt = DateTime.UtcNow.Add(timeout);
-            TimeSpan remaining;
-            ManualResetEventSlim currentWaitHandle;
-            do
-            {
-                currentWaitHandle = Interlocked.CompareExchange(ref _selectServerEvent, null, null);
-                var descriptions = getDescriptions();
-
-                var selectedDescription = selector.SelectServers(descriptions).RandomOrDefault();
-                IClusterableServer selectedServer;
-                if (selectedDescription != null && _servers.TryGetValue(selectedDescription.DnsEndPoint, out selectedServer))
-                {
-                    return selectedServer;
-                }
-
-                if (!descriptions.Any(x => x.Status == ServerStatus.Connecting))
-                {
-                    // nothing we can do if none are connecting
-                    break;
-                }
-
-                if (timeout.TotalMilliseconds == Timeout.Infinite)
-                {
-                    remaining = TimeSpan.FromMilliseconds(Timeout.Infinite);
-                }
-                else
-                {
-                    remaining = timeoutAt - DateTime.UtcNow;
-                }
-            }
-            while ((timeout.TotalMilliseconds == Timeout.Infinite || remaining > TimeSpan.Zero) && currentWaitHandle.Wait(remaining, cancellationToken));
-
-            throw new MongoDriverException(string.Format("Unable to find a server matching '{0}'.", selector));
+            base.Initialize();
         }
 
         // protected methods
@@ -147,151 +96,203 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected override void Dispose(bool disposing)
         {
-            if (Interlocked.Exchange(ref _state, State.Disposed) != State.Disposed && disposing)
+            lock (_serversLock)
             {
-                lock (_serversLock)
+                if (_state.TryChange(State.Disposed) && disposing)
                 {
-                    foreach (var server in _servers.Values)
+                    foreach (var entry in _servers.Values)
                     {
-                        server.DescriptionUpdated -= ServerDescriptionUpdated;
-                        server.Dispose();
+                        entry.Server.DescriptionChanged -= ServerDescriptionChanged;
+                        entry.Server.Dispose();
                     }
 
                     _servers.Clear();
-                    _selectServerEvent.Dispose();
+                }
+            }
+            base.Dispose();
+        }
+
+        /// <summary>
+        /// Tries to get the server from the description.
+        /// </summary>
+        /// <param name="description">The description.</param>
+        /// <param name="server">The server.</param>
+        /// <returns><c>true</c> if the server was found; otherwise <c>false</c>.</returns>
+        /// <exception cref="System.NotImplementedException"></exception>
+        protected override bool TryGetServer(ServerDescription description, out IServer server)
+        {
+            ServerDescriptionPair entry;
+            if (_servers.TryGetValue(description.DnsEndPoint, out entry))
+            {
+                server = entry.Server;
+                return true;
+            }
+
+            server = null;
+            return false;
+        }
+
+        // private methods
+        private void AddServer(DnsEndPoint host)
+        {
+            if (!_servers.ContainsKey(host))
+            {
+                var server = CreateServer(host);
+
+                if (_servers.TryAdd(host, new ServerDescriptionPair(server)))
+                {
+                    server.DescriptionChanged += ServerDescriptionChanged;
+                    server.Initialize();
+                }
+                else
+                {
+                    server.Dispose();
                 }
             }
         }
 
-        /// <summary>
-        /// Ensures that a server with the specified address is managed.
-        /// </summary>
-        /// <param name="dnsEndPoint">The address.</param>
-        protected void EnsureServer(DnsEndPoint dnsEndPoint)
+        private void EnsureServers(IEnumerable<DnsEndPoint> hosts)
         {
-            Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
-
-            if (_servers.ContainsKey(dnsEndPoint))
-            {
-                return;
-            }
-
-            AddServer(dnsEndPoint);
-        }
-
-        /// <summary>
-        /// Ensures that servers for the specified address are the only ones getting managed.  
-        /// It will remove servers with addresses not in this list and add servers for the address
-        /// that are not currently in being managed.
-        /// </summary>
-        /// <param name="dnsEndPoints">The addresses.</param>
-        protected void EnsureServers(IEnumerable<DnsEndPoint> dnsEndPoints)
-        {
-            Ensure.IsNotNull("dnsEndPoints", dnsEndPoints);
-
             var currentAddresses = _servers.Keys.ToList();
-            var needingAddition = dnsEndPoints.Except(currentAddresses).ToList();
-            var needingRemoval = currentAddresses.Except(dnsEndPoints).ToList();
-
-            foreach (var add in needingAddition)
-            {
-                AddServer(add);
-            }
+            var needingAddition = hosts.Except(currentAddresses).ToList();
+            var needingRemoval = currentAddresses.Except(hosts).ToList();
 
             foreach (var remove in needingRemoval)
             {
                 RemoveServer(remove);
             }
-        }
 
-        /// <summary>
-        /// Handles the updated description of a server.
-        /// </summary>
-        /// <param name="description">The description.</param>
-        protected abstract void HandleUpdatedDescription(ServerDescription description);
-
-        /// <summary>
-        /// Invalidates the server with the specified dnsEndPoint.
-        /// </summary>
-        /// <param name="dnsEndPoint">The dnsEndPoint.</param>
-        protected void InvalidateServer(DnsEndPoint dnsEndPoint)
-        {
-            Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
-
-            IClusterableServer server;
-            if (_servers.TryGetValue(dnsEndPoint, out server))
+            foreach (var add in needingAddition)
             {
-                server.Invalidate();
+                AddServer(add);
             }
         }
 
-        /// <summary>
-        /// Removes the server with the specified dnsEndPoint.
-        /// </summary>
-        /// <param name="dnsEndPoint">The dnsEndPoint.</param>
-        protected void RemoveServer(DnsEndPoint dnsEndPoint)
+        private void HandleReplicaSetMemberChange(ChangedEventArgs<ServerDescription> e)
         {
-            Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
-
-            IClusterableServer server;
-            if (_servers.TryRemove(dnsEndPoint, out server))
+            if (e.NewValue.Status != ServerStatus.Connected)
             {
-                server.DescriptionUpdated -= ServerDescriptionUpdated;
-                server.Dispose();
-                OnDescriptionUpdated();
+                return;
             }
-        }
-
-        // private methods
-        private void AddServer(DnsEndPoint dnsEndPoint)
-        {
-            if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Initialized)
+            if (!e.NewValue.Type.IsReplicaSetMember())
             {
-                lock (_serversLock)
+                RemoveServer(e.NewValue.DnsEndPoint);
+                return;
+            }
+
+            if (_replicaSetName == null)
+            {
+                _replicaSetName = e.NewValue.ReplicaSetInfo.Name;
+            }
+
+            if (_replicaSetName != null && _replicaSetName != e.NewValue.ReplicaSetInfo.Name)
+            {
+                RemoveServer(e.NewValue.DnsEndPoint);
+                return;
+            }
+
+            if (!e.NewValue.ReplicaSetInfo.Version.HasValue || e.NewValue.ReplicaSetInfo.Version > _configVersion)
+            {
+                if (e.NewValue.ReplicaSetInfo.Version.HasValue)
                 {
-                    if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Initialized)
-                    {
-                        var server = CreateServer(dnsEndPoint);
+                    _configVersion = e.NewValue.ReplicaSetInfo.Version.Value;
+                }
 
-                        if (_servers.TryAdd(dnsEndPoint, server))
-                        {
-                            server.DescriptionUpdated += ServerDescriptionUpdated;
-                            server.Initialize();
-                        }
-                        else
-                        {
-                            server.Dispose();
-                        }
+                EnsureServers(e.NewValue.ReplicaSetInfo.Members);
+            }
+
+            if (e.NewValue.Type == ServerType.ReplicaSetPrimary)
+            {
+                // we want to take the current primary(ies)and invalidate it so we don't have 2 primaries.
+                var currentPrimaries = Description.Servers.Where(x => x.Type == ServerType.ReplicaSetPrimary && !x.DnsEndPoint.Equals(e.NewValue.DnsEndPoint)).ToList();
+                currentPrimaries.ForEach(x => InvalidateServer(x.DnsEndPoint));
+            }
+        }
+
+        private void HandleShardRouterChanged(ChangedEventArgs<ServerDescription> e)
+        {
+            if (e.NewValue.Status != ServerStatus.Connected)
+            {
+                return;
+            }
+
+            if (e.NewValue.Type != ServerType.ShardRouter)
+            {
+                RemoveServer(e.NewValue.DnsEndPoint);
+            }
+        }
+
+        private void InvalidateServer(DnsEndPoint host)
+        {
+            ServerDescriptionPair entry;
+            if (_servers.TryGetValue(host, out entry))
+            {
+                entry.Server.Invalidate();
+                entry.CachedDescription = entry.Server.Description;
+            }
+        }
+
+        private void PublishClusterDescription()
+        {
+            var serverDescriptions = _servers
+                .Select(x => x.Value.CachedDescription)
+                .Where(x => x != null)
+                .ToList();
+
+            var newDescription = new ClusterDescription(_clusterType, serverDescriptions);
+            UpdateDescription(newDescription);
+        }
+
+        private void RemoveServer(DnsEndPoint host)
+        {
+            ServerDescriptionPair entry;
+            if (_servers.TryRemove(host, out entry))
+            {
+                entry.Server.DescriptionChanged -= ServerDescriptionChanged;
+                entry.Server.Dispose();
+            }
+        }
+
+        private void ServerDescriptionChanged(object sender, ChangedEventArgs<ServerDescription> e)
+        {
+            lock (_serversLock)
+            {
+                if (_state.Current == State.Initialized)
+                {
+                    ServerDescriptionPair entry;
+                    if (!_servers.TryGetValue(e.NewValue.DnsEndPoint, out entry))
+                    {
+                        return;
                     }
+
+                    var deducedClusterType = ClusterDescription.DeduceClusterType(e.NewValue.Type);
+                    if (_clusterType == ClusterType.Unknown)
+                    {
+                        _clusterType = deducedClusterType;
+                    }
+
+                    switch (_clusterType)
+                    {
+                        case ClusterType.ReplicaSet:
+                            HandleReplicaSetMemberChange(e);
+                            break;
+                        case ClusterType.Sharded:
+                            HandleShardRouterChanged(e);
+                            break;
+                        case ClusterType.StandAlone:
+                            RemoveServer(e.NewValue.DnsEndPoint);
+                            break;
+                    }
+
+                    entry.CachedDescription = e.NewValue;
+                    PublishClusterDescription();
                 }
             }
         }
 
-        private IClusterableServer CreateServer(DnsEndPoint dnsEndPoint)
-        {
-            return _serverFactory.Create(dnsEndPoint);
-        }
-
-        private void ServerDescriptionUpdated(object sender, ServerDescriptionChangedEventArgs<ServerDescription> e)
-        {
-            // we only want to process updated events after all servers in the seed list have
-            // been initialized
-            HandleUpdatedDescription(e.Value);
-            OnDescriptionUpdated();           
-        }
-
-        private void OnDescriptionUpdated()
-        {
-            var descriptions = _servers.Select(x => x.Value.Description).ToList();
-            var newDescription = new MultiServerClusterDescription(_type, descriptions);
-            Interlocked.Exchange(ref _currentDescription, newDescription);
-            var old = Interlocked.Exchange(ref _selectServerEvent, new ManualResetEventSlim());
-            old.Set();
-        }
-
         private void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Disposed)
+            if (_state.Current == State.Disposed)
             {
                 throw new ObjectDisposedException(GetType().Name);
             }
@@ -299,15 +300,28 @@ namespace MongoDB.Driver.Core.Connections
 
         private void ThrowIfUninitialized()
         {
-            if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Unitialized)
+            if (_state.Current == State.Uninitialized)
             {
-                throw new InvalidOperationException("MultiServerCluster must be initialized.");
+                throw new InvalidOperationException(string.Format("{0} must be initialized.", GetType().Name));
             }
         }
 
-        private class State
+        // nested classes
+        private class ServerDescriptionPair
         {
-            public const int Unitialized = 0;
+            public IClusterableServer Server;
+            public volatile ServerDescription CachedDescription;
+
+            public ServerDescriptionPair(IClusterableServer server)
+            {
+                Server = server;
+                CachedDescription = server.Description;
+            }
+        }
+
+        private static class State
+        {
+            public const int Uninitialized = 0;
             public const int Initialized = 1;
             public const int Disposed = 2;
         }

@@ -71,9 +71,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Connections\IsMasterResultHelperTests.cs" />
+    <Compile Include="Connections\ClusterFactoryTests.cs" />
+    <Compile Include="Connections\ClusterSettingsTests.cs" />
+    <Compile Include="Connections\ClusterTests.cs" />
+    <Compile Include="Connections\ShardedMultiServerClusterTests.cs" />
+    <Compile Include="Connections\ShardedSingleServerClusterTests.cs" />
+    <Compile Include="Connections\ReplicaSetSingleServerClusterTests.cs" />
+    <Compile Include="Connections\IsMasterResultTests.cs" />
+    <Compile Include="Connections\StateHelperTests.cs" />
     <Compile Include="Connections\StreamConnectionTests.cs" />
     <Compile Include="LatencyMinimizingServerSelectorTests.cs" />
+    <Compile Include="Mocks\MockClusterableServerFactory.cs" />
     <Compile Include="Operations\QueryOperationBaseTests.cs" />
     <Compile Include="ProtocolMessageHelper.cs" />
     <Compile Include="Connections\CommandHelperTests.cs" />
@@ -83,12 +91,10 @@
     <Compile Include="Protocol\InsertProtocolTests.cs" />
     <Compile Include="Mocks\MockConnection.cs" />
     <Compile Include="Mocks\MockConnectionFactory.cs" />
-    <Compile Include="Mocks\MockReplicaSet.cs" />
-    <Compile Include="Connections\ReplicaSetClusterTests.cs" />
-    <Compile Include="Connections\MultiServerClusterTests.cs" />
+    <Compile Include="Connections\ReplicaSetMultiServerClusterTests.cs" />
     <Compile Include="Connections\ServerDescriptionBuilder.cs" />
     <Compile Include="Connections\ClusterableServerTests.cs" />
-    <Compile Include="Connections\SingleServerClusterTests.cs" />
+    <Compile Include="Connections\StandAloneSingleServerClusterTests.cs" />
     <Compile Include="Mocks\MockServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\WriteProtocolBaseTests.cs" />

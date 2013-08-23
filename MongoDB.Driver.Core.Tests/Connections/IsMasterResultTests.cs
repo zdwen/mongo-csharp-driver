@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace MongoDB.Driver.Core.Connections
 {
     [TestFixture]
-    public class IsMasterResultHelperTests
+    public class IsMasterResultTests
     {
         [Test]
         public void GetMaxDocumentSize_should_return_default_if_unspecified()

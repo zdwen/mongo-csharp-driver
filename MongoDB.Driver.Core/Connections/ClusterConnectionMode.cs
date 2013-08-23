@@ -13,35 +13,23 @@
 * limitations under the License.
 */
 
-using MongoDB.Driver.Core.Connections;
+using System;
 
-namespace MongoDB.Driver.Core.Events
+namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Occurs when a server's description has been updated.
+    /// The cluster connection mode.
     /// </summary>
-    public class ServerDescriptionUpdatedEvent
+    [Serializable]
+    public enum ClusterConnectionMode
     {
-        // private fields
-        private readonly IServer _server;
-
-        // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ServerDescriptionUpdatedEvent" /> class.
+        /// Connect to a single server.
         /// </summary>
-        /// <param name="server">The server.</param>
-        public ServerDescriptionUpdatedEvent(IServer server)
-        {
-            _server = server;
-        }
-
-        // public properties
+        Single,
         /// <summary>
-        /// Gets the server.
+        /// Connects to multiple servers.
         /// </summary>
-        public IServer Server
-        {
-            get { return _server; }
-        }
+        Multiple
     }
 }

@@ -123,8 +123,10 @@ namespace MongoDB.Driver.Core.Connections
             var subject = CreateSubject();
             subject.Initialize();
 
-            // let the information get pulled back...
-            Thread.Sleep(4000);
+            if (!SpinWait.SpinUntil(() => subject.Description.Status == ServerStatus.Connected, 4000))
+            {
+                Assert.Fail("Did not become connected.");
+            }
 
             var description = subject.Description;
 
@@ -142,15 +144,21 @@ namespace MongoDB.Driver.Core.Connections
             var subject = CreateSubject();
             subject.Initialize();
 
-            // let the information get pulled back...
-            Thread.Sleep(4000);
+            if (!SpinWait.SpinUntil(() => subject.Description.Status == ServerStatus.Connected, 4000))
+            {
+                Assert.Fail("Did not become connected.");
+            }
+            Thread.Sleep(100); // we need to wait for the DescriptionUpdated event to be raised
 
             var updates = new List<ServerDescription>();
-            subject.DescriptionUpdated += (o, e) => updates.Add(e.Value);
+            subject.DescriptionChanged += (o, e) => updates.Add(e.NewValue);
             subject.Invalidate();
 
-            // let the information get pulled back again...
-            Thread.Sleep(4000);
+            if (!SpinWait.SpinUntil(() => subject.Description.Status == ServerStatus.Connected, 4000))
+            {
+                Assert.Fail("Did not become connected.");
+            }
+            Thread.Sleep(100); // we need to wait for the DescriptionUpdated event to be raised
 
             // 2 updates should have come, the first the change to connecting, the second back to connected
             Assert.AreEqual(2, updates.Count);

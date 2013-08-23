@@ -22,7 +22,6 @@ using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Events;
-using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Support;
 
@@ -48,10 +47,10 @@ namespace MongoDB.Driver.Core.Connections
         private readonly int _id;
         private readonly PingTimeAggregator _pingTimeAggregator;
         private readonly ClusterableServerSettings _settings;
+        private readonly StateHelper _state;
         private readonly string _toStringDescription;
         private readonly TraceSource _trace;
         private IConnection _updateDescriptionConnection;
-        private int _state;
         private ServerDescription _currentDescription; // only read and written with Interlocked...
 
         // constructors
@@ -80,6 +79,7 @@ namespace MongoDB.Driver.Core.Connections
             _pingTimeAggregator = new PingTimeAggregator(5);
             _toStringDescription = string.Format("server#{0}", _id);
             _trace = traceManager.GetTraceSource<ClusterableServer>();
+            _state = new StateHelper(State.Unitialized);
 
             _connectingDescription = new ServerDescription(
                 averagePingTime: TimeSpan.MaxValue,
@@ -116,7 +116,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         // public events
-        public override event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
+        public override event EventHandler<ChangedEventArgs<ServerDescription>> DescriptionChanged;
 
         // public methods
         public override IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
@@ -129,10 +129,10 @@ namespace MongoDB.Driver.Core.Connections
         public override void Initialize()
         {
             ThrowIfDisposed();
-            if (Interlocked.CompareExchange(ref _state, State.Initialized, State.Unitialized) == State.Unitialized)
+            if (_state.TryChange(State.Unitialized, State.Initialized))
             {
                 _trace.TraceInformation("{0}: initialized with {1}.", _toStringDescription, _dnsEndPoint);
-                OnDescriptionUpdated(_connectingDescription);
+                UpdateDescription(_connectingDescription);
                 _channelProvider.Initialize();
                 _descriptionUpdateTimer.Change(TimeSpan.Zero, _settings.ConnectRetryFrequency);
             }
@@ -142,14 +142,14 @@ namespace MongoDB.Driver.Core.Connections
         {
             ThrowIfUninitialized();
             ThrowIfDisposed();
-            OnDescriptionUpdated(_connectingDescription);
+            UpdateDescription(_connectingDescription);
             ThreadPool.QueueUserWorkItem(_ => UpdateDescription());
         }
 
         // protected methods
         protected override void Dispose(bool disposing)
         {
-            if (Interlocked.Exchange(ref _state, State.Disposed) != State.Disposed && disposing)
+            if (_state.TryChange(State.Disposed) && disposing)
             {
                 lock (_disposingLock)
                 {
@@ -168,21 +168,16 @@ namespace MongoDB.Driver.Core.Connections
                     type: ServerType.Unknown);
 
                 _trace.TraceInformation("{0}: closed with {1}.", _toStringDescription, _dnsEndPoint);
-                OnDescriptionUpdated(description);
+                UpdateDescription(description);
             }
         }
 
         // private methods
         private void HandleException(Exception ex)
         {
-            // NOTE: we will not end up in this method when an error occurs in UpdateDescription
-            // because the ServerConnection private class is not being used internally.
-            if (ex is MongoSocketException)
-            {
-                // if we experienced some socket issue, let's referesh our state
-                // immediately.
-                ThreadPool.QueueUserWorkItem(o => UpdateDescription());
-            }
+            // if we experienced some socket issue, let's referesh our state
+            // immediately.
+            ThreadPool.QueueUserWorkItem(o => UpdateDescription());
         }
 
         private ServerDescription LookupDescription()
@@ -232,7 +227,7 @@ namespace MongoDB.Driver.Core.Connections
 
         private void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Disposed)
+            if (_state.Current == State.Disposed)
             {
                 throw new ObjectDisposedException(GetType().Name);
             }
@@ -240,7 +235,7 @@ namespace MongoDB.Driver.Core.Connections
 
         private void ThrowIfUninitialized()
         {
-            if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Unitialized)
+            if (_state.Current == State.Unitialized)
             {
                 throw new InvalidOperationException("ClusterableServer must be initialized.");
             }
@@ -263,7 +258,7 @@ namespace MongoDB.Driver.Core.Connections
                 ServerDescription description = null;
                 lock (_disposingLock)
                 {
-                    if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Initialized)
+                    if (_state.Current == State.Initialized)
                     {
                         try
                         {
@@ -273,7 +268,7 @@ namespace MongoDB.Driver.Core.Connections
                             // we want to use the presumably longer frequency for normal status updates.
                             _descriptionUpdateTimer.Change(_settings.HeartbeatFrequency, _settings.HeartbeatFrequency);
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             // we want to catch every exception because this is occuring on a background
                             // thread and any unhandled exceptions could crash the process.
@@ -291,15 +286,15 @@ namespace MongoDB.Driver.Core.Connections
 
                                     // we want to use the presumably longer frequency for normal status updates.
                                     _descriptionUpdateTimer.Change(_settings.HeartbeatFrequency, _settings.HeartbeatFrequency);
-        
+
                                     takeDownServer = false;
                                 }
-                                catch(Exception ex2)
+                                catch (Exception ex2)
                                 {
                                     // we want the takeDownServer code below to report the next error 
                                     // since the previous one was already reported
                                     ex = ex2;
-                                } 
+                                }
                             }
 
                             if (takeDownServer)
@@ -317,7 +312,7 @@ namespace MongoDB.Driver.Core.Connections
 
                 if (description != null)
                 {
-                    OnDescriptionUpdated(description);
+                    UpdateDescription(description);
                 }
             }
             finally
@@ -329,7 +324,7 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        private void OnDescriptionUpdated(ServerDescription description)
+        private void UpdateDescription(ServerDescription description)
         {
             var oldDescription = Interlocked.Exchange(ref _currentDescription, description);
 
@@ -337,12 +332,12 @@ namespace MongoDB.Driver.Core.Connections
             if (!areEqual)
             {
                 var descriptionString = GetServerDescriptionString(description);
-                _events.Publish(new ServerDescriptionUpdatedEvent(this));
+                _events.Publish(new ServerDescriptionChangedEvent(this));
                 _trace.TraceInformation("{0}: description updated - {1}.", _toStringDescription, descriptionString);
-                var args = new ServerDescriptionChangedEventArgs<ServerDescription>(description);
-                if (DescriptionUpdated != null)
+                var args = new ChangedEventArgs<ServerDescription>(oldDescription, description);
+                if (DescriptionChanged != null)
                 {
-                    DescriptionUpdated(this, args);
+                    DescriptionChanged(this, args);
                 }
             }
         }
@@ -390,7 +385,7 @@ namespace MongoDB.Driver.Core.Connections
             return builder.ToString();
         }
 
-        private class State
+        private static class State
         {
             public const int Unitialized = 0;
             public const int Initialized = 1;

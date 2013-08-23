@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Creates a <see cref="NetworkStream"/>.
     /// </summary>
-    public class NetworkStreamFactory : IStreamFactory
+    public class NetworkStreamFactory : StreamFactoryBase
     {
         // private fields
         private readonly DnsCache _dnsCache;
@@ -50,7 +50,7 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A NetworkStream.</returns>
-        public Stream Create(DnsEndPoint dnsEndPoint)
+        public override Stream Create(DnsEndPoint dnsEndPoint)
         {
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
@@ -69,7 +69,7 @@ namespace MongoDB.Driver.Core.Connections
             if (!socket.Connected)
             {
                 socket.Close();
-                throw new SocketException(10060); // Connection timed out.
+                throw new SocketException((int)SocketError.TimedOut); // Connection timed out.
             }
 
             OnAfterConnectingSocket(socket);

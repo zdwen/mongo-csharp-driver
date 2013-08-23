@@ -16,17 +16,15 @@
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Type of a <see cref="ClusterDescription"/>.
+    /// Creates <see cref="ICluster"/>s.
     /// </summary>
-    public enum ClusterDescriptionType
+    public interface IClusterFactory
     {
         /// <summary>
-        /// Manages a single server.
+        /// Creates a cluster with the specified settings.
         /// </summary>
-        Single,
-        /// <summary>
-        /// Manages multiple servers.
-        /// </summary>
-        Multi
+        /// <param name="settings">The settings.</param>
+        /// <returns>An <see cref="ICluster"/>.</returns>
+        ICluster Create(ClusterSettings settings);
     }
 }

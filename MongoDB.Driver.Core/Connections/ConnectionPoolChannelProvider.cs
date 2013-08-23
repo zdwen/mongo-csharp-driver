@@ -14,13 +14,11 @@
 */
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Events;
-using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Support;
 
@@ -36,7 +34,7 @@ namespace MongoDB.Driver.Core.Connections
         private readonly DnsEndPoint _dnsEndPoint;
         private readonly IEventPublisher _events;
         private readonly TraceSource _trace;
-        private bool _disposed;
+        private readonly StateHelper _state;
 
         // constructors
         /// <summary>
@@ -57,6 +55,7 @@ namespace MongoDB.Driver.Core.Connections
             _dnsEndPoint = dnsEndPoint;
             _events = events;
             _trace = traceManager.GetTraceSource<ConnectionPoolChannelProvider>();
+            _state = new StateHelper(State.Unitialized);
         }
 
         // public properties
@@ -80,13 +79,28 @@ namespace MongoDB.Driver.Core.Connections
         {
             ThrowIfDisposed();
             var connection = _connectionPool.GetConnection(timeout, cancellationToken);
+            try
+            {
+                connection.Open();
+            }
+            catch
+            {
+                connection.Dispose();
+                throw;
+            }
             return new ConnectionChannel(connection);
         }
 
+        /// <summary>
+        /// Initializes the channel provider.
+        /// </summary>
         public override void Initialize()
         {
             ThrowIfDisposed();
-            _connectionPool.Initialize();
+            if (_state.TryChange(State.Unitialized, State.Initialized))
+            {
+                _connectionPool.Initialize();
+            }
         }
 
         // protected methods
@@ -96,13 +110,9 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected override void Dispose(bool disposing)
         {
-            if (!_disposed)
+            if (_state.TryChange(State.Disposed) && disposing)
             {
-                if (disposing)
-                {
-                    _connectionPool.Dispose();
-                }
-                _disposed = true;
+                _connectionPool.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -110,10 +120,17 @@ namespace MongoDB.Driver.Core.Connections
         // private methods
         private void ThrowIfDisposed()
         {
-            if (_disposed)
+            if (_state.Current == State.Disposed)
             {
                 throw new ObjectDisposedException(GetType().Name);
             }
+        }
+
+        private static class State
+        {
+            public const int Unitialized = 0;
+            public const int Initialized = 1;
+            public const int Disposed = 2;
         }
 
         private sealed class ConnectionChannel : ChannelBase

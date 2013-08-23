@@ -166,11 +166,17 @@ namespace MongoDB.Driver.Core.Operations
             var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true);
             try
             {
+                var flags = _flags;
+                if (_readPreference.ReadPreferenceMode != ReadPreferenceMode.Primary)
+                {
+                    flags |= QueryFlags.SlaveOk;
+                }
+
                 var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
                 var protocol = new QueryProtocol<TDocument>(
                     collection: _collection,
                     fields: _fields,
-                    flags: _flags,
+                    flags: flags,
                     numberToReturn: CalculateNumberToReturnForFirstBatch(),
                     query: WrapQuery(channelProvider.Server, _query, _options, _readPreference),
                     readerSettings: readerSettings,

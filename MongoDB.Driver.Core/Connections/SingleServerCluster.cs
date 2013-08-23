@@ -14,46 +14,41 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Manages a single server.
+    /// Manages a single <see cref="IServer"/>.
     /// </summary>
-    public sealed class SingleServerCluster : ClusterBase
+    internal sealed class SingleServerCluster : Cluster
     {
         // private fields
+        private readonly ClusterType _clusterType;
+        private readonly string _replicaSetName;
         private readonly IClusterableServer _server;
-        private ManualResetEventSlim _currentWaitHandle;
-        private int _state;
+        private readonly StateHelper _state;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="SingleServerCluster" /> class.
         /// </summary>
-        /// <param name="dnsEndPoint">The DNS end point.</param>
+        /// <param name="settings">The settings.</param>
         /// <param name="serverFactory">The server factory.</param>
-        public SingleServerCluster(DnsEndPoint dnsEndPoint, IClusterableServerFactory serverFactory)
+        public SingleServerCluster(ClusterSettings settings, IClusterableServerFactory serverFactory)
+            : base(serverFactory)
         {
-            Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
-            Ensure.IsNotNull("factory", serverFactory);
+            Ensure.IsNotNull("settings", settings);
+            Ensure.IsEqualTo("settings.Hosts.Count", settings.Hosts.Count(), 1);
 
-            _currentWaitHandle = new ManualResetEventSlim();
-            _server = serverFactory.Create(dnsEndPoint);
-            _server.DescriptionUpdated += ServerDescriptionUpdated;
-        }
+            _clusterType = settings.Type;
+            _replicaSetName = settings.ReplicaSetName;
+            _state = new StateHelper(State.Unitialized);
 
-        // public properties
-        /// <summary>
-        /// Gets the description.
-        /// </summary>
-        public override ClusterDescription Description
-        {
-            get { return new SingleServerClusterDescription(_server.Description); }
+            _server = CreateServer(settings.Hosts.Single());
+            PublishServerDescription(_server.Description);
         }
 
         // public methods
@@ -63,60 +58,12 @@ namespace MongoDB.Driver.Core.Connections
         public override void Initialize()
         {
             ThrowIfDisposed();
-            if (Interlocked.CompareExchange(ref _state, State.Initialized, State.Unitialized) == State.Unitialized)
+            if (_state.TryChange(State.Unitialized, State.Initialized))
             {
+                _server.DescriptionChanged += ServerDescriptionChanged;
                 _server.Initialize();
             }
-        }
-
-        /// <summary>
-        /// Selects a server using the specified selector.
-        /// </summary>
-        /// <param name="selector">The selector.</param>
-        /// <param name="timeout">The timeout.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
-        /// <returns>A server.</returns>
-        /// <exception cref="MongoDriverException"></exception>
-        public override IServer SelectServer(IServerSelector selector, TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            Ensure.IsNotNull("selector", selector);
-
-            ThrowIfUninitialized();
-            ThrowIfDisposed();
-
-            var timeoutAt = DateTime.UtcNow.Add(timeout);
-            TimeSpan remaining;
-            ManualResetEventSlim currentWaitHandle;
-            ServerDescription description;
-            do
-            {
-                currentWaitHandle = Interlocked.CompareExchange(ref _currentWaitHandle, null, null);
-                description = _server.Description;
-
-                var selectedDescription = selector.SelectServers(new[] { description }).SingleOrDefault();
-                if (selectedDescription != null)
-                {
-                    return _server;
-                }
-
-                if (description.Status != ServerStatus.Connecting)
-                {
-                    // nothing we can do if we aren't connecting
-                    break;
-                }
-
-                if (timeout.TotalMilliseconds == Timeout.Infinite)
-                {
-                    remaining = TimeSpan.FromMilliseconds(Timeout.Infinite);
-                }
-                else
-                {
-                    remaining = timeoutAt - DateTime.UtcNow;
-                }
-            }
-            while ((timeout.TotalMilliseconds == Timeout.Infinite || remaining > TimeSpan.Zero) && currentWaitHandle.Wait(remaining, cancellationToken));
-
-            throw new MongoDriverException(string.Format("The server {0} does not match '{1}'.", description.DnsEndPoint, selector));
+            base.Initialize();
         }
 
         // protected methods
@@ -126,24 +73,77 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected override void Dispose(bool disposing)
         {
-            if (Interlocked.Exchange(ref _state, State.Disposed) != State.Disposed && disposing)
+            if (_state.TryChange(State.Disposed) && disposing)
             {
-                _server.DescriptionUpdated -= ServerDescriptionUpdated;
+                _server.DescriptionChanged -= ServerDescriptionChanged;
                 _server.Dispose();
-                _currentWaitHandle.Dispose();
             }
+            base.Dispose();
+        }
+
+        /// <summary>
+        /// Tries to get the server from the description.
+        /// </summary>
+        /// <param name="description">The description.</param>
+        /// <param name="server">The server.</param>
+        /// <returns>
+        ///   <c>true</c> if the server was found; otherwise <c>false</c>.
+        /// </returns>
+        protected override bool TryGetServer(ServerDescription description, out IServer server)
+        {
+            if (_server.Description.DnsEndPoint == description.DnsEndPoint)
+            {
+                server = _server;
+                return true;
+            }
+
+            server = null;
+            return false;
         }
 
         // private methods
-        private void ServerDescriptionUpdated(object sender, ServerDescriptionChangedEventArgs<ServerDescription> e)
+        private void PublishServerDescription(ServerDescription serverDescription)
         {
-            var old = Interlocked.Exchange(ref _currentWaitHandle, new ManualResetEventSlim());
-            old.Set();
+            ClusterType clusterType;
+            IEnumerable<ServerDescription> serverDescriptions;
+            if (serverDescription == null)
+            {
+                clusterType = _clusterType;
+                serverDescriptions = Enumerable.Empty<ServerDescription>();
+            }
+            else
+            {
+                clusterType = ClusterDescription.DeduceClusterType(serverDescription.Type);
+                serverDescriptions = new[] { serverDescription };
+            }
+            var description = new ClusterDescription(clusterType, serverDescriptions);
+            UpdateDescription(description);
+        }
+        
+        private void ServerDescriptionChanged(object sender, ChangedEventArgs<ServerDescription> e)
+        {
+            var descriptionToPublish = e.NewValue;
+            if(e.NewValue.Status == ServerStatus.Connected)
+            {
+                var clusterType = ClusterDescription.DeduceClusterType(e.NewValue.Type);
+                if (_clusterType != ClusterType.Unknown && _clusterType != clusterType)
+                {
+                    descriptionToPublish = null;
+                }
+                else if (_clusterType == ClusterType.ReplicaSet && !string.IsNullOrEmpty(_replicaSetName))
+                {
+                    if (_replicaSetName != e.NewValue.ReplicaSetInfo.Name)
+                    {
+                        descriptionToPublish = null;
+                    }
+                }
+            }
+            PublishServerDescription(descriptionToPublish);
         }
 
         private void ThrowIfDisposed()
         {
-            if(Interlocked.CompareExchange(ref _state, 0, 0) == State.Disposed)
+            if(_state.Current == State.Disposed)
             {
                 throw new ObjectDisposedException(GetType().Name);
             }
@@ -151,13 +151,13 @@ namespace MongoDB.Driver.Core.Connections
 
         private void ThrowIfUninitialized()
         {
-            if(Interlocked.CompareExchange(ref _state, 0, 0) == State.Unitialized)
+            if (_state.Current == State.Unitialized)
             {
                 throw new InvalidOperationException("SingleServerCluster must be initialized.");
             }
         }
 
-        private class State
+        private static class State
         {
             public const int Unitialized = 0;
             public const int Initialized = 1;

@@ -23,9 +23,9 @@ namespace MongoDB.Driver.Core.Connections
     public interface IClusterableServer : IServer, IDisposable
     {
         /// <summary>
-        /// Occurs when the description is updated.
+        /// Occurs when the description is changed.
         /// </summary>
-        event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
+        event EventHandler<ChangedEventArgs<ServerDescription>> DescriptionChanged;
 
         /// <summary>
         /// Initializes the server.

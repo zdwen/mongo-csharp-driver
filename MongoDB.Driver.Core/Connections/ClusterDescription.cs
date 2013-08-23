@@ -13,32 +13,97 @@
 * limitations under the License.
 */
 
+using System.Collections.Generic;
+using System.Linq;
+using MongoDB.Driver.Core.Support;
+
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Description of a server manager.
+    /// Description of a cluster.
     /// </summary>
-    public abstract class ClusterDescription
+    public class ClusterDescription
     {
         // private fields
-        private readonly ClusterDescriptionType _type;
+        private readonly List<ServerDescription> _servers;
+        private readonly ClusterType _type;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ClusterDescription" /> class.
         /// </summary>
+        public ClusterDescription()
+            : this(ClusterType.Unknown, Enumerable.Empty<ServerDescription>())
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ClusterDescription" /> class.
+        /// </summary>
         /// <param name="type">The type.</param>
-        protected ClusterDescription(ClusterDescriptionType type)
+        public ClusterDescription(ClusterType type)
+            : this(type, Enumerable.Empty<ServerDescription>())
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ClusterDescription" /> class.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="servers">The servers.</param>
+        public ClusterDescription(ClusterType type, IEnumerable<ServerDescription> servers)
         {
+            Ensure.IsNotNull("servers", servers);
+
+            _servers = servers.ToList();
             _type = type;
+        }
+
+        // public properties
+        /// <summary>
+        /// Gets the server count.
+        /// </summary>
+        public int ServerCount
+        {
+            get { return _servers.Count; }
+        }
+
+        /// <summary>
+        /// Gets the servers.
+        /// </summary>
+        public IEnumerable<ServerDescription> Servers
+        {
+            get { return _servers; }
         }
 
         /// <summary>
         /// Gets the type.
         /// </summary>
-        public ClusterDescriptionType Type
+        public ClusterType Type
         {
             get { return _type; }
+        }
+
+        // private static methods
+        /// <summary>
+        /// Deduces the type of the cluster from the provided server.
+        /// </summary>
+        /// <param name="type">The server.</param>
+        /// <returns>The cluster type.</returns>
+        public static ClusterType DeduceClusterType(ServerType type)
+        {
+            if (type.IsReplicaSetMember())
+            {
+                return ClusterType.ReplicaSet;
+            }
+            else if (type == ServerType.ShardRouter)
+            {
+                return ClusterType.Sharded;
+            }
+            else if (type == ServerType.StandAlone)
+            {
+                return ClusterType.StandAlone;
+            }
+
+            return ClusterType.Unknown;
         }
     }
 }

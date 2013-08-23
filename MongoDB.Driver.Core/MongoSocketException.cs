@@ -16,30 +16,38 @@
 using System;
 using System.Net.Sockets;
 
-namespace MongoDB.Driver.Core.Connections
+namespace MongoDB.Driver.Core
 {
     /// <summary>
-    /// Occurs when a connection is timed out.
+    /// Wraps a socket exception.
     /// </summary>
     [Serializable]
-    public class MongoConnectTimeoutException : MongoSocketException
+    public class MongoSocketException : MongoDriverException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoConnectTimeoutException" /> class.
+        /// Gets the socket error code.
+        /// </summary>
+        public SocketError SocketErrorCode
+        {
+            get { return ((SocketException)InnerException).SocketErrorCode; }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MongoSocketException" /> class.
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="inner">The inner.</param>
-        public MongoConnectTimeoutException(string message, SocketException inner)
+        public MongoSocketException(string message, SocketException inner)
             : base(message, inner)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoConnectTimeoutException" /> class.
+        /// Initializes a new instance of the <see cref="MongoSocketException" /> class.
         /// </summary>
         /// <param name="info">The info.</param>
         /// <param name="context">The context.</param>
-        protected MongoConnectTimeoutException(
+        protected MongoSocketException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)
             : base(info, context)

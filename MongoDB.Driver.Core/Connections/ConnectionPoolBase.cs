@@ -15,20 +15,25 @@
 
 using System;
 using System.Net;
-using MongoDB.Driver.Core.Protocol.Messages;
+using System.Threading;
 
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// A channel.
+    /// A connection pool.
     /// </summary>
-    public abstract class ChannelBase : IChannel
+    public abstract class ConnectionPoolBase : IConnectionPool
     {
         // public properties
         /// <summary>
-        /// Gets the address.
+        /// Gets the DNS end point.
         /// </summary>
         public abstract DnsEndPoint DnsEndPoint { get; }
+
+        /// <summary>
+        /// Gets the connection pool settings.
+        /// </summary>
+        public abstract ConnectionPoolSettings Settings { get; }
 
         // public methods
         /// <summary>
@@ -41,17 +46,17 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         /// <summary>
-        /// Receives a message.
+        /// Gets a connection.
         /// </summary>
-        /// <param name="args"></param>
-        /// <returns>The reply.</returns>
-        public abstract ReplyMessage Receive(ChannelReceiveArgs args);
+        /// <param name="timeout">The timeout.</param>
+        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
+        /// <returns>A connection.</returns>
+        public abstract IConnection GetConnection(TimeSpan timeout, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Sends the packet.
+        /// Initializes the connection pool.
         /// </summary>
-        /// <param name="packet">The packet.</param>
-        public abstract void Send(IRequestPacket packet);
+        public abstract void Initialize();
 
         // protected methods
         /// <summary>
@@ -60,7 +65,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            // nothing to do...
+            // Nothing to do...
         }
     }
 }

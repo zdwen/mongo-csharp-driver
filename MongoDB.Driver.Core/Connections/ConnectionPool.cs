@@ -20,7 +20,6 @@ using System.Net;
 using System.Threading;
 using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Events;
-using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Support;
 
@@ -29,7 +28,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Represents a connection pool.
     /// </summary>
-    internal sealed class ConnectionPool : IConnectionPool
+    internal sealed class ConnectionPool : ConnectionPoolBase
     {
         // private static fields
         private static int __nextId;
@@ -43,11 +42,11 @@ namespace MongoDB.Driver.Core.Connections
         private readonly ConcurrentQueue<PooledConnection> _pool;
         private readonly SemaphoreSlim _poolQueue;
         private readonly ConnectionPoolSettings _settings;
+        private readonly StateHelper _state;
         private readonly string _toStringDescription;
         private readonly TraceSource _trace;
         private int _currentGenerationId;
         private Timer _sizeMaintenanceTimer;
-        private int _state;
         private int _waitQueueSize;
 
         // constructors
@@ -74,6 +73,7 @@ namespace MongoDB.Driver.Core.Connections
             _settings = settings;
             _toStringDescription = string.Format("pool#{0}", _id);
             _trace = traceManager.GetTraceSource<ConnectionPool>();
+            _state = new StateHelper(State.Unitialized);
 
             _pool = new ConcurrentQueue<PooledConnection>();
             _poolQueue = new SemaphoreSlim(_settings.MaxSize, _settings.MaxSize);
@@ -84,7 +84,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the DNS end point.
         /// </summary>
-        public DnsEndPoint DnsEndPoint
+        public override DnsEndPoint DnsEndPoint
         {
             get { return _dnsEndPoint; }
         }
@@ -92,7 +92,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the connection pool settings.
         /// </summary>
-        public ConnectionPoolSettings Settings
+        public override ConnectionPoolSettings Settings
         {
             get { return _settings; }
         }
@@ -103,21 +103,7 @@ namespace MongoDB.Driver.Core.Connections
             get { return _settings.MaxSize - _poolQueue.CurrentCount + _pool.Count; }
         }
 
-        private bool IsDisposed
-        {
-            get { return Interlocked.CompareExchange(ref _state, 0, 0) == State.Disposed; }
-        }
-
         // public methods
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         /// <summary>
         /// Gets a connection.
         /// </summary>
@@ -125,10 +111,11 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
         /// <returns>A connection.</returns>
         /// <exception cref="MongoDriverException">Too many threads are already waiting for a connection.</exception>
-        public IConnection GetConnection(TimeSpan timeout, CancellationToken cancellationToken)
+        public override IConnection GetConnection(TimeSpan timeout, CancellationToken cancellationToken)
         {
             ThrowIfUninitialized();
             ThrowIfDisposed();
+            bool enteredPool = false;
             try
             {
                 var currentWaitQueueSize = Interlocked.Increment(ref _waitQueueSize);
@@ -139,7 +126,8 @@ namespace MongoDB.Driver.Core.Connections
                 }
                 _events.Publish(new ConnectionPoolWaitQueueEnteredEvent(this));
 
-                if (_poolQueue.Wait(timeout, cancellationToken))
+                enteredPool = _poolQueue.Wait(timeout, cancellationToken);
+                if (enteredPool)
                 {
                     PooledConnection connection;
                     if (_pool.TryDequeue(out connection))
@@ -150,29 +138,42 @@ namespace MongoDB.Driver.Core.Connections
                             _events.Publish(new ConnectionRemovedFromPoolEvent(this, connection));
                             connection.Dispose();
 
-                            connection = OpenNewConnection();
+                            connection = CreateNewConnection();
                             _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, connection);
                             _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
                         }
-
-                        _events.Publish(new ConnectionCheckedOutOfPoolEvent(this, connection));
-                        return new AcquiredConnection(connection, this);
                     }
                     else
                     {
                         // make sure connection is created successfully before incrementing poolSize
                         // connection will be opened later outside of the lock
-                        connection = OpenNewConnection();
+                        connection = CreateNewConnection();
                         _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, connection);
                         _trace.TraceInformation("{0}: pool size is {1}", _toStringDescription, CurrentSize);
                         _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
-                        _events.Publish(new ConnectionCheckedOutOfPoolEvent(this, connection));
-                        return new AcquiredConnection(connection, this);
                     }
+
+                    _events.Publish(new ConnectionCheckedOutOfPoolEvent(this, connection));
+                    return new AcquiredConnection(connection, this);
                 }
 
                 _trace.TraceWarning("{0}: timeout waiting for a connection. Timeout was {1}.", _toStringDescription, timeout);
                 throw new MongoDriverException("Timeout waiting for a connection.");
+            }
+            catch
+            {
+                if (enteredPool)
+                {
+                    try
+                    {
+                        _poolQueue.Release();
+                    }
+                    catch (Exception ex)
+                    {
+                        _trace.TraceError(ex, "{0}: error releasing pool queue.", _toStringDescription);
+                    }
+                }
+                throw;
             }
             finally
             {
@@ -181,10 +182,10 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        public void Initialize()
+        public override void Initialize()
         {
             ThrowIfDisposed();
-            if (Interlocked.CompareExchange(ref _state, State.Initialized, State.Unitialized) == State.Unitialized)
+            if (_state.TryChange(State.Unitialized, State.Initialized))
             {
                 _trace.TraceInformation("{0}: initialized with {1}.", _toStringDescription, _dnsEndPoint);
                 _sizeMaintenanceTimer.Change(TimeSpan.Zero, _settings.SizeMaintenanceFrequency);
@@ -197,9 +198,9 @@ namespace MongoDB.Driver.Core.Connections
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        private void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
-            if (Interlocked.Exchange(ref _state, State.Disposed) != State.Disposed && disposing)
+            if (_state.TryChange(State.Disposed) && disposing)
             {
                 Clear();
                 // TODO: go through and dispose of all connections in the pool
@@ -221,6 +222,61 @@ namespace MongoDB.Driver.Core.Connections
             _trace.TraceInformation("{0}: cleared.", _toStringDescription);
         }
 
+        private PooledConnection CreateNewConnection()
+        {
+            // we are going to set both LastUsedAtUtc and OpenedAtUtc.
+            // we want to make sure that connections that get checked
+            // out and not used are not thrown away.  This is also
+            // true for the connections created in EnsureMinSize.
+            // OpenedAtUtc will be roughly correct
+            // LastUsedAtUtc will get changed when it's used.
+            var info = new ConnectionInfo
+            {
+                GenerationId = Interlocked.CompareExchange(ref _currentGenerationId, 0, 0),
+                LastUsedAtUtc = DateTime.UtcNow,
+                OpenedAtUtc = DateTime.UtcNow
+            };
+            var connection = _connectionFactory.Create(_dnsEndPoint);
+            return new PooledConnection(connection, this, info);
+        }
+
+        private void EnsureMinSize()
+        {
+            while (CurrentSize < _settings.MinSize)
+            {
+                bool enteredPool = false;
+                try
+                {
+                    enteredPool = _poolQueue.Wait(TimeSpan.FromMilliseconds(20));
+                    if (!enteredPool)
+                    {
+                        return;
+                    }
+
+                    var connection = CreateNewConnection();
+                    connection.Open();
+                    _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, connection);
+                    _trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
+                    _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
+                    _pool.Enqueue(connection);
+                }
+                finally
+                {
+                    if (enteredPool)
+                    {
+                        try
+                        {
+                            _poolQueue.Release();
+                        }
+                        catch (Exception ex)
+                        {
+                            _trace.TraceError(ex, "{0}: error releasing poolQueue.", _toStringDescription);
+                        }
+                    }
+                }
+            }
+        }
+
         private void HandleException(Exception ex)
         {
             // If we get an exception, we'll tear down the pool...
@@ -231,42 +287,6 @@ namespace MongoDB.Driver.Core.Connections
             if (!(ex is MongoDriverException))
             {
                 Clear();
-            }
-        }
-
-        private void EnsureMinSize()
-        {
-            int enteredPoolCount = 0;
-            try
-            {
-                while (CurrentSize - enteredPoolCount < _settings.MinSize)
-                {
-                    if (!_poolQueue.Wait(TimeSpan.FromMilliseconds(20)))
-                    {
-                        break;
-                    }
-
-                    enteredPoolCount++;
-                    var connection = OpenNewConnection();
-                    _pool.Enqueue(connection);
-                    _trace.TraceVerbose("{0}: added {1}.", _toStringDescription, connection);
-                    _trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
-                    _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
-                }
-            }
-            finally
-            {
-                if (enteredPoolCount > 0)
-                {
-                    try
-                    {
-                        _poolQueue.Release(enteredPoolCount);
-                    }
-                    catch (Exception ex)
-                    {
-                        _trace.TraceError(ex, "{0}: error releasing poolQueue.", _toStringDescription);
-                    }
-                }
             }
         }
 
@@ -302,7 +322,7 @@ namespace MongoDB.Driver.Core.Connections
 
         private void MaintainSize()
         {
-            if (IsDisposed)
+            if (_state.Current == State.Disposed)
             {
                 return;
             }
@@ -319,6 +339,10 @@ namespace MongoDB.Driver.Core.Connections
                 PrunePool();
                 EnsureMinSize();
             }
+            catch
+            {
+                // eat all these exceptions.  Any that leak would cause an application crash.
+            }
             finally
             {
                 if (lockTaken)
@@ -326,18 +350,6 @@ namespace MongoDB.Driver.Core.Connections
                     Monitor.Exit(_maintainSizeLock);
                 }
             }
-        }
-
-        private PooledConnection OpenNewConnection()
-        {
-            var info = new ConnectionInfo
-            {
-                GenerationId = Interlocked.CompareExchange(ref _currentGenerationId, 0, 0),
-                OpenedAtUtc = DateTime.UtcNow
-            };
-            var connection = _connectionFactory.Create(_dnsEndPoint);
-            connection.Open();
-            return new PooledConnection(connection, this, info);
         }
 
         private void PrunePool()
@@ -394,7 +406,7 @@ namespace MongoDB.Driver.Core.Connections
 
         private void ReleaseConnection(PooledConnection connection)
         {
-            if (IsDisposed)
+            if (_state.Current == State.Disposed)
             {
                 // events could get out of wack because we
                 // aren't raising events for connection checked in 
@@ -421,7 +433,7 @@ namespace MongoDB.Driver.Core.Connections
 
         private void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Disposed)
+            if (_state.Current == State.Disposed)
             {
                 throw new ObjectDisposedException(GetType().Name);
             }
@@ -429,13 +441,13 @@ namespace MongoDB.Driver.Core.Connections
 
         private void ThrowIfUninitialized()
         {
-            if (Interlocked.CompareExchange(ref _state, 0, 0) == State.Unitialized)
+            if (_state.Current == State.Unitialized)
             {
                 throw new InvalidOperationException("ConnectionPool must be initialized.");
             }
         }
 
-        private class State
+        private static class State
         {
             public const int Unitialized = 0;
             public const int Initialized = 1;

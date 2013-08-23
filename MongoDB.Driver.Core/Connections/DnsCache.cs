@@ -27,8 +27,8 @@ namespace MongoDB.Driver.Core.Connections
     {
         // private fields
         private readonly ConcurrentDictionary<DnsEndPoint, Entry> _cache;
-        private readonly TimeSpan _expireAfter;
         private readonly AddressFamily _defaultAddressFamily;
+        private readonly TimeSpan _expireAfter;
 
         // constructors
         /// <summary>

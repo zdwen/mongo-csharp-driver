@@ -87,9 +87,9 @@ namespace MongoDB.Driver.Core.Connections
             _maxMessageSize = size;
         }
 
-        public void ReplicaSetInfo(string name, DnsEndPoint primary, params DnsEndPoint[] members)
+        public void ReplicaSetInfo(string name, DnsEndPoint primary, params DnsEndPoint[] secondariesAndArbiter)
         {
-            ReplicaSetInfo(new ReplicaSetInfo(name, primary, members, null, null));
+            ReplicaSetInfo(new ReplicaSetInfo(name, primary, new [] { primary }.Concat(secondariesAndArbiter), null, null));
         }
 
         public void ReplicaSetInfo(ReplicaSetInfo info)

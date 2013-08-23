@@ -21,28 +21,39 @@ namespace MongoDB.Driver.Core.Connections
     /// <see cref="EventArgs"/> that represent a changed value.
     /// </summary>
     /// <typeparam name="T">The type of the changed value.</typeparam>
-    public class ServerDescriptionChangedEventArgs<T> : EventArgs
+    public class ChangedEventArgs<T> : EventArgs
     {
         // private fields
-        private readonly T _value;
+        private readonly T _newValue;
+        private readonly T _oldValue;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ServerDescriptionChangedEventArgs{T}" /> class.
+        /// Initializes a new instance of the <see cref="ChangedEventArgs{T}" /> class.
         /// </summary>
-        /// <param name="value">The new.</param>
-        public ServerDescriptionChangedEventArgs(T value)
+        /// <param name="oldValue">The old value.</param>
+        /// <param name="newValue">The new value.</param>
+        public ChangedEventArgs(T oldValue, T newValue)
         {
-            _value = value;
+            _oldValue = oldValue;
+            _newValue = newValue;
         }
 
         // public properties
         /// <summary>
-        /// Gets the Value.
+        /// Gets the new value.
         /// </summary>
-        public T Value
+        public T NewValue
         {
-            get { return _value; }
+            get { return _newValue; }
+        }
+
+        /// <summary>
+        /// Gets the old value.
+        /// </summary>
+        public T OldValue
+        {
+            get { return _oldValue; }
         }
     }
 }

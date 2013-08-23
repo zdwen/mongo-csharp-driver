@@ -13,27 +13,25 @@
 * limitations under the License.
 */
 
-using MongoDB.Driver.Core.Support;
+using MongoDB.Driver.Core.Connections;
 
-namespace MongoDB.Driver.Core.Connections
+namespace MongoDB.Driver.Core.Events
 {
     /// <summary>
-    /// Describes a <see cref="ICluster"/> with a single server.
+    /// Occurs when a server's description has been changed.
     /// </summary>
-    public sealed class SingleServerClusterDescription : ClusterDescription
+    public class ServerDescriptionChangedEvent
     {
         // private fields
-        private readonly ServerDescription _server;
+        private readonly IServer _server;
 
+        // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="SingleServerClusterDescription" /> class.
+        /// Initializes a new instance of the <see cref="ServerDescriptionChangedEvent" /> class.
         /// </summary>
         /// <param name="server">The server.</param>
-        public SingleServerClusterDescription(ServerDescription server)
-            : base(ClusterDescriptionType.Single)
+        public ServerDescriptionChangedEvent(IServer server)
         {
-            Ensure.IsNotNull("server", server);
-
             _server = server;
         }
 
@@ -41,7 +39,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the server.
         /// </summary>
-        public ServerDescription Server
+        public IServer Server
         {
             get { return _server; }
         }

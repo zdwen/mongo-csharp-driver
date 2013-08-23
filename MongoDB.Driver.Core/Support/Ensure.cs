@@ -37,6 +37,14 @@ namespace MongoDB.Driver.Core.Support
             }
         }
 
+        public static void IsEqualTo<T>(string argumentName, T value, T comparand)
+        {
+            if (!value.Equals(comparand))
+            {
+                throw new ArgumentException(string.Format("Must be equal to {0}.", comparand), argumentName);
+            }
+        }
+
         public static void IsGreaterThan<T>(string argumentName, T value, T comparand) where T :IComparable<T>
         {
             if (value.CompareTo(comparand) <= 0)

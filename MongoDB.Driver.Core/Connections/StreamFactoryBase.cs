@@ -13,25 +13,21 @@
 * limitations under the License.
 */
 
+using System.IO;
 
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Type of <see cref="MultiServerCluster" />.
+    /// A stream factory.
     /// </summary>
-    public enum MultiServerClusterType
+    public abstract class StreamFactoryBase : IStreamFactory
     {
+        // public methods
         /// <summary>
-        /// Unknown.
+        /// Creates a stream for the specified dns end point.
         /// </summary>
-        Unknown,
-        /// <summary>
-        /// A replica set.
-        /// </summary>
-        ReplicaSet,
-        /// <summary>
-        /// A shard router.
-        /// </summary>
-        ShardRouter
+        /// <param name="dnsEndPoint">The DNS end point.</param>
+        /// <returns>A stream.</returns>
+        public abstract Stream Create(System.Net.DnsEndPoint dnsEndPoint);
     }
 }

@@ -13,31 +13,18 @@ using NUnit.Framework;
 namespace MongoDB.Driver.Core.Connections
 {
     [TestFixture]
-    public class MultiServerClusterTests
+    public class ClusterTests
     {
-        private MockServer _server;
-        private MultiServerCluster _subject;
+        private TestCluster _subject;
 
         [SetUp]
         public void Setup()
         {
-            _server = new MockServer(new DnsEndPoint("localhost", 27017));
+            var server = Substitute.For<IClusterableServer>();
             var serverFactory = Substitute.For<IClusterableServerFactory>();
-            serverFactory.Create(null).ReturnsForAnyArgs(_server);
+            serverFactory.Create(null).ReturnsForAnyArgs(server);
 
-            _subject = new TestMultiServerManager(
-                new[] { _server.DnsEndPoint },
-                serverFactory);
-        }
-
-        [Test]
-        public void Description_should_return_a_cluster_description_of_type_Multi()
-        {
-            _subject.Initialize();
-
-            var description = _subject.Description;
-
-            Assert.AreEqual(ClusterDescriptionType.Multi, description.Type);
+            _subject = new TestCluster(serverFactory);
         }
 
         [Test]
@@ -47,17 +34,23 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Test]
+        public void SelectServer_should_throw_an_exception_if_disposed()
+        {
+            _subject.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => _subject.SelectServer(ConnectedServerSelector.Instance, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None));
+        }
+
+        [Test]
         public void SelectServer_should_return_the_server_if_it_matches()
         {
             _subject.Initialize();
 
             var connected = ServerDescriptionBuilder.Build(b => b.Status(ServerStatus.Connected));
-            _server.SetNextDescription(connected);
-            _server.ApplyChanges();
+            _subject.SetDescription(ClusterType.StandAlone, connected);
 
             var selectedServer = _subject.SelectServer(ConnectedServerSelector.Instance, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
 
-            Assert.AreEqual(_server.Description.DnsEndPoint, selectedServer.Description.DnsEndPoint);
+            Assert.IsNotNull(selectedServer);
         }
 
         [Test]
@@ -66,8 +59,7 @@ namespace MongoDB.Driver.Core.Connections
             _subject.Initialize();
 
             var connected = ServerDescriptionBuilder.Build(b => b.Status(ServerStatus.Connected));
-            _server.SetNextDescription(connected);
-            _server.ApplyChanges();
+            _subject.SetDescription(ClusterType.StandAlone, connected);
 
             var selector = new DelegateServerSelector("never matches", s => false);
 
@@ -81,8 +73,7 @@ namespace MongoDB.Driver.Core.Connections
             var connecting = ServerDescriptionBuilder.Build(b => b.Status(ServerStatus.Connecting));
             var connected = ServerDescriptionBuilder.Build(b => b.Status(ServerStatus.Connected));
 
-            _server.SetNextDescription(connecting);
-            _server.ApplyChanges();
+            _subject.SetDescription(ClusterType.StandAlone, connecting);
 
             Task.Factory.StartNew(() => 
             {
@@ -91,14 +82,13 @@ namespace MongoDB.Driver.Core.Connections
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(20));
                     var next = descriptions.Dequeue();
-                    _server.SetNextDescription(next);
-                    _server.ApplyChanges();
+                    _subject.SetDescription(ClusterType.StandAlone, next);
                 }
             });
 
             var selectedServer = _subject.SelectServer(ConnectedServerSelector.Instance, TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
 
-            Assert.AreEqual(_server.Description.DnsEndPoint, selectedServer.Description.DnsEndPoint);
+            Assert.IsNotNull(selectedServer);
         }
 
         [Test]
@@ -108,18 +98,26 @@ namespace MongoDB.Driver.Core.Connections
             Assert.Throws<MongoDriverException>(() => _subject.SelectServer(ConnectedServerSelector.Instance, TimeSpan.Zero, CancellationToken.None));
         }
 
-        private class TestMultiServerManager : MultiServerCluster
+        private class TestCluster : Cluster
         {
-            public TestMultiServerManager(IEnumerable<DnsEndPoint> dnsEndPoint, IClusterableServerFactory serverFactory)
-                : base(MultiServerClusterType.Unknown, dnsEndPoint, serverFactory)
+            public TestCluster(IClusterableServerFactory serverFactory)
+                : base(serverFactory)
             {
+                SetDescription(ClusterType.Unknown, ServerDescriptionBuilder.Connecting(new DnsEndPoint("localhost", 1000)));
             }
 
-            protected override void HandleUpdatedDescription(ServerDescription description)
+            public void SetDescription(ClusterType type, ServerDescription description)
             {
-                // do nothing...
+                UpdateDescription(new ClusterDescription(
+                    type,
+                    new [] { description }));
+            }
+
+            protected override bool TryGetServer(ServerDescription description, out IServer server)
+            {
+                server = CreateServer(description.DnsEndPoint);
+                return true;
             }
         }
-
     }
 }

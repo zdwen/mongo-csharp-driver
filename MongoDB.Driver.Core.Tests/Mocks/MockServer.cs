@@ -15,7 +15,6 @@ namespace MongoDB.Driver.Core.Mocks
         private readonly DnsEndPoint _dnsEndPoint;
 
         private ServerDescription _currentDescription;
-        private ServerDescription _nextDescription;
 
         public MockServer(DnsEndPoint dnsEndPoint)
         {
@@ -23,10 +22,14 @@ namespace MongoDB.Driver.Core.Mocks
             _connectingDescription = ServerDescriptionBuilder.Build(x =>
             {
                 x.DnsEndPoint(dnsEndPoint);
+                x.Status(ServerStatus.Connecting);
             });
 
-            _currentDescription = _connectingDescription;
-            _nextDescription = _connectingDescription;
+            _currentDescription = ServerDescriptionBuilder.Build(x =>
+            {
+                x.DnsEndPoint(dnsEndPoint);
+                x.Status(ServerStatus.Disconnected);
+            });
         }
 
         public override ServerDescription Description
@@ -39,7 +42,7 @@ namespace MongoDB.Driver.Core.Mocks
             get { return _dnsEndPoint; }
         }
 
-        public override event EventHandler<ServerDescriptionChangedEventArgs<ServerDescription>> DescriptionUpdated;
+        public override event EventHandler<ChangedEventArgs<ServerDescription>> DescriptionChanged;
 
         public override IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
         {
@@ -54,34 +57,29 @@ namespace MongoDB.Driver.Core.Mocks
                 x.Status(ServerStatus.Disposed);
             });
 
-            SetNextDescription(disposedDescription);
-            ApplyChanges();
+            SetDescription(disposedDescription);
         }
 
         public override void Initialize()
         {
-            ApplyChanges();
+            SetDescription(_connectingDescription);
         }
 
         public override void Invalidate()
         {
-            var next = Interlocked.CompareExchange(ref _nextDescription, null, null);
-            SetNextDescription(_connectingDescription);
-            ApplyChanges();
-            SetNextDescription(next);
+            SetDescription(_connectingDescription);
         }
 
-        public void ApplyChanges()
+        public void SetDescription(ServerDescription description)
         {
-            var next = Interlocked.CompareExchange(ref _nextDescription, null, null);
-            Interlocked.Exchange(ref _currentDescription, next);
-            if (DescriptionUpdated != null)
+            var old = Interlocked.Exchange(ref _currentDescription, description);
+            if (DescriptionChanged != null)
             {
-                DescriptionUpdated(this, new ServerDescriptionChangedEventArgs<ServerDescription>(next));
+                DescriptionChanged(this, new ChangedEventArgs<ServerDescription>(old, description));
             }
         }
 
-        public void SetNextDescription(ServerType serverType, ReplicaSetInfo replicaSetInfo)
+        public void SetDescription(ServerType serverType, ReplicaSetInfo replicaSetInfo)
         {
             var description = ServerDescriptionBuilder.Build(b =>
             {
@@ -91,12 +89,7 @@ namespace MongoDB.Driver.Core.Mocks
                 b.Type(serverType);
             });
 
-            SetNextDescription(description);
-        }
-
-        public void SetNextDescription(ServerDescription description)
-        {
-            Interlocked.Exchange(ref _nextDescription, description);
+            SetDescription(description);
         }
     }
 }
