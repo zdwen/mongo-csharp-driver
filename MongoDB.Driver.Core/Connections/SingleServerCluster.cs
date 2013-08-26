@@ -88,7 +88,7 @@ namespace MongoDB.Driver.Core.Connections
                 _server.Dispose();
                 __trace.TraceInformation("{0}: closed.", this);
             }
-            base.Dispose();
+            base.Dispose(disposing);
         }
 
         /// <summary>

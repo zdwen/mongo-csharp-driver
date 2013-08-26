@@ -123,7 +123,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
                 __trace.TraceInformation("{0}: closed.", this);
             }
-            base.Dispose();
+            base.Dispose(disposing);
         }
 
         /// <summary>
