@@ -22,7 +22,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for BsonJavaScripts.
     /// </summary>
-    public class BsonJavaScriptSerializer : BsonBaseSerializer
+    public class BsonJavaScriptSerializer : BsonBaseSerializer<BsonJavaScript>
     {
         // private static fields
         private static BsonJavaScriptSerializer __instance = new BsonJavaScriptSerializer();
@@ -49,17 +49,11 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
         /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override BsonJavaScript Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(BsonJavaScript));
+            var bsonReader = context.Reader;
 
             var bsonType = bsonReader.GetCurrentBsonType();
             switch (bsonType)
@@ -67,6 +61,7 @@ namespace MongoDB.Bson.Serialization.Serializers
                 case BsonType.JavaScript:
                     var code = bsonReader.ReadJavaScript();
                     return new BsonJavaScript(code);
+
                 default:
                     var message = string.Format("Cannot deserialize BsonJavaScript from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -77,22 +72,17 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, BsonJavaScript value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 throw new ArgumentNullException("value");
             }
 
-            var script = (BsonJavaScript)value;
-            bsonWriter.WriteJavaScript(script.Code);
+            bsonWriter.WriteJavaScript(value.Code);
         }
     }
 }

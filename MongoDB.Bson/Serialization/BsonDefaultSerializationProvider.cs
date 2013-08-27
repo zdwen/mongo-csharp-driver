@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Drawing;
 using System.Globalization;
 using System.Net;
@@ -39,7 +40,6 @@ namespace MongoDB.Bson.Serialization
             __serializers = new Dictionary<Type, Type>
             {
                 { typeof(BitArray), typeof(BitArraySerializer) },
-                { typeof(Bitmap), typeof(BitmapSerializer) },
                 { typeof(Boolean), typeof(BooleanSerializer) },
                 { typeof(BsonArray), typeof(BsonArraySerializer) },
                 { typeof(BsonBinaryData), typeof(BsonBinaryDataSerializer) },
@@ -72,7 +72,6 @@ namespace MongoDB.Bson.Serialization
                 { typeof(Double), typeof(DoubleSerializer) },
                 { typeof(System.Drawing.Size), typeof(DrawingSizeSerializer) },
                 { typeof(Guid), typeof(GuidSerializer) },
-                { typeof(Image), typeof(ImageSerializer) },
                 { typeof(Int16), typeof(Int16Serializer) },
                 { typeof(Int32), typeof(Int32Serializer) },
                 { typeof(Int64), typeof(Int64Serializer) },
@@ -98,6 +97,7 @@ namespace MongoDB.Bson.Serialization
                 { typeof(KeyValuePair<,>), typeof(KeyValuePairSerializer<,>) },
                 { typeof(Nullable<>), typeof(NullableSerializer<>) },
                 { typeof(Queue<>), typeof(QueueSerializer<>) },
+                { typeof(ReadOnlyCollection<>), typeof(ReadOnlyCollectionSerializer<>) },
                 { typeof(Stack<>), typeof(StackSerializer<>) }
             };
         }
@@ -130,15 +130,10 @@ namespace MongoDB.Bson.Serialization
                 return BsonDocumentSerializer.Instance;
             }
 
-            // use BsonIBsonSerializableSerializer for all classes that implement IBsonSerializable
-            if (typeof(IBsonSerializable).IsAssignableFrom(type))
-            {
-                return BsonIBsonSerializableSerializer.Instance;
-            }
-
             if (type.IsGenericType)
             {
                 var genericTypeDefinition = type.GetGenericTypeDefinition();
+
                 Type genericSerializerDefinition;
                 if (__genericSerializerDefinitions.TryGetValue(genericTypeDefinition, out genericSerializerDefinition))
                 {
@@ -172,7 +167,9 @@ namespace MongoDB.Bson.Serialization
 
             if (type.IsEnum)
             {
-                return new EnumSerializer();
+                var enumSerializerDefinition = typeof(EnumSerializer<>);
+                var enumSerializerType = enumSerializerDefinition.MakeGenericType(type);
+                return (IBsonSerializer)Activator.CreateInstance(enumSerializerType);
             }
 
             // classes that implement IDictionary or IEnumerable are serialized using either DictionarySerializer or EnumerableSerializer
@@ -183,11 +180,12 @@ namespace MongoDB.Bson.Serialization
                 return collectionSerializer;
             }
 
-            // we'll try our best by attempting to find a discriminator hoping it points
-            // us to a concrete type with a serializer.
+            // interface values will be written with a discriminator so they can be deserialized
             if (type.IsInterface)
             {
-                return InterfaceSerializer.Instance;
+                var discriminatedInterfaceSerializerDefinition = typeof(DiscriminatedInterfaceSerializer<>);
+                var discriminatedInterfaceSerializerType = discriminatedInterfaceSerializerDefinition.MakeGenericType(new[] { type });
+                return (IBsonSerializer)Activator.CreateInstance(discriminatedInterfaceSerializerType);
             }
 
             return null;
@@ -206,6 +204,7 @@ namespace MongoDB.Bson.Serialization
             {
                 implementedInterfaces.Add(type);
             }
+
             foreach (var implementedInterface in implementedInterfaces)
             {
                 if (implementedInterface.IsGenericType)
@@ -238,37 +237,84 @@ namespace MongoDB.Bson.Serialization
             {
                 var keyType = implementedGenericDictionaryInterface.GetGenericArguments()[0];
                 var valueType = implementedGenericDictionaryInterface.GetGenericArguments()[1];
-                var genericSerializerDefinition = typeof(DictionarySerializer<,>);
-                var genericSerializerType = genericSerializerDefinition.MakeGenericType(keyType, valueType);
-                return (IBsonSerializer)Activator.CreateInstance(genericSerializerType);
-            }
-            else if (implementedDictionaryInterface != null)
-            {
-                return new DictionarySerializer();
-            }
-            else if (implementedGenericEnumerableInterface != null)
-            {
-                var valueType = implementedGenericEnumerableInterface.GetGenericArguments()[0];
-                var readOnlyCollectionType = typeof(ReadOnlyCollection<>).MakeGenericType(valueType);
-                Type genericSerializerDefinition;
-                if (readOnlyCollectionType.IsAssignableFrom(type))
+                if (type.IsInterface)
                 {
-                    genericSerializerDefinition = typeof(ReadOnlyCollectionSerializer<>);
-                    if (type != readOnlyCollectionType)
-                    {
-                        BsonSerializer.RegisterDiscriminator(type, type.Name);
-                    }
+                    var dictionaryDefinition = typeof(Dictionary<,>);
+                    var dictionaryType = dictionaryDefinition.MakeGenericType(keyType, valueType);
+                    var serializerDefinition = typeof(ImpliedImplementationInterfaceSerializer<,>);
+                    var serializerType = serializerDefinition.MakeGenericType(type, dictionaryType);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
                 }
                 else
                 {
-                    genericSerializerDefinition = typeof(EnumerableSerializer<>);
+                    var serializerDefinition = typeof(IDictionaryImplementerSerializer<,,>);
+                    var serializerType = serializerDefinition.MakeGenericType(type, keyType, valueType);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
                 }
-                var genericSerializerType = genericSerializerDefinition.MakeGenericType(valueType);
-                return (IBsonSerializer)Activator.CreateInstance(genericSerializerType);
+            }
+            else if (implementedDictionaryInterface != null)
+            {
+                if (type.IsInterface)
+                {
+                    var dictionaryType = typeof(Hashtable);
+                    var serializerDefinition = typeof(ImpliedImplementationInterfaceSerializer<,>);
+                    var serializerType = serializerDefinition.MakeGenericType(type, dictionaryType);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
+                }
+                else
+                {
+                    var serializerDefinition = typeof(IDictionaryImplementerSerializer<>);
+                    var serializerType = serializerDefinition.MakeGenericType(type);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
+                }
+            }
+            else if (implementedGenericEnumerableInterface != null)
+            {
+                var itemType = implementedGenericEnumerableInterface.GetGenericArguments()[0];
+
+                var readOnlyCollectionType = typeof(ReadOnlyCollection<>).MakeGenericType(itemType);
+                if (type == readOnlyCollectionType)
+                {
+                    var serializerDefinition = typeof(ReadOnlyCollectionSerializer<>);
+                    var serializerType = serializerDefinition.MakeGenericType(itemType);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
+                }
+                else if (readOnlyCollectionType.IsAssignableFrom(type))
+                {
+                    var serializerDefinition = typeof(ReadOnlyCollectionSubclassSerializer<,>);
+                    var serializerType = serializerDefinition.MakeGenericType(type, itemType);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
+                }
+                else if (type.IsInterface)
+                {
+                    var listDefinition = typeof(List<>);
+                    var listType = listDefinition.MakeGenericType(itemType);
+                    var serializerDefinition = typeof(ImpliedImplementationInterfaceSerializer<,>);
+                    var serializerType = serializerDefinition.MakeGenericType(type, listType);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
+                }
+                else
+                {
+                    var serializerDefinition = typeof(IEnumerableImplementerSerializer<,>);
+                    var serializerType = serializerDefinition.MakeGenericType(type, itemType);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
+                }
             }
             else if (implementedEnumerableInterface != null)
             {
-                return new EnumerableSerializer();
+                if (type.IsInterface)
+                {
+                    var listType = typeof(ArrayList);
+                    var serializerDefinition = typeof(ImpliedImplementationInterfaceSerializer<,>);
+                    var serializerType = serializerDefinition.MakeGenericType(type, listType);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
+                }
+                else
+                {
+                    var serializerDefinition = typeof(IEnumerableImplementerSerializer<>);
+                    var serializerType = serializerDefinition.MakeGenericType(type);
+                    return (IBsonSerializer)Activator.CreateInstance(serializerType);
+                }
             }
 
             return null;

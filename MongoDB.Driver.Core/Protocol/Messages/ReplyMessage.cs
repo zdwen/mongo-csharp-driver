@@ -188,16 +188,16 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// </summary>
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="serializer">The serializer.</param>
-        /// <param name="serializationOptions">The serialization options.</param>
         /// <param name="readerSettings">The reader settings.</param>
         /// <returns></returns>
-        public IEnumerable<TDocument> DeserializeDocuments<TDocument>(IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, BsonBinaryReaderSettings readerSettings)
+        public IEnumerable<TDocument> DeserializeDocuments<TDocument>(IBsonSerializer<TDocument> serializer, BsonBinaryReaderSettings readerSettings)
         {
             using (var bsonReader = new BsonBinaryReader(_stream, readerSettings))
             {
+                var context = DeserializationContext.CreateRoot<TDocument>(bsonReader);
                 for (int i = 0; i < _numberReturned; i++)
                 {
-                    yield return (TDocument)serializer.Deserialize(bsonReader, typeof(TDocument), serializationOptions);
+                    yield return serializer.Deserialize(context);
                 }
             }
         }
@@ -209,7 +209,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         {
             if (_flags.HasFlag(ReplyFlags.QueryFailure))
             {
-                var response = DeserializeDocuments<BsonDocument>(BsonDocumentSerializer.Instance, null, BsonBinaryReaderSettings.Defaults).Single();
+                var response = DeserializeDocuments<BsonDocument>(BsonDocumentSerializer.Instance, BsonBinaryReaderSettings.Defaults).Single();
                 var message = string.Format("Query failed with response: {0}.", response.ToJson());
                 throw new MongoQueryException(message, response);
             }

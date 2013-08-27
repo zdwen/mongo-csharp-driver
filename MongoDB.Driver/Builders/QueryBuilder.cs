@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.GeoJsonObjectModel;
 using MongoDB.Driver.Linq;
 using MongoDB.Driver.Linq.Utils;

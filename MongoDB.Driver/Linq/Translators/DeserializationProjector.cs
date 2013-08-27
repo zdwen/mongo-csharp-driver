@@ -55,9 +55,10 @@ namespace MongoDB.Driver.Linq
                 var document = new BsonDocument("_v", value);
                 using (var bsonReader = BsonReader.Create(document))
                 {
+                    var context = DeserializationContext.CreateRoot<BsonDocument>(bsonReader);
                     bsonReader.ReadStartDocument();
                     bsonReader.ReadName("_v");
-                    yield return (TResult)_serializationInfo.Serializer.Deserialize(bsonReader, _serializationInfo.NominalType, _serializationInfo.SerializationOptions);
+                    yield return (TResult)_serializationInfo.Serializer.Deserialize(context);
                     bsonReader.ReadEndDocument();
                 }
             }

@@ -14,6 +14,7 @@
 */
 
 using System;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Bson.Serialization.Attributes
 {
@@ -62,6 +63,25 @@ namespace MongoDB.Bson.Serialization.Attributes
         {
             get { return _representation; }
             set { _representation = value; }
+        }
+
+        // protected methods
+        protected override IBsonSerializer Apply(IBsonSerializer serializer)
+        {
+            var dateTimeSerializer = serializer as DateTimeSerializer;
+            if (dateTimeSerializer != null)
+            {
+                if (_dateOnly)
+                {
+                    return dateTimeSerializer.WithDateOnly(_dateOnly, _representation);
+                }
+                else
+                {
+                    return dateTimeSerializer.WithKind(_kind, _representation);
+                }
+            }
+
+            return base.Apply(serializer);
         }
     }
 }

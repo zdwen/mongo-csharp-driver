@@ -25,24 +25,23 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
     /// <summary>
     /// Represents a serializer for a GeoJsonPolygonCoordinates value.
     /// </summary>
-    public class GeoJsonPolygonCoordinatesSerializer<TCoordinates> : BsonBaseSerializer where TCoordinates : GeoJsonCoordinates
+    public class GeoJsonPolygonCoordinatesSerializer<TCoordinates> : BsonBaseSerializer<GeoJsonPolygonCoordinates<TCoordinates>> where TCoordinates : GeoJsonCoordinates
     {
         // private fields
-        private readonly IBsonSerializer _linearRingSerializer = BsonSerializer.LookupSerializer(typeof(GeoJsonLinearRingCoordinates<TCoordinates>));
+        private readonly IBsonSerializer<GeoJsonLinearRingCoordinates<TCoordinates>> _linearRingCoordinatesSerializer = BsonSerializer.LookupSerializer<GeoJsonLinearRingCoordinates<TCoordinates>>();
 
         // public methods
         /// <summary>
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>
         /// An object.
         /// </returns>
-        public override object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
+        public override GeoJsonPolygonCoordinates<TCoordinates> Deserialize(DeserializationContext context)
         {
+            var bsonReader = context.Reader;
+
             if (bsonReader.GetCurrentBsonType() == BsonType.Null)
             {
                 bsonReader.ReadNull();
@@ -53,10 +52,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 var holes = new List<GeoJsonLinearRingCoordinates<TCoordinates>>();
 
                 bsonReader.ReadStartArray();
-                var exterior = (GeoJsonLinearRingCoordinates<TCoordinates>)_linearRingSerializer.Deserialize(bsonReader, typeof(TCoordinates), null);
+                var exterior = context.DeserializeWithChildContext(_linearRingCoordinatesSerializer);
                 while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
                 {
-                    var hole = (GeoJsonLinearRingCoordinates<TCoordinates>)_linearRingSerializer.Deserialize(bsonReader, typeof(TCoordinates), null);
+                    var hole = context.DeserializeWithChildContext(_linearRingCoordinatesSerializer);
                     holes.Add(hole);
                 }
                 bsonReader.ReadEndArray();
@@ -69,24 +68,21 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, GeoJsonPolygonCoordinates<TCoordinates> value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 bsonWriter.WriteNull();
             }
             else
             {
-                var lineStringCoordinates = (GeoJsonPolygonCoordinates<TCoordinates>)value;
-
                 bsonWriter.WriteStartArray();
-                _linearRingSerializer.Serialize(bsonWriter, typeof(TCoordinates), lineStringCoordinates.Exterior, null);
-                foreach (var hole in lineStringCoordinates.Holes)
+                foreach (var hole in value.Holes)
                 {
-                    _linearRingSerializer.Serialize(bsonWriter, typeof(TCoordinates), hole, null);
+                    context.SerializeWithChildContext(_linearRingCoordinatesSerializer, hole);
                 }
                 bsonWriter.WriteEndArray();
             }

@@ -14,6 +14,7 @@
 */
 
 using System;
+using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization.Attributes
 {
@@ -63,6 +64,38 @@ namespace MongoDB.Bson.Serialization.Attributes
         {
             get { return _allowTruncation; }
             set { _allowTruncation = value; }
+        }
+
+        // protected methods
+        protected override IBsonSerializer Apply(IBsonSerializer serializer)
+        {
+            var serializerWithRepresentation = serializer as IBsonSerializerWithRepresentation;
+            if (serializerWithRepresentation != null)
+            {
+                var reconfiguredSerializer = serializerWithRepresentation.WithRepresentation(_representation);
+
+                var serializerWithConverter = reconfiguredSerializer as IBsonSerializerWithRepresentationConverter;
+                if (serializerWithConverter != null)
+                {
+                    var converter = new RepresentationConverter(_allowOverflow, _allowTruncation);
+                    reconfiguredSerializer = serializerWithConverter.WithConverter(converter);
+                }
+
+                return reconfiguredSerializer;
+            }
+
+            // for backward compatibility representations of Array and Document are mapped to DictionaryRepresentations if possible
+            var serializerWithDictionaryRepresentation = serializer as IBsonSerializerWithDictionaryRepresentation;
+            if (serializerWithDictionaryRepresentation != null)
+            {
+                if (_representation == BsonType.Array || _representation == BsonType.Document)
+                {
+                    var dictionaryRepresentation = (_representation == BsonType.Array) ? DictionaryRepresentation.ArrayOfArrays: DictionaryRepresentation.Document;
+                    return serializerWithDictionaryRepresentation.WithDictionaryRepresentation(dictionaryRepresentation);
+                }
+            }
+
+            return base.Apply(serializer);
         }
     }
 }

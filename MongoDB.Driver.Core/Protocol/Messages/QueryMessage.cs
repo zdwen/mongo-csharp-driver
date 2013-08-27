@@ -76,12 +76,12 @@ namespace MongoDB.Driver.Core.Protocol.Messages
             using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, _writerSettings))
             {
                 // TODO: pass in a serializer?
-                BsonSerializer.Serialize(bsonWriter, _query.GetType(), _query, null);
+                BsonSerializer.Serialize(bsonWriter, _query.GetType(), _query);
 
                 if (_returnFieldSelector != null)
                 {
                     // TODO: pass in a serializer?
-                    BsonSerializer.Serialize(bsonWriter, _returnFieldSelector.GetType(), _returnFieldSelector, null); // returnFieldSelector
+                    BsonSerializer.Serialize(bsonWriter, _returnFieldSelector.GetType(), _returnFieldSelector); // returnFieldSelector
                 }
             }
         }

@@ -18,6 +18,7 @@ using System.Collections;
 using System.IO;
 using System.Text;
 using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization.Serializers
@@ -25,28 +26,33 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for BitArrays.
     /// </summary>
-    public class BitArraySerializer : BsonBaseSerializer
+    public class BitArraySerializer : BsonBaseSerializer<BitArray>, IBsonSerializerWithRepresentation<BitArraySerializer>
     {
-        // private static fields
-        private static BitArraySerializer __instance = new BitArraySerializer();
+        // private fields
+        private readonly BsonType _representation;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the BitArraySerializer class.
+        /// Initializes a new instance of the <see cref="BitArraySerializer"/> class.
         /// </summary>
         public BitArraySerializer()
-            : base(new RepresentationSerializationOptions(BsonType.Binary))
+            : this(BsonType.Binary)
         {
         }
 
-        // public static properties
         /// <summary>
-        /// Gets an instance of the BitArraySerializer class.
+        /// Initializes a new instance of the <see cref="BitArraySerializer"/> class.
         /// </summary>
-        [Obsolete("Use constructor instead.")]
-        public static BitArraySerializer Instance
+        /// <param name="representation">The representation.</param>
+        public BitArraySerializer(BsonType representation)
         {
-            get { return __instance; }
+            _representation = representation;
+        }
+
+        // public properties
+        public BsonType Representation
+        {
+            get { return _representation; }
         }
 
         // public methods
@@ -55,27 +61,23 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
         /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override BitArray Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(BitArray));
+            var bsonReader = context.Reader;
+            BitArray bitArray;
 
             BsonType bsonType = bsonReader.GetCurrentBsonType();
-            BitArray bitArray;
             switch (bsonType)
             {
                 case BsonType.Null:
                     bsonReader.ReadNull();
                     return null;
+
                 case BsonType.Binary:
                     return new BitArray(bsonReader.ReadBytes());
+
                 case BsonType.Document:
                     bsonReader.ReadStartDocument();
                     var length = bsonReader.ReadInt32("Length");
@@ -84,6 +86,7 @@ namespace MongoDB.Bson.Serialization.Serializers
                     bitArray = new BitArray(bytes);
                     bitArray.Length = length;
                     return bitArray;
+
                 case BsonType.String:
                     var s = bsonReader.ReadString();
                     bitArray = new BitArray(s.Length);
@@ -102,8 +105,9 @@ namespace MongoDB.Bson.Serialization.Serializers
                         }
                     }
                     return bitArray;
+
                 default:
-                    var message = string.Format("Cannot deserialize Byte[] from BsonType {0}.", bsonType);
+                    var message = string.Format("Cannot deserialize BitArray from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
             }
         }
@@ -113,51 +117,58 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, BitArray value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 bsonWriter.WriteNull();
             }
             else
             {
-                var bitArray = (BitArray)value;
-                var representationSerializationOptions = EnsureSerializationOptions<RepresentationSerializationOptions>(options);
-
-                switch (representationSerializationOptions.Representation)
+                switch (_representation)
                 {
                     case BsonType.Binary:
-                        if ((bitArray.Length % 8) == 0)
+                        if ((value.Length % 8) == 0)
                         {
-                            bsonWriter.WriteBytes(GetBytes(bitArray));
+                            bsonWriter.WriteBytes(GetBytes(value));
                         }
                         else
                         {
                             bsonWriter.WriteStartDocument();
-                            bsonWriter.WriteInt32("Length", bitArray.Length);
-                            bsonWriter.WriteBytes("Bytes", GetBytes(bitArray));
+                            bsonWriter.WriteInt32("Length", value.Length);
+                            bsonWriter.WriteBytes("Bytes", GetBytes(value));
                             bsonWriter.WriteEndDocument();
                         }
                         break;
+
                     case BsonType.String:
-                        var sb = new StringBuilder(bitArray.Length);
-                        for (int i = 0; i < bitArray.Length; i++)
+                        var sb = new StringBuilder(value.Length);
+                        for (int i = 0; i < value.Length; i++)
                         {
-                            sb.Append(bitArray[i] ? '1' : '0');
+                            sb.Append(value[i] ? '1' : '0');
                         }
                         bsonWriter.WriteString(sb.ToString());
                         break;
+
                     default:
-                        var message = string.Format("'{0}' is not a valid BitArray representation.", representationSerializationOptions.Representation);
+                        var message = string.Format("'{0}' is not a valid BitArray representation.", _representation);
                         throw new BsonSerializationException(message);
                 }
+            }
+        }
+
+        public BitArraySerializer WithRepresentation(BsonType representation)
+        {
+            if (representation == _representation)
+            {
+                return this;
+            }
+            else
+            {
+                return new BitArraySerializer(representation);
             }
         }
 
@@ -178,6 +189,12 @@ namespace MongoDB.Bson.Serialization.Serializers
                 i++;
             }
             return bytes;
+        }
+
+        // explicit interface implementations
+        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        {
+            return WithRepresentation(representation);
         }
     }
 }

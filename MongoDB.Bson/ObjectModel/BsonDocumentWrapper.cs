@@ -30,81 +30,57 @@ namespace MongoDB.Bson
     /// <summary>
     /// Represents a BsonDocument wrapper.
     /// </summary>
-    public class BsonDocumentWrapper : BsonValue, IBsonSerializable
+    public class BsonDocumentWrapper : BsonValue
     {
         // private fields
-        private Type _wrappedNominalType;
-        private object _wrappedObject;
-        private bool _isUpdateDocument;
+        private readonly object _wrapped;
+        private readonly IBsonSerializer _serializer;
+        private readonly bool _isUpdateDocument;
 
         // constructors
-        // needed for Deserialize
-        // (even though we're going to end up throwing an InvalidOperationException)
-        private BsonDocumentWrapper()
+        public BsonDocumentWrapper(object value)
+            : this(value, UndiscriminatedActualTypeSerializer.Instance)
+        {
+        }
+
+        public BsonDocumentWrapper(object value, IBsonSerializer serializer)
+            : this(value, serializer, false)
+        {
+        }
+
+        public BsonDocumentWrapper(object value, IBsonSerializer serializer, bool isUpdateDocument)
             : base(BsonType.Document)
         {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the BsonDocumentWrapper class.
-        /// </summary>
-        /// <param name="wrappedObject">The wrapped object.</param>
-        public BsonDocumentWrapper(object wrappedObject)
-            : this((wrappedObject == null) ? typeof(object) : wrappedObject.GetType(), wrappedObject)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the BsonDocumentWrapper class.
-        /// </summary>
-        /// <param name="wrappedNominalType">The nominal type of the wrapped object.</param>
-        /// <param name="wrappedObject">The wrapped object.</param>
-        public BsonDocumentWrapper(Type wrappedNominalType, object wrappedObject)
-            : this(wrappedNominalType, wrappedObject, false)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the BsonDocumentWrapper class.
-        /// </summary>
-        /// <param name="wrappedNominalType">The nominal type of the wrapped object.</param>
-        /// <param name="wrappedObject">The wrapped object.</param>
-        /// <param name="isUpdateDocument">Whether the wrapped object is an update document that needs to be checked.</param>
-        public BsonDocumentWrapper(Type wrappedNominalType, object wrappedObject, bool isUpdateDocument)
-            : base(BsonType.Document)
-        {
-            if (wrappedNominalType == null)
+            if (serializer == null)
             {
-                throw new ArgumentNullException("wrappedNominalType");
+                throw new ArgumentNullException("serializer");
             }
-            _wrappedNominalType = wrappedNominalType;
-            _wrappedObject = wrappedObject;
+
+            _wrapped = value;
+            _serializer = serializer;
             _isUpdateDocument = isUpdateDocument;
         }
 
         // public properties
         /// <summary>
-        /// Gets whether the wrapped document is an update document.
+        /// Gets whether the wrapped value is an update document.
         /// </summary>
         public bool IsUpdateDocument
         {
             get { return _isUpdateDocument; }
         }
 
-        /// <summary>
-        /// Gets the nominal type of the wrapped document.
-        /// </summary>
-        public Type WrappedNominalType
+        public IBsonSerializer Serializer
         {
-            get { return _wrappedNominalType; }
+            get { return _serializer; }
         }
 
         /// <summary>
-        /// Gets the wrapped object.
+        /// Gets the wrapped value.
         /// </summary>
-        public object WrappedObject
+        public object Wrapped
         {
-            get { return _wrappedObject; }
+            get { return _wrapped; }
         }
 
         // public static methods
@@ -151,7 +127,8 @@ namespace MongoDB.Bson
         /// <returns>A BsonDocumentWrapper.</returns>
         public static BsonDocumentWrapper Create(Type nominalType, object value, bool isUpdateDocument)
         {
-            return new BsonDocumentWrapper(nominalType, value, isUpdateDocument);
+            var serializer = BsonSerializer.LookupSerializer(nominalType);
+            return new BsonDocumentWrapper(value, serializer, isUpdateDocument);
         }
 
         /// <summary>
@@ -167,7 +144,8 @@ namespace MongoDB.Bson
                 throw new ArgumentNullException("values");
             }
 
-            return values.Select(v => new BsonDocumentWrapper(typeof(TNominalType), v));
+            var serializer = BsonSerializer.LookupSerializer(typeof(TNominalType));
+            return values.Select(v => new BsonDocumentWrapper(v, serializer));
         }
 
         /// <summary>
@@ -187,7 +165,8 @@ namespace MongoDB.Bson
                 throw new ArgumentNullException("values");
             }
 
-            return values.Cast<object>().Select(v => new BsonDocumentWrapper(nominalType, v));
+            var serializer = BsonSerializer.LookupSerializer(nominalType);
+            return values.Cast<object>().Select(v => new BsonDocumentWrapper(v, serializer));
         }
 
         // public methods
@@ -197,32 +176,6 @@ namespace MongoDB.Bson
         /// <param name="other">Not applicable.</param>
         /// <returns>Not applicable.</returns>
         public override int CompareTo(BsonValue other)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// Deserialize is an invalid operation for BsonDocumentWrapper.
-        /// </summary>
-        /// <param name="bsonReader">Not applicable.</param>
-        /// <param name="nominalType">Not applicable.</param>
-        /// <param name="options">Not applicable.</param>
-        /// <returns>Not applicable.</returns>
-        [Obsolete("Deserialize was intended to be private and will become private in a future release.")]
-        public object Deserialize(BsonReader bsonReader, Type nominalType, IBsonSerializationOptions options)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// GetDocumentId is an invalid operation for BsonDocumentWrapper.
-        /// </summary>
-        /// <param name="id">Not applicable.</param>
-        /// <param name="idNominalType">Not applicable.</param>
-        /// <param name="idGenerator">Not applicable.</param>
-        /// <returns>Not applicable.</returns>
-        [Obsolete("GetDocumentId was intended to be private and will become private in a future release.")]
-        public bool GetDocumentId(out object id, out Type idNominalType, out IIdGenerator idGenerator)
         {
             throw new NotSupportedException();
         }
@@ -247,31 +200,9 @@ namespace MongoDB.Bson
         }
 
         /// <summary>
-        /// Serializes the wrapped object to a BsonWriter.
+        /// Returns a string representation of the wrapped value.
         /// </summary>
-        /// <param name="bsonWriter">The writer.</param>
-        /// <param name="nominalType">The nominal type (overridded by the wrapped nominal type).</param>
-        /// <param name="options">The serialization options.</param>
-        [Obsolete("Serialize was intended to be private and will become private in a future release.")]
-        public void Serialize(BsonWriter bsonWriter, Type nominalType, IBsonSerializationOptions options)
-        {
-            BsonDocumentWrapperSerializer.Instance.Serialize(bsonWriter, nominalType, this, options);
-        }
-
-        /// <summary>
-        /// SetDocumentId is an invalid operation for BsonDocumentWrapper.
-        /// </summary>
-        /// <param name="Id">Not applicable.</param>
-        [Obsolete("SetDocumentId was intended to be private and will become private in a future release.")]
-        public void SetDocumentId(object Id)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// Returns a string representation of the wrapped document.
-        /// </summary>
-        /// <returns>A string representation of the wrapped document.</returns>
+        /// <returns>A string representation of the wrapped value.</returns>
         public override string ToString()
         {
             return this.ToJson();

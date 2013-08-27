@@ -23,7 +23,6 @@ namespace MongoDB.Driver.GeoJsonObjectModel
     /// Represents a GeoJson object (see subclasses).
     /// </summary>
     /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
-    [BsonSerializer(typeof(GeoJsonObjectSerializer<>))]
     public abstract class GeoJsonObject<TCoordinates> where TCoordinates : GeoJsonCoordinates
     {
         // private fields

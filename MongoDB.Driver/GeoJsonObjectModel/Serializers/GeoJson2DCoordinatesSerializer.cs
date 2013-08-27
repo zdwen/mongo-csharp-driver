@@ -24,21 +24,20 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
     /// <summary>
     /// Represents a serializer for a GeoJson2DCoordinates value.
     /// </summary>
-    public class GeoJson2DCoordinatesSerializer : BsonBaseSerializer
+    public class GeoJson2DCoordinatesSerializer : BsonBaseSerializer<GeoJson2DCoordinates>
     {
         // public methods
         /// <summary>
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>
         /// An object.
         /// </returns>
-        public override object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
+        public override GeoJson2DCoordinates Deserialize(DeserializationContext context)
         {
+            var bsonReader = context.Reader;
+
             if (bsonReader.GetCurrentBsonType() == BsonType.Null)
             {
                 bsonReader.ReadNull();
@@ -59,22 +58,20 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, GeoJson2DCoordinates value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 bsonWriter.WriteNull();
             }
             else
             {
-                var coordinates = (GeoJson2DCoordinates)value;
-
                 bsonWriter.WriteStartArray();
-                bsonWriter.WriteDouble(coordinates.X);
-                bsonWriter.WriteDouble(coordinates.Y);
+                bsonWriter.WriteDouble(value.X);
+                bsonWriter.WriteDouble(value.Y);
                 bsonWriter.WriteEndArray();
             }
         }

@@ -35,8 +35,7 @@ namespace MongoDB.Driver.Core.Protocol
         private readonly int _numberToReturn;
         private readonly object _query;
         private readonly BsonBinaryReaderSettings _readerSettings;
-        private readonly IBsonSerializer _serializer;
-        private readonly IBsonSerializationOptions _serializationOptions;
+        private readonly IBsonSerializer<TDocument> _serializer;
         private readonly int _skip;
         private readonly BsonBinaryWriterSettings _writerSettings;
 
@@ -51,7 +50,6 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="query">The query.</param>
         /// <param name="readerSettings">The reader settings.</param>
         /// <param name="serializer">The serializer.</param>
-        /// <param name="serializationOptions">The serialization options.</param>
         /// <param name="skip">The skip.</param>
         /// <param name="writerSettings">The writer settings.</param>
         public QueryProtocol(CollectionNamespace collection,
@@ -60,8 +58,7 @@ namespace MongoDB.Driver.Core.Protocol
             int numberToReturn,
             object query,
             BsonBinaryReaderSettings readerSettings,
-            IBsonSerializer serializer,
-            IBsonSerializationOptions serializationOptions,
+            IBsonSerializer<TDocument> serializer,
             int skip,
             BsonBinaryWriterSettings writerSettings)
         {
@@ -79,7 +76,6 @@ namespace MongoDB.Driver.Core.Protocol
             _query = query;
             _readerSettings = readerSettings;
             _serializer = serializer;
-            _serializationOptions = serializationOptions;
             _skip = skip;
             _writerSettings = writerSettings;
         }
@@ -122,7 +118,7 @@ namespace MongoDB.Driver.Core.Protocol
             {
                 reply.ThrowIfQueryFailureFlagIsSet();
 
-                var docs = reply.DeserializeDocuments<TDocument>(_serializer, _serializationOptions, _readerSettings);
+                var docs = reply.DeserializeDocuments<TDocument>(_serializer, _readerSettings);
                 return new CursorBatch<TDocument>(reply.CursorId, docs.ToList());
             }
         }

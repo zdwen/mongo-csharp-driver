@@ -242,8 +242,7 @@ namespace MongoDB.Driver.Internal
 
         internal MongoReplyMessage<TDocument> ReceiveMessage<TDocument>(
             BsonBinaryReaderSettings readerSettings,
-            IBsonSerializer serializer,
-            IBsonSerializationOptions serializationOptions)
+            IBsonSerializer<TDocument> serializer)
         {
             if (_state == MongoConnectionState.Closed) { throw new InvalidOperationException("Connection is closed."); }
             lock (_connectionLock)
@@ -262,7 +261,7 @@ namespace MongoDB.Driver.Internal
                     using (var stream = new ByteBufferStream(byteBuffer, ownsByteBuffer: true))
                     {
                         var reply = new MongoReplyMessage<TDocument>(readerSettings, serializer);
-                        reply.ReadFrom(stream, serializationOptions);
+                        reply.ReadFrom(stream);
                         return reply;
                     }
                 }

@@ -69,16 +69,6 @@ namespace MongoDB.Bson.Serialization.Conventions
                 {
                     attribute.Apply(classMap);
                 }
-#pragma warning disable 618 // obsoleted by IBsonClassMapModifier
-                foreach (IBsonClassMapModifier attribute in classMap.ClassType.GetCustomAttributes(typeof(IBsonClassMapModifier), false))
-                {
-                    // only apply this if it wasn't already applied
-                    if (!(attribute is IBsonClassMapAttribute))
-                    {
-                        attribute.Apply(classMap);
-                    }
-                }
-#pragma warning restore 618
 
                 OptInMembersWithBsonMemberMapModifierAttribute(classMap);
                 OptInMembersWithBsonCreatorMapModifierAttribute(classMap);
@@ -103,16 +93,6 @@ namespace MongoDB.Bson.Serialization.Conventions
                 {
                     attribute.Apply(memberMap);
                 }
-#pragma warning disable 618 // obsoleted by IBsonMemberMapModifier
-                foreach (IBsonMemberMapModifier attribute in memberMap.MemberInfo.GetCustomAttributes(typeof(IBsonMemberMapModifier), false))
-                {
-                    // only apply this if it wasn't already applied
-                    if (!(attribute is IBsonMemberMapAttribute))
-                    {
-                        attribute.Apply(memberMap);
-                    }
-                }
-#pragma warning restore 618
             }
 
             public void PostProcess(BsonClassMap classMap)
@@ -161,11 +141,7 @@ namespace MongoDB.Bson.Serialization.Conventions
                 // let other fields opt-in if they have any IBsonMemberMapAttribute attributes
                 foreach (var fieldInfo in classMap.ClassType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
                 {
-#pragma warning disable 618 // obsoleted by IBsonMemberMapModifier
-                    var hasAttribute = fieldInfo.GetCustomAttributes(typeof(IBsonMemberMapAttribute), false).Any()
-                        || fieldInfo.GetCustomAttributes(typeof(IBsonMemberMapModifier), false).Any();
-#pragma warning restore 618
-
+                    var hasAttribute = fieldInfo.GetCustomAttributes(typeof(IBsonMemberMapAttribute), false).Any();
                     if (hasAttribute)
                     {
                         classMap.MapMember(fieldInfo);
@@ -175,10 +151,7 @@ namespace MongoDB.Bson.Serialization.Conventions
                 // let other properties opt-in if they have any IBsonMemberMapAttribute attributes
                 foreach (var propertyInfo in classMap.ClassType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
                 {
-#pragma warning disable 618 // obsoleted by IBsonMemberMapModifier
-                    var hasAttribute = propertyInfo.GetCustomAttributes(typeof(IBsonMemberMapAttribute), false).Any()
-                        || propertyInfo.GetCustomAttributes(typeof(IBsonMemberMapModifier), false).Any();
-#pragma warning restore 618
+                    var hasAttribute = propertyInfo.GetCustomAttributes(typeof(IBsonMemberMapAttribute), false).Any();
                     if (hasAttribute)
                     {
                         classMap.MapMember(propertyInfo);
@@ -204,13 +177,8 @@ namespace MongoDB.Bson.Serialization.Conventions
                 foreach (var memberMap in classMap.DeclaredMemberMaps)
                 {
                     var attributes = (IBsonMemberMapAttribute[])memberMap.MemberInfo.GetCustomAttributes(typeof(IBsonMemberMapAttribute), false);
-#pragma warning disable 618 // obsoleted by IBsonMemberMapModifier
-                    var legacyAttributes = (IBsonMemberMapModifier[])memberMap.MemberInfo.GetCustomAttributes(typeof(IBsonMemberMapModifier), false);
                     // combine them only if the modifier isn't already in the attributes list...
-                    var attributeTypes = attributes
-                        .Select(x => x.GetType())
-                        .Union(legacyAttributes.Where(x => !(x is IBsonMemberMapAttribute)).Select(x => x.GetType()));
-#pragma warning restore 618
+                    var attributeTypes = attributes.Select(x => x.GetType());
                     foreach (var attributeType in attributeTypes)
                     {
                         if (nonDuplicatesAlreadySeen.Contains(attributeType))

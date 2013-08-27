@@ -33,8 +33,7 @@ namespace MongoDB.Driver.Core.Protocol
         private readonly long _cursorId;
         private readonly int _numberToReturn;
         private readonly BsonBinaryReaderSettings _readerSettings;
-        private readonly IBsonSerializer _serializer;
-        private readonly IBsonSerializationOptions _serializationOptions;
+        private readonly IBsonSerializer<TDocument> _serializer;
 
         // constructors
         /// <summary>
@@ -45,13 +44,11 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="numberToReturn">The number to return.</param>
         /// <param name="readerSettings">The reader settings.</param>
         /// <param name="serializer">The serializer.</param>
-        /// <param name="serializationOptions">The serialization options.</param>
         public GetMoreProtocol(CollectionNamespace collection,
             long cursorId,
             int numberToReturn,
             BsonBinaryReaderSettings readerSettings,
-            IBsonSerializer serializer,
-            IBsonSerializationOptions serializationOptions)
+            IBsonSerializer<TDocument> serializer)
         {
             Ensure.IsNotNull("collection", collection);
             Ensure.IsNotNull("readerSettings", readerSettings);
@@ -62,7 +59,6 @@ namespace MongoDB.Driver.Core.Protocol
             _numberToReturn = numberToReturn;
             _readerSettings = readerSettings;
             _serializer = serializer;
-            _serializationOptions = serializationOptions;
         }
 
         // public methods
@@ -93,7 +89,7 @@ namespace MongoDB.Driver.Core.Protocol
                     throw new MongoCursorNotFoundException();
                 }
 
-                var docs = reply.DeserializeDocuments<TDocument>(_serializer, _serializationOptions, _readerSettings);
+                var docs = reply.DeserializeDocuments<TDocument>(_serializer, _readerSettings);
                 return new CursorBatch<TDocument>(reply.CursorId, docs.ToList());
             }
         }

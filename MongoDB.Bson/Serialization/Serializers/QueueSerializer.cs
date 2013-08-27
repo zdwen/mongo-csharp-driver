@@ -16,8 +16,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization.Serializers
@@ -25,256 +24,184 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Queues.
     /// </summary>
-    public class QueueSerializer : BsonBaseSerializer, IBsonArraySerializer
+    public class QueueSerializer :
+        EnumerableSerializerBase<Queue>,
+        IBsonSerializerWithConfigurableChildSerializer,
+        IBsonSerializerWithItemSerializer,
+        IBsonArraySerializer
     {
-        // private static fields
-        private static QueueSerializer __instance = new QueueSerializer();
-
         // constructors
-        /// <summary>
-        /// Initializes a new instance of the QueueSerializer class.
-        /// </summary>
         public QueueSerializer()
-            : base(new ArraySerializationOptions())
         {
         }
 
-        // public static properties
-        /// <summary>
-        /// Gets an instance of the QueueSerializer class.
-        /// </summary>
-        [Obsolete("Use constructor instead.")]
-        public static QueueSerializer Instance
+        public QueueSerializer(IBsonSerializer itemSerializer)
+            : base(itemSerializer)
         {
-            get { return __instance; }
         }
 
         // public methods
-        /// <summary>
-        /// Deserializes an object from a BsonReader.
-        /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
-        /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public QueueSerializer WithItemSerializer(IBsonSerializer itemSerializer)
         {
-            var arraySerializationOptions = EnsureSerializationOptions<ArraySerializationOptions>(options);
-            var itemSerializationOptions = arraySerializationOptions.ItemSerializationOptions;
-
-            var bsonType = bsonReader.GetCurrentBsonType();
-            switch (bsonType)
+            if (itemSerializer == ItemSerializer)
             {
-                case BsonType.Null:
-                    bsonReader.ReadNull();
-                    return null;
-                case BsonType.Array:
-                    bsonReader.ReadStartArray();
-                    var queue = new Queue();
-                    var discriminatorConvention = BsonSerializer.LookupDiscriminatorConvention(typeof(object));
-                    while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
-                    {
-                        var elementType = discriminatorConvention.GetActualType(bsonReader, typeof(object));
-                        var serializer = BsonSerializer.LookupSerializer(elementType);
-                        var element = serializer.Deserialize(bsonReader, typeof(object), elementType, itemSerializationOptions);
-                        queue.Enqueue(element);
-                    }
-                    bsonReader.ReadEndArray();
-                    return queue;
-                case BsonType.Document:
-                    bsonReader.ReadStartDocument();
-                    bsonReader.ReadString("_t"); // skip over discriminator
-                    bsonReader.ReadName("_v");
-                    var value = Deserialize(bsonReader, actualType, actualType, options);
-                    bsonReader.ReadEndDocument();
-                    return value;
-                default:
-                    var message = string.Format("Can't deserialize a {0} from BsonType {1}.", nominalType.FullName, bsonType);
-                    throw new FileFormatException(message);
-            }
-        }
-
-        /// <summary>
-        /// Gets the serialization info for individual items of an enumerable type.
-        /// </summary>
-        /// <returns>The serialization info for the items.</returns>
-        public BsonSerializationInfo GetItemSerializationInfo()
-        {
-            string elementName = null;
-            var serializer = BsonSerializer.LookupSerializer(typeof(object));
-            var nominalType = typeof(object);
-            IBsonSerializationOptions serializationOptions = null;
-            return new BsonSerializationInfo(elementName, serializer, nominalType, serializationOptions);
-        }
-
-        /// <summary>
-        /// Serializes an object to a BsonWriter.
-        /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
-        /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
-        {
-            if (value == null)
-            {
-                bsonWriter.WriteNull();
+                return this;
             }
             else
             {
-                if (nominalType == typeof(object))
-                {
-                    var actualType = value.GetType();
-                    bsonWriter.WriteStartDocument();
-                    bsonWriter.WriteString("_t", TypeNameDiscriminator.GetDiscriminator(actualType));
-                    bsonWriter.WriteName("_v");
-                    Serialize(bsonWriter, actualType, value, options);
-                    bsonWriter.WriteEndDocument();
-                    return;
-                }
-
-                var items = (Queue)value;
-                var arraySerializationOptions = EnsureSerializationOptions<ArraySerializationOptions>(options);
-                var itemSerializationOptions = arraySerializationOptions.ItemSerializationOptions;
-
-                bsonWriter.WriteStartArray();
-                foreach (var item in items)
-                {
-                    BsonSerializer.Serialize(bsonWriter, typeof(object), item, itemSerializationOptions);
-                }
-                bsonWriter.WriteEndArray();
+                return new QueueSerializer(itemSerializer);
             }
+        }
+
+        // protected methods
+        /// <summary>
+        /// Adds the item.
+        /// </summary>
+        /// <param name="accumulator">The accumulator.</param>
+        /// <param name="item">The item.</param>
+        protected override void AddItem(object accumulator, object item)
+        {
+            ((Queue)accumulator).Enqueue(item);
+        }
+
+        /// <summary>
+        /// Creates the accumulator.
+        /// </summary>
+        /// <returns>The accumulator.</returns>
+        protected override object CreateAccumulator()
+        {
+            return new Queue();
+        }
+
+        /// <summary>
+        /// Enumerates the items.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The items.</returns>
+        protected override IEnumerable EnumerateItemsInSerializationOrder(Queue value)
+        {
+            return value;
+        }
+
+        /// <summary>
+        /// Finalizes the result.
+        /// </summary>
+        /// <param name="accumulator">The instance.</param>
+        /// <returns>The result.</returns>
+        protected override Queue FinalizeResult(object accumulator)
+        {
+            return (Queue)accumulator;
+        }
+
+        // explicit interface implementations
+        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.ConfigurableChildSerializer
+        {
+            get { return ItemSerializer; }
+        }
+
+        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        {
+            return WithItemSerializer(childSerializer);
+        }
+
+        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer itemSerializer)
+        {
+            return WithItemSerializer(itemSerializer);
         }
     }
 
     /// <summary>
     /// Represents a serializer for Queues.
     /// </summary>
-    /// <typeparam name="T">The type of the elements.</typeparam>
-    public class QueueSerializer<T> : BsonBaseSerializer, IBsonArraySerializer
+    /// <typeparam name="TItem">The type of the elements.</typeparam>
+    public class QueueSerializer<TItem> :
+        EnumerableSerializerBase<Queue<TItem>, TItem>,
+        IBsonSerializerWithConfigurableChildSerializer,
+        IBsonSerializerWithItemSerializer<QueueSerializer<TItem>, Queue<TItem>, TItem>,
+        IBsonArraySerializer
     {
         // constructors
-        /// <summary>
-        /// Initializes a new instance of the QueueSerializer class.
-        /// </summary>
         public QueueSerializer()
-            : base(new ArraySerializationOptions())
+        {
+        }
+
+        public QueueSerializer(IBsonSerializer<TItem> itemSerializer)
+            : base(itemSerializer)
         {
         }
 
         // public methods
-        /// <summary>
-        /// Deserializes an object from a BsonReader.
-        /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
-        /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public QueueSerializer<TItem> WithItemSerializer(IBsonSerializer<TItem> itemSerializer)
         {
-            var arraySerializationOptions = EnsureSerializationOptions<ArraySerializationOptions>(options);
-            var itemSerializationOptions = arraySerializationOptions.ItemSerializationOptions;
-
-            var bsonType = bsonReader.GetCurrentBsonType();
-            switch (bsonType)
+            if (itemSerializer == ItemSerializer)
             {
-                case BsonType.Null:
-                    bsonReader.ReadNull();
-                    return null;
-                case BsonType.Array:
-                    bsonReader.ReadStartArray();
-                    var queue = new Queue<T>();
-                    var discriminatorConvention = BsonSerializer.LookupDiscriminatorConvention(typeof(T));
-                    while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
-                    {
-                        var elementType = discriminatorConvention.GetActualType(bsonReader, typeof(T));
-                        var serializer = BsonSerializer.LookupSerializer(elementType);
-                        var element = (T)serializer.Deserialize(bsonReader, typeof(T), elementType, itemSerializationOptions);
-                        queue.Enqueue(element);
-                    }
-                    bsonReader.ReadEndArray();
-                    return queue;
-                case BsonType.Document:
-                    bsonReader.ReadStartDocument();
-                    bsonReader.ReadString("_t"); // skip over discriminator
-                    bsonReader.ReadName("_v");
-                    var value = Deserialize(bsonReader, actualType, actualType, options);
-                    bsonReader.ReadEndDocument();
-                    return value;
-                default:
-                    var message = string.Format("Can't deserialize a {0} from BsonType {1}.", nominalType.FullName, bsonType);
-                    throw new FileFormatException(message);
-            }
-        }
-
-        /// <summary>
-        /// Gets the serialization info for individual items of an enumerable type.
-        /// </summary>
-        /// <returns>The serialization info for the items.</returns>
-        public BsonSerializationInfo GetItemSerializationInfo()
-        {
-            string elementName = null;
-            var serializer = BsonSerializer.LookupSerializer(typeof(T));
-            var nominalType = typeof(T);
-            IBsonSerializationOptions serializationOptions = null;
-            return new BsonSerializationInfo(elementName, serializer, nominalType, serializationOptions);
-        }
-
-        /// <summary>
-        /// Serializes an object to a BsonWriter.
-        /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
-        /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
-        {
-            if (value == null)
-            {
-                bsonWriter.WriteNull();
+                return this;
             }
             else
             {
-                if (nominalType == typeof(object))
-                {
-                    var actualType = value.GetType();
-                    bsonWriter.WriteStartDocument();
-                    bsonWriter.WriteString("_t", TypeNameDiscriminator.GetDiscriminator(actualType));
-                    bsonWriter.WriteName("_v");
-                    Serialize(bsonWriter, actualType, value, options);
-                    bsonWriter.WriteEndDocument();
-                    return;
-                }
-
-                var items = (Queue<T>)value;
-                var arraySerializationOptions = EnsureSerializationOptions<ArraySerializationOptions>(options);
-                var itemSerializationOptions = arraySerializationOptions.ItemSerializationOptions;
-
-                bsonWriter.WriteStartArray();
-                foreach (var item in items)
-                {
-                    BsonSerializer.Serialize(bsonWriter, typeof(T), item, itemSerializationOptions);
-                }
-                bsonWriter.WriteEndArray();
+                return new QueueSerializer<TItem>(itemSerializer);
             }
+        }
+
+        // protected methods
+        /// <summary>
+        /// Adds the item.
+        /// </summary>
+        /// <param name="accumulator">The accumulator.</param>
+        /// <param name="item">The item.</param>
+        protected override void AddItem(object accumulator, TItem item)
+        {
+            ((Queue<TItem>)accumulator).Enqueue(item);
+        }
+
+        /// <summary>
+        /// Creates the accumulator.
+        /// </summary>
+        /// <returns>The accumulator.</returns>
+        protected override object CreateAccumulator()
+        {
+            return new Queue<TItem>();
+        }
+
+        /// <summary>
+        /// Enumerates the items in serialization order.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The items.</returns>
+        protected override IEnumerable<TItem> EnumerateItemsInSerializationOrder(Queue<TItem> value)
+        {
+            return value;
+        }
+
+        /// <summary>
+        /// Finalizes the result.
+        /// </summary>
+        /// <param name="accumulator">The accumulator.</param>
+        /// <returns>The result.</returns>
+        protected override Queue<TItem> FinalizeResult(object accumulator)
+        {
+            return (Queue<TItem>)accumulator;
+        }
+
+        // explicit interface implementations
+        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.ConfigurableChildSerializer
+        {
+            get { return ItemSerializer; }
+        }
+
+        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        {
+            return WithItemSerializer((IBsonSerializer<TItem>)childSerializer);
+        }
+
+        IBsonSerializer IBsonSerializerWithItemSerializer.ItemSerializer
+        {
+            get { return ItemSerializer; }
+        }
+
+        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer itemSerializer)
+        {
+            return WithItemSerializer((IBsonSerializer<TItem>)itemSerializer);
         }
     }
 }

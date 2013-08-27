@@ -63,10 +63,10 @@ namespace MongoDB.Driver.Internal
                 }
                 else
                 {
-                    BsonSerializer.Serialize(bsonWriter, _query.GetType(), _query, DocumentSerializationOptions.SerializeIdFirstInstance);
+                    BsonSerializer.Serialize(bsonWriter, _query.GetType(), _query);
                 }
                 bsonWriter.CheckUpdateDocument = _checkUpdateDocument;
-                BsonSerializer.Serialize(bsonWriter, _update.GetType(), _update, DocumentSerializationOptions.SerializeIdFirstInstance);
+                BsonSerializer.Serialize(bsonWriter, _update.GetType(), _update);
             }
         }
     }

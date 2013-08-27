@@ -13,20 +13,17 @@
 * limitations under the License.
 */
 
-using System;
+using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization
 {
-    /// <summary>
-    /// Represents an attribute used to modify a member map.
-    /// </summary>
-    [Obsolete("Use IBsonMemberMapAttribute instead.")]
-    public interface IBsonMemberMapModifier
+    public interface IBsonSerializerWithDictionaryRepresentation
     {
-        /// <summary>
-        /// Applies the attribute to the member map.
-        /// </summary>
-        /// <param name="memberMap">The member map.</param>
-        void Apply(BsonMemberMap memberMap);
+        IBsonSerializer WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation);
+    }
+
+    public interface IBsonSerializerWithDictionaryRepresentation<TSerializer> : IBsonSerializerWithDictionaryRepresentation where TSerializer : IBsonSerializer
+    {
+        TSerializer WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation);
     }
 }

@@ -24,20 +24,20 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
     /// <summary>
     /// Represents a serializer for a GeoJsonCoordinateReferenceSystem value.
     /// </summary>
-    public class GeoJsonCoordinateReferenceSystemSerializer : BsonBaseSerializer
+    public class GeoJsonCoordinateReferenceSystemSerializer : BsonBaseSerializer<GeoJsonCoordinateReferenceSystem>
     {
         // public methods
         /// <summary>
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>
         /// An object.
         /// </returns>
-        public override object Deserialize(BsonReader bsonReader, Type nominalType, IBsonSerializationOptions options)
+        public override GeoJsonCoordinateReferenceSystem Deserialize(DeserializationContext context)
         {
+            var bsonReader = context.Reader;
+
             if (bsonReader.GetCurrentBsonType() == BsonType.Null)
             {
                 bsonReader.ReadNull();
@@ -46,8 +46,8 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             else
             {
                 var actualType = GetActualType(bsonReader);
-                var actualTypeSerializer = BsonSerializer.LookupSerializer(actualType);
-                return actualTypeSerializer.Deserialize(bsonReader, nominalType, actualType, options);
+                var serializer = BsonSerializer.LookupSerializer(actualType);
+                return (GeoJsonCoordinateReferenceSystem)serializer.Deserialize(context);
             }
         }
 
@@ -55,11 +55,11 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, GeoJsonCoordinateReferenceSystem value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 bsonWriter.WriteNull();
@@ -67,36 +67,9 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             else
             {
                 var actualType = value.GetType();
-                var actualTypeSerializer = BsonSerializer.LookupSerializer(actualType);
-                actualTypeSerializer.Serialize(bsonWriter, nominalType, value, options);
+                var serializer = BsonSerializer.LookupSerializer(actualType);
+                serializer.Serialize(context, value);
             }
-        }
-
-        // protected methods
-        /// <summary>
-        /// Deserializes the type of the coordinate reference system.
-        /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="expectedType">The expected type.</param>
-        /// <exception cref="System.FormatException"></exception>
-        protected void DeserializeType(BsonReader bsonReader, string expectedType)
-        {
-            var type = bsonReader.ReadString("type");
-            if (type != expectedType)
-            {
-                var message = string.Format("Expected type to be '{0}'.", expectedType);
-                throw new FormatException(message);
-            }
-        }
-
-        /// <summary>
-        /// Serializes the type of the coordinate reference system.
-        /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="type">The type.</param>
-        protected void SerializeType(BsonWriter bsonWriter, string type)
-        {
-            bsonWriter.WriteString("type", type);
         }
 
         // private methods

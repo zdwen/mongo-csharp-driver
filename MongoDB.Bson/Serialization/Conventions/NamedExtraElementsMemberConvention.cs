@@ -23,9 +23,7 @@ namespace MongoDB.Bson.Serialization.Conventions
     /// <summary>
     /// A convention that finds the extra elements member by name (and that is also of type BsonDocument or an IDictionary&lt;string, object&gt;).
     /// </summary>
-#pragma warning disable 618 // about obsolete IExtraElementsMemberConvention
-    public class NamedExtraElementsMemberConvention : ConventionBase, IClassMapConvention, IExtraElementsMemberConvention
-#pragma warning restore 618
+    public class NamedExtraElementsMemberConvention : ConventionBase, IClassMapConvention
     {
         // private fields
         private readonly IEnumerable<string> _names;

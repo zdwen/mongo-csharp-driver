@@ -13,21 +13,17 @@
 * limitations under the License.
 */
 
-using System;
-
-namespace MongoDB.Bson.Serialization.Conventions
+namespace MongoDB.Bson.Serialization
 {
-    /// <summary>
-    /// Represents an extra elements member convention.
-    /// </summary>
-    [Obsolete("Use IClassMapConvention instead.")]
-    public interface IExtraElementsMemberConvention
+    public interface IBsonSerializerWithItemSerializer
     {
-        /// <summary>
-        /// Finds the extra elements member of a class.
-        /// </summary>
-        /// <param name="type">The class.</param>
-        /// <returns>The extra elements member.</returns>
-        string FindExtraElementsMember(Type type);
+        IBsonSerializer ItemSerializer { get; }
+        IBsonSerializer WithItemSerializer(IBsonSerializer itemSerializer);
+    }
+
+    public interface IBsonSerializerWithItemSerializer<TSerializer, TValue, TItem> : IBsonSerializerWithItemSerializer where TSerializer : IBsonSerializer<TValue>
+    {
+        IBsonSerializer<TItem> ItemSerializer { get; }
+        TSerializer WithItemSerializer(IBsonSerializer<TItem> itemSerializer);
     }
 }

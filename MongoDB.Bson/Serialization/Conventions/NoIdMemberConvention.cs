@@ -23,9 +23,7 @@ namespace MongoDB.Bson.Serialization.Conventions
     /// <summary>
     /// A convention that sets a class's IdMember to null.
     /// </summary>
-#pragma warning disable 618 // about obsolete IIdMemberConvention
-    public class NoIdMemberConvention : ConventionBase, IPostProcessingConvention, IIdMemberConvention
-#pragma warning restore 618
+    public class NoIdMemberConvention : ConventionBase, IPostProcessingConvention
     {
         // public methods
         /// <summary>

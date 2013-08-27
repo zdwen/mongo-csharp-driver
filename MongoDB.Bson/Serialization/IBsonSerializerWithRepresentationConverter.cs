@@ -13,22 +13,17 @@
 * limitations under the License.
 */
 
-using System;
-using System.Reflection;
+using MongoDB.Bson.Serialization.Options;
 
-namespace MongoDB.Bson.Serialization.Conventions
+namespace MongoDB.Bson.Serialization
 {
-    /// <summary>
-    /// Represents an Id generator convention.
-    /// </summary>
-    [Obsolete("Use IPostProcessingConvention instead.")]
-    public interface IIdGeneratorConvention
+    public interface IBsonSerializerWithRepresentationConverter
     {
-        /// <summary>
-        /// Gets the Id generator for an Id member.
-        /// </summary>
-        /// <param name="memberInfo">The member.</param>
-        /// <returns>An Id generator.</returns>
-        IIdGenerator GetIdGenerator(MemberInfo memberInfo);
+        IBsonSerializer WithConverter(RepresentationConverter converter);
+    }
+
+    public interface IBsonSerializerWithRepresentationConverter<TSerializer> : IBsonSerializerWithRepresentationConverter where TSerializer : IBsonSerializer
+    {
+        TSerializer WithConverter(RepresentationConverter converter);
     }
 }

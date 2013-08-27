@@ -16,6 +16,7 @@
 using System;
 using System.IO;
 using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization.Serializers
@@ -23,28 +24,33 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Chars.
     /// </summary>
-    public class CharSerializer : BsonBaseSerializer
+    public class CharSerializer : BsonBaseSerializer<char>, IBsonSerializerWithRepresentation<CharSerializer>
     {
-        // private static fields
-        private static CharSerializer __instance = new CharSerializer();
+        // private fields
+        private readonly BsonType _representation;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the CharSerializer class.
+        /// Initializes a new instance of the <see cref="CharSerializer"/> class.
         /// </summary>
         public CharSerializer()
-            : base(new RepresentationSerializationOptions(BsonType.Int32))
+            : this(BsonType.Int32)
         {
         }
 
-        // public static properties
         /// <summary>
-        /// Gets an instance of the CharSerializer class.
+        /// Initializes a new instance of the <see cref="CharSerializer"/> class.
         /// </summary>
-        [Obsolete("Use constructor instead.")]
-        public static CharSerializer Instance
+        /// <param name="representation">The representation.</param>
+        public CharSerializer(BsonType representation)
         {
-            get { return __instance; }
+            _representation = representation;
+        }
+
+        // public properties
+        public BsonType Representation
+        {
+            get { return _representation; }
         }
 
         // public methods
@@ -52,25 +58,21 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
         /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override char Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(char));
+            var bsonReader = context.Reader;
 
             BsonType bsonType = bsonReader.GetCurrentBsonType();
             switch (bsonType)
             {
                 case BsonType.Int32:
                     return (char)bsonReader.ReadInt32();
+
                 case BsonType.String:
                     return (char)bsonReader.ReadString()[0];
+
                 default:
                     var message = string.Format("Cannot deserialize Char from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -81,30 +83,43 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, char value)
         {
-            var charValue = (char)value;
-            var representationSerializationOptions = EnsureSerializationOptions<RepresentationSerializationOptions>(options);
+            var bsonWriter = context.Writer;
 
-            switch (representationSerializationOptions.Representation)
+            switch (_representation)
             {
                 case BsonType.Int32:
-                    bsonWriter.WriteInt32((int)charValue);
+                    bsonWriter.WriteInt32((int)value);
                     break;
+
                 case BsonType.String:
-                    bsonWriter.WriteString(new string(new[] { charValue }));
+                    bsonWriter.WriteString(new string(new[] { value }));
                     break;
+
                 default:
-                    var message = string.Format("'{0}' is not a valid Char representation.", representationSerializationOptions.Representation);
+                    var message = string.Format("'{0}' is not a valid Char representation.", _representation);
                     throw new BsonSerializationException(message);
             }
+        }
+
+        public CharSerializer WithRepresentation(BsonType representation)
+        {
+            if (representation == _representation)
+            {
+                return this;
+            }
+            else
+            {
+                return new CharSerializer(representation);
+            }
+        }
+
+        // explicit interface implementations
+        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        {
+            return WithRepresentation(representation);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for BsonDocuments.
     /// </summary>
-    public class BsonDocumentSerializer : BsonBaseSerializer, IBsonIdProvider
+    public class BsonDocumentSerializer : BsonBaseSerializer<BsonDocument>, IBsonIdProvider
     {
         // private static fields
         private static BsonDocumentSerializer __instance = new BsonDocumentSerializer();
@@ -34,7 +34,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Initializes a new instance of the BsonDocumentSerializer class.
         /// </summary>
         public BsonDocumentSerializer()
-            : base(new DocumentSerializationOptions())
         {
         }
 
@@ -52,44 +51,28 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
         /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override BsonDocument Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(BsonDocument));
+            var bsonReader = context.Reader;
 
             var bsonType = bsonReader.GetCurrentBsonType();
             string message;
             switch (bsonType)
             {
                 case BsonType.Document:
-                    var documentSerializationOptions = (options ?? DocumentSerializationOptions.Defaults) as DocumentSerializationOptions;
-                    if (documentSerializationOptions == null)
-                    {
-                        message = string.Format(
-                            "Serialize method of BsonDocument expected serialization options of type {0}, not {1}.",
-                            BsonUtils.GetFriendlyTypeName(typeof(DocumentSerializationOptions)),
-                            BsonUtils.GetFriendlyTypeName(options.GetType()));
-                        throw new BsonSerializationException(message);
-                    }
-
                     bsonReader.ReadStartDocument();
-                    var document = new BsonDocument(documentSerializationOptions.AllowDuplicateNames);
+                    var document = new BsonDocument(allowDuplicateNames: context.AllowDuplicateElementNames);
                     while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
                     {
                         var name = bsonReader.ReadName();
-                        var value = (BsonValue)BsonValueSerializer.Instance.Deserialize(bsonReader, typeof(BsonValue), null);
+                        var value = context.DeserializeWithChildContext(BsonValueSerializer.Instance);
                         document.Add(name, value);
                     }
                     bsonReader.ReadEndDocument();
-
                     return document;
+
                 default:
                     message = string.Format("Cannot deserialize BsonDocument from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -141,54 +124,32 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, BsonDocument value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 throw new ArgumentNullException("value");
             }
 
-            // could get here with a BsonDocumentWrapper from BsonValueSerializer switch statement
-            var wrapper = value as BsonDocumentWrapper;
-            if (wrapper != null)
-            {
-                BsonDocumentWrapperSerializer.Instance.Serialize(bsonWriter, nominalType, value, null);
-                return;
-            }
-
-            var bsonDocument = (BsonDocument)value;
-            var documentSerializationOptions = (options ?? DocumentSerializationOptions.Defaults) as DocumentSerializationOptions;
-            if (documentSerializationOptions == null)
-            {
-                var message = string.Format(
-                    "Serialize method of BsonDocument expected serialization options of type {0}, not {1}.",
-                    BsonUtils.GetFriendlyTypeName(typeof(DocumentSerializationOptions)),
-                    BsonUtils.GetFriendlyTypeName(options.GetType()));
-                throw new BsonSerializationException(message);
-            }
-
             bsonWriter.WriteStartDocument();
+
             BsonElement idElement = null;
-            if (documentSerializationOptions.SerializeIdFirst && bsonDocument.TryGetElement("_id", out idElement))
+            if (context.SerializeIdFirst && value.TryGetElement("_id", out idElement))
             {
                 bsonWriter.WriteName(idElement.Name);
-                BsonValueSerializer.Instance.Serialize(bsonWriter, typeof(BsonValue), idElement.Value, null);
+                context.SerializeWithChildContext(BsonValueSerializer.Instance, idElement.Value);
             }
 
-            foreach (var element in bsonDocument)
+            foreach (var element in value)
             {
                 // if serializeIdFirst is false then idElement will be null and no elements will be skipped
                 if (!object.ReferenceEquals(element, idElement))
                 {
                     bsonWriter.WriteName(element.Name);
-                    BsonValueSerializer.Instance.Serialize(bsonWriter, typeof(BsonValue), element.Value, null);
+                    context.SerializeWithChildContext(BsonValueSerializer.Instance, element.Value);
                 }
             }
 

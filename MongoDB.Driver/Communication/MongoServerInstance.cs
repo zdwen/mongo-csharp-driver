@@ -693,7 +693,7 @@ namespace MongoDB.Driver
         {
             var readerSettings = new BsonBinaryReaderSettings();
             var writerSettings = new BsonBinaryWriterSettings();
-            var resultSerializer = BsonSerializer.LookupSerializer(typeof(TCommandResult));
+            var resultSerializer = BsonSerializer.LookupSerializer<TCommandResult>();
 
             var commandOperation = new CommandOperation<TCommandResult>(
                 databaseName,
@@ -703,7 +703,6 @@ namespace MongoDB.Driver
                 QueryFlags.SlaveOk,
                 null, // options
                 null, // readPreference
-                null, // serializationOptions
                 resultSerializer);
 
             return commandOperation.Execute(connection);

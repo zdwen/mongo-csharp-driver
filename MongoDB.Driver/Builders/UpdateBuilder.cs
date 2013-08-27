@@ -20,6 +20,7 @@ using System.Linq.Expressions;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Linq.Utils;
 using MongoDB.Driver.Wrappers;
@@ -551,7 +552,6 @@ namespace MongoDB.Driver.Builders
         /// <summary>
         /// Replaces the entire document with a new document (the _id must remain the same).
         /// </summary>
-        /// <param name="nominalType">The nominal type of the replacement document</param>
         /// <param name="document">The replacement document.</param>
         /// <returns>An UpdateWrapper.</returns>
         public static IMongoUpdate Replace(Type nominalType, object document)
@@ -611,6 +611,7 @@ namespace MongoDB.Driver.Builders
     /// A builder for creating update modifiers.
     /// </summary>
     [Serializable]
+    [BsonSerializer(typeof(UpdateBuilder.Serializer))]
     public class UpdateBuilder : BuilderBase, IMongoUpdate
     {
         // private fields
@@ -1466,18 +1467,6 @@ namespace MongoDB.Driver.Builders
             return this;
         }
 
-        // protected methods
-        /// <summary>
-        /// Serializes the result of the builder to a BsonWriter.
-        /// </summary>
-        /// <param name="bsonWriter">The writer.</param>
-        /// <param name="nominalType">The nominal type.</param>
-        /// <param name="options">The serialization options.</param>
-        protected override void Serialize(BsonWriter bsonWriter, Type nominalType, IBsonSerializationOptions options)
-        {
-            BsonDocumentSerializer.Instance.Serialize(bsonWriter, nominalType, _document, options);
-        }
-
         // private methods
         private void BitwiseOperation(string name, string operation, BsonValue value)
         {
@@ -1511,6 +1500,15 @@ namespace MongoDB.Driver.Builders
             var incDocument = incElement.Value.AsBsonDocument;
 
             incDocument.Add(name, value);
+        }
+
+        // nested classes
+        internal class Serializer : BsonBaseSerializer<UpdateBuilder>
+        {
+            public override void Serialize(SerializationContext context, UpdateBuilder value)
+            {
+                context.SerializeWithChildContext(BsonDocumentSerializer.Instance, value._document);
+            }
         }
     }
 
@@ -1863,6 +1861,7 @@ namespace MongoDB.Driver.Builders
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     [Serializable]
+    [BsonSerializer(typeof(UpdateBuilder<>.Serializer))]
     public class UpdateBuilder<TDocument> : BuilderBase, IMongoUpdate
     {
         // private fields
@@ -2401,16 +2400,13 @@ namespace MongoDB.Driver.Builders
             return this;
         }
 
-        // protected methods
-        /// <summary>
-        /// Serializes the result of the builder to a BsonWriter.
-        /// </summary>
-        /// <param name="bsonWriter">The writer.</param>
-        /// <param name="nominalType">The nominal type.</param>
-        /// <param name="options">The serialization options.</param>
-        protected override void Serialize(BsonWriter bsonWriter, Type nominalType, IBsonSerializationOptions options)
+        // nested classes
+        internal class Serializer : BsonBaseSerializer<UpdateBuilder<TDocument>>
         {
-            ((IBsonSerializable)_updateBuilder).Serialize(bsonWriter, nominalType, options);
+            public override void Serialize(SerializationContext context, UpdateBuilder<TDocument> value)
+            {
+                context.SerializeWithChildContext(BsonDocumentSerializer.Instance, value._updateBuilder.ToBsonDocument());
+            }
         }
     }
 }

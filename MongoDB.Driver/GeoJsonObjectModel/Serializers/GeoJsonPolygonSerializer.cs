@@ -16,6 +16,7 @@
 using System;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
 {
@@ -23,88 +24,43 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
     /// Represents a serializer for a GeoJsonPolygon value.
     /// </summary>
     /// <typeparam name="TCoordinates">The type of the coordinates.</typeparam>
-    public class GeoJsonPolygonSerializer<TCoordinates> : GeoJsonGeometrySerializer<TCoordinates> where TCoordinates : GeoJsonCoordinates
+    public class GeoJsonPolygonSerializer<TCoordinates> : BsonBaseSerializer<GeoJsonPolygon<TCoordinates>> where TCoordinates : GeoJsonCoordinates
     {
-        // private fields
-        private readonly IBsonSerializer _coordinatesSerializer = BsonSerializer.LookupSerializer(typeof(GeoJsonPolygonCoordinates<TCoordinates>));
-
         // public methods
         /// <summary>
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>
         /// An object.
         /// </returns>
-        public override object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
+        public override GeoJsonPolygon<TCoordinates> Deserialize(DeserializationContext context)
         {
-            return DeserializeGeoJsonObject(bsonReader, new PolygonData());
+            var helper = new Helper();
+            return (GeoJsonPolygon<TCoordinates>)helper.Deserialize(context);
         }
 
         /// <summary>
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, GeoJsonPolygon<TCoordinates> value)
         {
-            SerializeGeoJsonObject(bsonWriter, (GeoJsonObject<TCoordinates>)value);
+            var helper = new Helper();
+            helper.Serialize(context, value);
         }
  
-        // protected methods
-        /// <summary>
-        /// Deserializes a field.
-        /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="data">The data.</param>
-        protected override void DeserializeField(BsonReader bsonReader, string name, ObjectData data)
-        {
-            var polygonData = (PolygonData)data;
-            switch (name)
-            {
-                case "coordinates": polygonData.Coordinates = DeserializeCoordinates(bsonReader); break;
-                default: base.DeserializeField(bsonReader, name, data); break;
-            }
-        }
-
-        /// <summary>
-        /// Serializes the fields.
-        /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="obj">The GeoJson object.</param>
-        protected override void SerializeFields(BsonWriter bsonWriter, GeoJsonObject<TCoordinates> obj)
-        {
-            var polygon = (GeoJsonPolygon<TCoordinates>)obj;
-            SerializeCoordinates(bsonWriter, polygon.Coordinates);
-        }
-
-        // private methods
-        private GeoJsonPolygonCoordinates<TCoordinates> DeserializeCoordinates(BsonReader bsonReader)
-        {
-            return (GeoJsonPolygonCoordinates<TCoordinates>)_coordinatesSerializer.Deserialize(bsonReader, typeof(GeoJsonPolygonCoordinates<TCoordinates>), null);
-        }
-
-        private void SerializeCoordinates(BsonWriter bsonWriter, GeoJsonPolygonCoordinates<TCoordinates> coordinates)
-        {
-            bsonWriter.WriteName("coordinates");
-            _coordinatesSerializer.Serialize(bsonWriter, typeof(GeoJsonPolygonCoordinates<TCoordinates>), coordinates, null);
-        }
-
         // nested classes
-        private class PolygonData : ObjectData
+        internal class Helper : GeoJsonGeometrySerializer<TCoordinates>.Helper
         {
             // private fields
+            private readonly IBsonSerializer<GeoJsonPolygonCoordinates<TCoordinates>> _coordinatesSerializer = BsonSerializer.LookupSerializer<GeoJsonPolygonCoordinates<TCoordinates>>();
             private GeoJsonPolygonCoordinates<TCoordinates> _coordinates;
 
             // constructors
-            public PolygonData()
-                : base("Polygon")
+            public Helper()
+                : base(typeof(GeoJsonPolygon<TCoordinates>), "Polygon", new GeoJsonObjectArgs<TCoordinates>())
             {
             }
 
@@ -115,10 +71,49 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 set { _coordinates = value; }
             }
 
-            // public methods
-            public override object CreateInstance()
+            // protected methods
+            protected override GeoJsonObject<TCoordinates> CreateObject()
             {
                 return new GeoJsonPolygon<TCoordinates>(Args, _coordinates);
+            }
+
+            /// <summary>
+            /// Deserializes a field.
+            /// </summary>
+            /// <param name="bsonReader">The BsonReader.</param>
+            /// <param name="name">The name.</param>
+            /// <param name="data">The data.</param>
+            protected override void DeserializeField(DeserializationContext context, string name)
+            {
+                switch (name)
+                {
+                    case "coordinates": _coordinates = DeserializeCoordinates(context); break;
+                    default: base.DeserializeField(context, name); break;
+                }
+            }
+
+            /// <summary>
+            /// Serializes the fields.
+            /// </summary>
+            /// <param name="bsonWriter">The BsonWriter.</param>
+            /// <param name="obj">The GeoJson object.</param>
+            protected override void SerializeFields(SerializationContext context, GeoJsonObject<TCoordinates> obj)
+            {
+                base.SerializeFields(context, obj);
+                var polygon = (GeoJsonPolygon<TCoordinates>)obj;
+                SerializeCoordinates(context, polygon.Coordinates);
+            }
+
+            // private methods
+            private GeoJsonPolygonCoordinates<TCoordinates> DeserializeCoordinates(DeserializationContext context)
+            {
+                return context.DeserializeWithChildContext(_coordinatesSerializer);
+            }
+
+            private void SerializeCoordinates(SerializationContext context, GeoJsonPolygonCoordinates<TCoordinates> coordinates)
+            {
+                context.Writer.WriteName("coordinates");
+                context.SerializeWithChildContext(_coordinatesSerializer, coordinates);
             }
         }
    }

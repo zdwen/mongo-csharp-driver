@@ -32,8 +32,7 @@ namespace MongoDB.Driver.Operations
         private readonly BsonDocument _options;
         private readonly IMongoQuery _query;
         private readonly ReadPreference _readPreference;
-        private readonly IBsonSerializationOptions _serializationOptions;
-        private readonly IBsonSerializer _serializer;
+        private readonly IBsonSerializer<TDocument> _serializer;
         private readonly int _skip;
 
         public QueryOperation(
@@ -48,8 +47,7 @@ namespace MongoDB.Driver.Operations
             BsonDocument options,
             IMongoQuery query,
             ReadPreference readPreference,
-            IBsonSerializationOptions serializationOptions,
-            IBsonSerializer serializer,
+            IBsonSerializer<TDocument> serializer,
             int skip)
             : base(databaseName, collectionName, readerSettings, writerSettings)
         {
@@ -60,7 +58,6 @@ namespace MongoDB.Driver.Operations
             _options = options;
             _query = query;
             _readPreference = readPreference;
-            _serializationOptions = serializationOptions;
             _serializer = serializer;
             _skip = skip;
 
@@ -157,7 +154,7 @@ namespace MongoDB.Driver.Operations
                 var wrappedQuery = WrapQuery(_query, _options, _readPreference, forShardRouter);
                 var queryMessage = new MongoQueryMessage(writerSettings, CollectionFullName, _flags, _skip, numberToReturn, wrappedQuery, _fields);
                 connection.SendMessage(queryMessage);
-                return connection.ReceiveMessage<TDocument>(readerSettings, _serializer, _serializationOptions);
+                return connection.ReceiveMessage<TDocument>(readerSettings, _serializer);
             }
             finally
             {
@@ -173,7 +170,7 @@ namespace MongoDB.Driver.Operations
                 var readerSettings = GetNodeAdjustedReaderSettings(connection.ServerInstance);
                 var getMoreMessage = new MongoGetMoreMessage(CollectionFullName, _batchSize, cursorId);
                 connection.SendMessage(getMoreMessage);
-                return connection.ReceiveMessage<TDocument>(readerSettings, _serializer, _serializationOptions);
+                return connection.ReceiveMessage<TDocument>(readerSettings, _serializer);
             }
             finally
             {

@@ -30,7 +30,7 @@ namespace MongoDB.Driver.Core
     /// Represents the result of an IsMaster command.
     /// </summary>
     [Serializable]
-    [BsonSerializer(typeof(CommandResultSerializer))]
+    [BsonSerializer(typeof(CommandResultSerializer<IsMasterResult>))]
     public class IsMasterResult : CommandResult
     {
         // constructors

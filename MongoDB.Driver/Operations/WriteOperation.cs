@@ -76,8 +76,8 @@ namespace MongoDB.Driver.Operations
             WriteConcernResult writeConcernResult = null;
             if (writeConcern.Enabled)
             {
-                var writeConcernResultSerializer = BsonSerializer.LookupSerializer(typeof(WriteConcernResult));
-                var replyMessage = connection.ReceiveMessage<WriteConcernResult>(readerSettings, writeConcernResultSerializer, null);
+                var writeConcernResultSerializer = BsonSerializer.LookupSerializer<WriteConcernResult>();
+                var replyMessage = connection.ReceiveMessage<WriteConcernResult>(readerSettings, writeConcernResultSerializer);
                 if (replyMessage.NumberReturned == 0)
                 {
                     throw new MongoCommandException("Command 'getLastError' failed. No response returned");

@@ -17,6 +17,7 @@ using System;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Driver.Builders
@@ -462,6 +463,7 @@ namespace MongoDB.Driver.Builders
     /// A builder for the options of a Map/Reduce operation.
     /// </summary>
     [Serializable]
+    [BsonSerializer(typeof(MapReduceOptionsBuilder.Serializer))]
     public class MapReduceOptionsBuilder : BuilderBase, IMongoMapReduceOptions
     {
         // private fields
@@ -602,16 +604,13 @@ namespace MongoDB.Driver.Builders
             return this;
         }
 
-        // protected methods
-        /// <summary>
-        /// Serializes the result of the builder to a BsonWriter.
-        /// </summary>
-        /// <param name="bsonWriter">The writer.</param>
-        /// <param name="nominalType">The nominal type.</param>
-        /// <param name="options">The serialization options.</param>
-        protected override void Serialize(BsonWriter bsonWriter, Type nominalType, IBsonSerializationOptions options)
+        // nested classes
+        internal class Serializer : BsonBaseSerializer<MapReduceOptionsBuilder>
         {
-            BsonDocumentSerializer.Instance.Serialize(bsonWriter, nominalType, _document, options);
+            public override void Serialize(SerializationContext context, MapReduceOptionsBuilder value)
+            {
+                context.SerializeWithChildContext(BsonDocumentSerializer.Instance, value._document);
+            }
         }
     }
 }

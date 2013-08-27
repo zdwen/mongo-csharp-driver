@@ -36,8 +36,7 @@ namespace MongoDB.Driver.Core.Operations
         private CollectionNamespace _collection;
         private object[] _pipeline;
         private ReadPreference _readPreference;
-        private IBsonSerializer _documentSerializer;
-        private IBsonSerializationOptions _documentSerializationOptions;
+        private IBsonSerializer<TDocument> _documentSerializer;
 
         // constructors
         /// <summary>
@@ -70,19 +69,10 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the document serializer.
         /// </summary>
-        public IBsonSerializer DocumentSerializer
+        public IBsonSerializer<TDocument> DocumentSerializer
         {
             get { return _documentSerializer; }
             set { _documentSerializer = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the document serialization options.
-        /// </summary>
-        public IBsonSerializationOptions DocumentSerializationOptions
-        {
-            get { return _documentSerializationOptions; }
-            set { _documentSerializationOptions = value; }
         }
 
         /// <summary>
@@ -112,7 +102,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             EnsureRequiredProperties();
 
-            var command = new BsonDocument
+            var aggregateCommand = new BsonDocument
             {
                 { "aggregate", _collection.CollectionName },
                 { "pipeline", new BsonArray(_pipeline.Select(op => op.ToBsonDocument(op.GetType()))) }
@@ -125,30 +115,28 @@ namespace MongoDB.Driver.Core.Operations
             {
                 if (__trace.Switch.ShouldTrace(TraceEventType.Verbose))
                 {
-                    __trace.TraceVerbose("aggregating on collection {0} with pipeline {1} at {2}.", _collection.FullName, command.ToJson(), channelProvider.Server.DnsEndPoint);
+                    __trace.TraceVerbose("aggregating on collection {0} with pipeline {1} at {2}.", _collection.FullName, aggregateCommand.ToJson(), channelProvider.Server.DnsEndPoint);
                 }
                 if (channelProvider.Server.BuildInfo.Version >= new Version(2, 5, 1))
                 {
-                    command["cursor"] = new BsonDocument();
+                    aggregateCommand["cursor"] = new BsonDocument();
                     if (_batchSize > 0)
                     {
-                        command["cursor"]["batchSize"] = _batchSize;
+                        aggregateCommand["cursor"]["batchSize"] = _batchSize;
                     }
                 }
 
-                var aggregateCommandResultSerializer = new AggregateCommandResultSerializer<TDocument>(
-                    _documentSerializer,
-                    _documentSerializationOptions);
+                var aggregateCommandResultSerializer = new AggregateCommandResultSerializer<TDocument>(_documentSerializer);
 
-                var args = new ExecuteCommandProtocolArgs
+                var args = new ExecuteCommandProtocolArgs<AggregateCommandResult<TDocument>>
                 {
-                    Command = command,
+                    Command = aggregateCommand,
+                    CommandResultSerializer = aggregateCommandResultSerializer,
                     Database = new DatabaseNamespace(_collection.DatabaseName),
-                    ReadPreference = _readPreference,
-                    Serializer = aggregateCommandResultSerializer
+                    ReadPreference = _readPreference
                 };
 
-                var result = ExecuteCommandProtocol<AggregateCommandResult<TDocument>>(channelProvider, args);
+                var result = ExecuteCommandProtocol(channelProvider, args);
 
                 return new Cursor<TDocument>(
                     activity,
@@ -159,7 +147,6 @@ namespace MongoDB.Driver.Core.Operations
                     numberToReturn: _batchSize,
                     firstBatch: result.FirstBatch,
                     serializer: _documentSerializer,
-                    serializationOptions: _documentSerializationOptions,
                     timeout: Timeout,
                     cancellationToken: CancellationToken,
                     readerSettings: GetServerAdjustedReaderSettings(channelProvider.Server));
@@ -204,11 +191,7 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull("ReadPreference", _readPreference);
             if (_documentSerializer == null)
             {
-                _documentSerializer = BsonSerializer.LookupSerializer(typeof(TDocument));
-                if (_documentSerializationOptions == null)
-                {
-                    _documentSerializationOptions = _documentSerializer.GetDefaultSerializationOptions();
-                }
+                _documentSerializer = BsonSerializer.LookupSerializer<TDocument>();
             }
         }
     }

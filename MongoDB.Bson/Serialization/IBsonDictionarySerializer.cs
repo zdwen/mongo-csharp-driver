@@ -13,21 +13,14 @@
 * limitations under the License.
 */
 
-using System;
+using MongoDB.Bson.Serialization.Options;
 
-namespace MongoDB.Bson.Serialization.Conventions
+namespace MongoDB.Bson.Serialization
 {
-    /// <summary>
-    /// Represents an Id member convention.
-    /// </summary>
-    [Obsolete("Use IClassMapConvention instead.")]
-    public interface IIdMemberConvention
+    public interface IBsonDictionarySerializer
     {
-        /// <summary>
-        /// Finds the Id member of a class.
-        /// </summary>
-        /// <param name="type">The class.</param>
-        /// <returns>The name of the Id member.</returns>
-        string FindIdMember(Type type);
+        DictionaryRepresentation DictionaryRepresentation { get; }
+        IBsonSerializer KeySerializer { get; }
+        IBsonSerializer ValueSerializer { get; }
     }
 }

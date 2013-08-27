@@ -78,16 +78,15 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// Adds a document to the message.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        /// <param name="nominalType">The nominal type of the document.</param>
         /// <param name="document">The document.</param>
-        public void AddDocument(Stream stream, Type nominalType, object document)
+        public void AddDocument(Stream stream, object document)
         {
             _documentCount++;
             _lastDocumentStartPosition = (int)stream.Position;
             using (var bsonWriter = new BsonBinaryWriter(stream, _writerSettings))
             {
                 bsonWriter.CheckElementNames = _checkInsertDocuments;
-                BsonSerializer.Serialize(bsonWriter, nominalType, document, DocumentSerializationOptions.SerializeIdFirstInstance);
+                BsonSerializer.Serialize(bsonWriter, document);
             }
             BackpatchMessageLength(stream);
         }

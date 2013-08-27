@@ -236,7 +236,7 @@ namespace MongoDB.Driver
         /// <returns>The distint values of the field.</returns>
         public virtual IEnumerable<BsonValue> Distinct(string key, IMongoQuery query)
         {
-            return Distinct<BsonValue>(key, query, BsonValueSerializer.Instance, null);
+            return Distinct<BsonValue>(key, query, BsonValueSerializer.Instance);
         }
 
         /// <summary>
@@ -259,8 +259,8 @@ namespace MongoDB.Driver
         /// <returns>The distint values of the field.</returns>
         public virtual IEnumerable<TValue> Distinct<TValue>(string key, IMongoQuery query)
         {
-            var valueSerializer = BsonSerializer.LookupSerializer(typeof(TValue));
-            return Distinct<TValue>(key, query, valueSerializer, null);
+            var valueSerializer = BsonSerializer.LookupSerializer<TValue>();
+            return Distinct<TValue>(key, query, valueSerializer);
         }
 
         /// <summary>
@@ -532,7 +532,7 @@ namespace MongoDB.Driver
         public virtual MongoCursor<TDocument> FindAs<TDocument>(IMongoQuery query)
         {
             var serializer = BsonSerializer.LookupSerializer(typeof(TDocument));
-            return FindAs<TDocument>(query, serializer, null);
+            return FindAs<TDocument>(query, serializer);
         }
 
         /// <summary>
@@ -544,7 +544,7 @@ namespace MongoDB.Driver
         public virtual MongoCursor FindAs(Type documentType, IMongoQuery query)
         {
             var serializer = BsonSerializer.LookupSerializer(documentType);
-            return FindAs(documentType, query, serializer, null);
+            return FindAs(documentType, query, serializer);
         }
 
         /// <summary>
@@ -1422,18 +1422,23 @@ namespace MongoDB.Driver
                     {
                         var classMap = BsonClassMap.LookupClassMap(documentType);
                         var idMemberMap = classMap.IdMemberMap;
-                        var idSerializer = idMemberMap.GetSerializer(id.GetType());
+                        var idSerializer = idMemberMap.GetSerializer();
+
                         // we only care about the serialized _id value but we need a dummy document to serialize it into
                         var bsonDocument = new BsonDocument();
                         var bsonDocumentWriterSettings = new BsonDocumentWriterSettings
                         {
                             GuidRepresentation = _settings.GuidRepresentation
                         };
-                        var bsonWriter = new BsonDocumentWriter(bsonDocument, bsonDocumentWriterSettings);
-                        bsonWriter.WriteStartDocument();
-                        bsonWriter.WriteName("_id");
-                        idSerializer.Serialize(bsonWriter, id.GetType(), id, idMemberMap.SerializationOptions);
-                        bsonWriter.WriteEndDocument();
+                        using (var bsonWriter = new BsonDocumentWriter(bsonDocument, bsonDocumentWriterSettings))
+                        {
+                            var context = SerializationContext.CreateRoot<BsonDocument>(bsonWriter);
+                            bsonWriter.WriteStartDocument();
+                            bsonWriter.WriteName("_id");
+                            idSerializer.Serialize(context, id);
+                            bsonWriter.WriteEndDocument();
+                        }
+
                         idBsonValue = bsonDocument[0]; // extract the _id value from the dummy document
                     } else {
                         if (!BsonTypeMapper.TryMapToBsonValue(id, out idBsonValue))
@@ -1636,8 +1641,7 @@ namespace MongoDB.Driver
         private IEnumerable<TValue> Distinct<TValue>(
             string key,
             IMongoQuery query,
-            IBsonSerializer valueSerializer,
-            IBsonSerializationOptions valueSerializationOptions)
+            IBsonSerializer<TValue> valueSerializer)
         {
             var command = new CommandDocument
             {
@@ -1645,29 +1649,29 @@ namespace MongoDB.Driver
                 { "key", key },
                 { "query", BsonDocumentWrapper.Create(query), query != null } // query is optional
             };
-            var resultSerializer = new DistinctCommandResultSerializer<TValue>(valueSerializer, valueSerializationOptions);
-            var result = RunCommandAs<DistinctCommandResult<TValue>>(command, resultSerializer, null);
+            var resultSerializer = new DistinctCommandResultSerializer<TValue>(valueSerializer);
+            var result = RunCommandAs<DistinctCommandResult<TValue>>(command, resultSerializer);
             return result.Values;
         }
 
-        private MongoCursor FindAs(Type documentType, IMongoQuery query, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions)
+        private MongoCursor FindAs(Type documentType, IMongoQuery query, IBsonSerializer serializer)
         {
-            return MongoCursor.Create(documentType, this, query, _settings.ReadPreference, serializer, serializationOptions);
+            return MongoCursor.Create(documentType, this, query, _settings.ReadPreference, serializer);
         }
 
-        private MongoCursor<TDocument> FindAs<TDocument>(IMongoQuery query, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions)
+        private MongoCursor<TDocument> FindAs<TDocument>(IMongoQuery query, IBsonSerializer serializer)
         {
-            return new MongoCursor<TDocument>(this, query, _settings.ReadPreference, serializer, serializationOptions);
+            return new MongoCursor<TDocument>(this, query, _settings.ReadPreference, serializer);
         }
 
-        private CommandResult FindOneAs(Type documentType, IMongoQuery query, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions)
+        private CommandResult FindOneAs(Type documentType, IMongoQuery query, IBsonSerializer serializer)
         {
-            return FindAs(documentType, query, serializer, serializationOptions).SetLimit(1).Cast<CommandResult>().FirstOrDefault();
+            return FindAs(documentType, query, serializer).SetLimit(1).Cast<CommandResult>().FirstOrDefault();
         }
 
-        private TDocument FindOneAs<TDocument>(IMongoQuery query, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions)
+        private TDocument FindOneAs<TDocument>(IMongoQuery query, IBsonSerializer serializer)
         {
-            return FindAs<TDocument>(query, serializer, serializationOptions).SetLimit(1).FirstOrDefault();
+            return FindAs<TDocument>(query, serializer).SetLimit(1).FirstOrDefault();
         }
 
         private string GetIndexName(BsonDocument keys, BsonDocument options)
@@ -1721,14 +1725,13 @@ namespace MongoDB.Driver
 
         private TCommandResult RunCommandAs<TCommandResult>(IMongoCommand command) where TCommandResult : CommandResult
         {
-            var resultSerializer = BsonSerializer.LookupSerializer(typeof(TCommandResult));
-            return RunCommandAs<TCommandResult>(command, resultSerializer, null);
+            var resultSerializer = BsonSerializer.LookupSerializer<TCommandResult>();
+            return RunCommandAs<TCommandResult>(command, resultSerializer);
         }
 
         private TCommandResult RunCommandAs<TCommandResult>(
             IMongoCommand command,
-            IBsonSerializer resultSerializer,
-            IBsonSerializationOptions resultSerializationOptions) where TCommandResult : CommandResult
+            IBsonSerializer<TCommandResult> resultSerializer) where TCommandResult : CommandResult
         {
             var readerSettings = new BsonBinaryReaderSettings
             {
@@ -1758,7 +1761,6 @@ namespace MongoDB.Driver
                 flags,
                 null, // options
                 readPreference,
-                resultSerializationOptions,
                 resultSerializer);
 
             var connection = _server.AcquireConnection(readPreference);

@@ -21,9 +21,7 @@ namespace MongoDB.Bson.Serialization.Conventions
     /// <summary>
     /// A convention that looks up an id generator for the id member.
     /// </summary>
-#pragma warning disable 618 // about obsolete IIdGeneratorConvention
-    public class LookupIdGeneratorConvention : ConventionBase, IPostProcessingConvention, IIdGeneratorConvention
-#pragma warning restore 618
+    public class LookupIdGeneratorConvention : ConventionBase, IPostProcessingConvention
     {
         // public methods
         /// <summary>

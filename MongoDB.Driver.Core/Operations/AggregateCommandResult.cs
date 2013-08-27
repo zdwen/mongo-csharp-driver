@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Core.Operations
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     [Serializable]
     [BsonSerializer(typeof(AggregateCommandResultSerializer<>))]
-    internal class AggregateCommandResult<TDocument> : CommandResult
+    public class AggregateCommandResult<TDocument> : CommandResult
     {
         // private fields
         private readonly long _cursorId;

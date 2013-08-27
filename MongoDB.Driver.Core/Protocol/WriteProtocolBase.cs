@@ -121,8 +121,8 @@ namespace MongoDB.Driver.Core.Protocol
                         throw new MongoOperationException("Command 'getLastError' failed. No response returned.");
                     }
 
-                    var serializer = BsonSerializer.LookupSerializer(typeof(WriteConcernResult));
-                    writeConcernResult = reply.DeserializeDocuments<WriteConcernResult>(serializer, null, _readerSettings).Single();
+                    var serializer = BsonSerializer.LookupSerializer<WriteConcernResult>();
+                    writeConcernResult = reply.DeserializeDocuments<WriteConcernResult>(serializer, _readerSettings).Single();
                     writeConcernResult.Command = sendMessageResult.GetLastErrorCommand;
 
                     if (!writeConcernResult.Ok)

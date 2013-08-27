@@ -21,9 +21,7 @@ namespace MongoDB.Bson.Serialization.Conventions
     /// <summary>
     /// A convention that sets the element name the same as the member name with the first character lower cased.
     /// </summary>
-#pragma warning disable 618 // about obsolete IElementNameConvention
-    public class CamelCaseElementNameConvention : ConventionBase, IMemberMapConvention, IElementNameConvention
-#pragma warning restore 618
+    public class CamelCaseElementNameConvention : ConventionBase, IMemberMapConvention
     {
         // public methods
         /// <summary>

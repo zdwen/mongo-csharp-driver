@@ -16,6 +16,7 @@
 using System;
 using System.IO;
 using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization.Serializers
@@ -23,28 +24,50 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Timespans.
     /// </summary>
-    public class TimeSpanSerializer : BsonBaseSerializer
+    public class TimeSpanSerializer : BsonBaseSerializer<TimeSpan>, IBsonSerializerWithRepresentation<TimeSpanSerializer>
     {
-        // private static fields
-        private static TimeSpanSerializer __instance = new TimeSpanSerializer();
+        // private fields
+        private readonly BsonType _representation;
+        private readonly TimeSpanUnits _units;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the TimeSpanSerializer class.
+        /// Initializes a new instance of the <see cref="TimeSpanSerializer"/> class.
         /// </summary>
         public TimeSpanSerializer()
-            : base(new TimeSpanSerializationOptions(BsonType.String))
+            : this(BsonType.String)
         {
         }
 
-        // public static properties
         /// <summary>
-        /// Gets an instance of the TimeSpanSerializer class.
+        /// Initializes a new instance of the <see cref="TimeSpanSerializer"/> class.
         /// </summary>
-        [Obsolete("Use constructor instead.")]
-        public static TimeSpanSerializer Instance
+        /// <param name="representation">The representation.</param>
+        public TimeSpanSerializer(BsonType representation)
+            : this(representation, TimeSpanUnits.Ticks)
         {
-            get { return __instance; }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TimeSpanSerializer"/> class.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <param name="units">The units.</param>
+        public TimeSpanSerializer(BsonType representation, TimeSpanUnits units)
+        {
+            _representation = representation;
+            _units = units;
+        }
+
+        // public properties
+        public BsonType Representation
+        {
+            get { return _representation; }
+        }
+
+        public TimeSpanUnits Units
+        {
+            get { return _units; }
         }
 
         // public methods
@@ -52,37 +75,26 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override TimeSpan Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(TimeSpan));
-
-            // support RepresentationSerializationOptions for backward compatibility
-            var representationSerializationOptions = options as RepresentationSerializationOptions;
-            if (representationSerializationOptions != null)
-            {
-                options = new TimeSpanSerializationOptions(representationSerializationOptions.Representation);
-            }
-            var timeSpanSerializationOptions = EnsureSerializationOptions<TimeSpanSerializationOptions>(options);
+            var bsonReader = context.Reader;
 
             BsonType bsonType = bsonReader.GetCurrentBsonType();
             switch (bsonType)
             {
                 case BsonType.Double:
-                    return FromDouble(bsonReader.ReadDouble(), timeSpanSerializationOptions.Units);
+                    return FromDouble(bsonReader.ReadDouble(), _units);
+
                 case BsonType.Int32:
-                    return FromInt32(bsonReader.ReadInt32(), timeSpanSerializationOptions.Units);
+                    return FromInt32(bsonReader.ReadInt32(), _units);
+
                 case BsonType.Int64:
-                    return FromInt64(bsonReader.ReadInt64(), timeSpanSerializationOptions.Units);
+                    return FromInt64(bsonReader.ReadInt64(), _units);
+
                 case BsonType.String:
                     return TimeSpan.Parse(bsonReader.ReadString()); // not XmlConvert.ToTimeSpan (we're using .NET's format for TimeSpan)
+
                 default:
                     var message = string.Format("Cannot deserialize TimeSpan from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -93,42 +105,56 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, TimeSpan value)
         {
-            var timeSpan = (TimeSpan)value;
+            var bsonWriter = context.Writer;
 
-            // support RepresentationSerializationOptions for backward compatibility
-            var representationSerializationOptions = options as RepresentationSerializationOptions;
-            if (representationSerializationOptions != null)
-            {
-                options = new TimeSpanSerializationOptions(representationSerializationOptions.Representation);
-            }
-            var timeSpanSerializationOptions = EnsureSerializationOptions<TimeSpanSerializationOptions>(options);
-
-            switch (timeSpanSerializationOptions.Representation)
+            switch (_representation)
             {
                 case BsonType.Double:
-                    bsonWriter.WriteDouble(ToDouble(timeSpan, timeSpanSerializationOptions.Units));
+                    bsonWriter.WriteDouble(ToDouble(value, _units));
                     break;
+
                 case BsonType.Int32:
-                    bsonWriter.WriteInt32(ToInt32(timeSpan, timeSpanSerializationOptions.Units));
+                    bsonWriter.WriteInt32(ToInt32(value, _units));
                     break;
+
                 case BsonType.Int64:
-                    bsonWriter.WriteInt64(ToInt64(timeSpan, timeSpanSerializationOptions.Units));
+                    bsonWriter.WriteInt64(ToInt64(value, _units));
                     break;
+
                 case BsonType.String:
-                    bsonWriter.WriteString(timeSpan.ToString()); // not XmlConvert.ToString (we're using .NET's format for TimeSpan)
+                    bsonWriter.WriteString(value.ToString()); // not XmlConvert.ToString (we're using .NET's format for TimeSpan)
                     break;
+
                 default:
-                    var message = string.Format("'{0}' is not a valid TimeSpan representation.", timeSpanSerializationOptions.Representation);
+                    var message = string.Format("'{0}' is not a valid TimeSpan representation.", _representation);
                     throw new BsonSerializationException(message);
+            }
+        }
+
+        public TimeSpanSerializer WithRepresentation(BsonType representation)
+        {
+            if (representation == _representation)
+            {
+                return this;
+            }
+            else
+            {
+                return new TimeSpanSerializer(representation, _units);
+            }
+        }
+
+        public TimeSpanSerializer WithRepresentation(BsonType representation, TimeSpanUnits units)
+        {
+            if (representation == _representation && units == _units)
+            {
+                return this;
+            }
+            else
+            {
+                return new TimeSpanSerializer(representation, units);
             }
         }
 
@@ -220,6 +246,12 @@ namespace MongoDB.Bson.Serialization.Serializers
             {
                 return timeSpan.Ticks / TicksPerUnit(units);
             }
+        }
+
+        // explicit interface implementations
+        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        {
+            return WithRepresentation(representation);
         }
     }
 }

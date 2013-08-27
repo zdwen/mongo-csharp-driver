@@ -45,8 +45,7 @@ namespace MongoDB.Driver.Core.Operations
         private readonly int _limit;
         private readonly int _numberToReturn;
         private readonly BsonBinaryReaderSettings _readerSettings;
-        private readonly IBsonSerializer _serializer;
-        private readonly IBsonSerializationOptions _serializationOptions;
+        private readonly IBsonSerializer<TDocument> _serializer;
         private readonly TimeSpan _timeout;
         private bool _done;
         private long _cursorId;
@@ -67,11 +66,10 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="numberToReturn">Size of the batch.</param>
         /// <param name="firstBatch">The first batch.</param>
         /// <param name="serializer">The serializer.</param>
-        /// <param name="serializationOptions">The serialization options.</param>
         /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="readerSettings">The reader settings.</param>
-        public Cursor(IDisposable traceActivity, IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int limit, int numberToReturn, IEnumerable<TDocument> firstBatch, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
+        public Cursor(IDisposable traceActivity, IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int limit, int numberToReturn, IEnumerable<TDocument> firstBatch, IBsonSerializer<TDocument> serializer, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
         {
             Ensure.IsNotNull("traceActivity", traceActivity);
             Ensure.IsNotNull("channelProvider", channelProvider);
@@ -89,7 +87,6 @@ namespace MongoDB.Driver.Core.Operations
             _numberToReturn = numberToReturn;
             _currentBatch = firstBatch.ToList();
             _serializer = serializer;
-            _serializationOptions = serializationOptions;
             _timeout = timeout;
             _cancellationToken = cancellationToken;
             _readerSettings = readerSettings;
@@ -248,8 +245,7 @@ namespace MongoDB.Driver.Core.Operations
                 cursorId: _cursorId,
                 numberToReturn: _numberToReturn,
                 readerSettings: _readerSettings,
-                serializer: _serializer,
-                serializationOptions: _serializationOptions);
+                serializer: _serializer);
 
             using (var channel = _channelProvider.GetChannel(_timeout, _cancellationToken))
             {

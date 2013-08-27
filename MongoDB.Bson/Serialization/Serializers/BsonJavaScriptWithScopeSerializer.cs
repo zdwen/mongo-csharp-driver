@@ -22,7 +22,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for BsonJavaScriptWithScopes.
     /// </summary>
-    public class BsonJavaScriptWithScopeSerializer : BsonBaseSerializer
+    public class BsonJavaScriptWithScopeSerializer : BsonBaseSerializer<BsonJavaScriptWithScope>
     {
         // private static fields
         private static BsonJavaScriptWithScopeSerializer __instance = new BsonJavaScriptWithScopeSerializer();
@@ -49,25 +49,20 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
         /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override BsonJavaScriptWithScope Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(BsonJavaScriptWithScope));
+            var bsonReader = context.Reader;
 
             var bsonType = bsonReader.GetCurrentBsonType();
             switch (bsonType)
             {
                 case BsonType.JavaScriptWithScope:
                     var code = bsonReader.ReadJavaScriptWithScope();
-                    var scope = (BsonDocument)BsonDocumentSerializer.Instance.Deserialize(bsonReader, typeof(BsonDocument), null);
+                    var scope = context.DeserializeWithChildContext(BsonDocumentSerializer.Instance);
                     return new BsonJavaScriptWithScope(code, scope);
+
                 default:
                     var message = string.Format("Cannot deserialize BsonJavaScriptWithScope from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -78,15 +73,11 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, BsonJavaScriptWithScope value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 throw new ArgumentNullException("value");
@@ -94,7 +85,7 @@ namespace MongoDB.Bson.Serialization.Serializers
 
             var script = (BsonJavaScriptWithScope)value;
             bsonWriter.WriteJavaScriptWithScope(script.Code);
-            BsonDocumentSerializer.Instance.Serialize(bsonWriter, typeof(BsonDocument), script.Scope, null);
+            context.SerializeWithChildContext(BsonDocumentSerializer.Instance, script.Scope);
         }
     }
 }

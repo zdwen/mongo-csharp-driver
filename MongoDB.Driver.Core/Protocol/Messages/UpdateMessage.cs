@@ -72,10 +72,10 @@ namespace MongoDB.Driver.Core.Protocol.Messages
 
             using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, _writerSettings))
             {
-                BsonSerializer.Serialize(bsonWriter, _selector.GetType(), _selector, DocumentSerializationOptions.SerializeIdFirstInstance);
+                BsonSerializer.Serialize(bsonWriter, _selector.GetType(), _selector);
 
                 bsonWriter.CheckUpdateDocument = _checkUpdateDocument;
-                BsonSerializer.Serialize(bsonWriter, _update.GetType(), _update, DocumentSerializationOptions.SerializeIdFirstInstance);
+                BsonSerializer.Serialize(bsonWriter, _update.GetType());
             }
         }
     }

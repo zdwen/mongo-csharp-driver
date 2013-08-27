@@ -542,6 +542,8 @@ namespace MongoDB.Bson
             using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
+                var context = DeserializationContext.CreateRoot<LazyBsonArray>(bsonReader);
+
                 bsonReader.ReadStartDocument();
                 BsonType bsonType;
                 while ((bsonType = bsonReader.ReadBsonType()) != BsonType.EndOfDocument)
@@ -552,7 +554,7 @@ namespace MongoDB.Bson
                     {
                         case BsonType.Array: value = DeserializeLazyBsonArray(bsonReader); break;
                         case BsonType.Document: value = DeserializeLazyBsonDocument(bsonReader); break;
-                        default: value = (BsonValue)BsonValueSerializer.Instance.Deserialize(bsonReader, typeof(BsonValue), null); break;
+                        default: value = context.DeserializeWithChildContext(BsonValueSerializer.Instance); break;
                     }
                     values.Add(value);
                 }

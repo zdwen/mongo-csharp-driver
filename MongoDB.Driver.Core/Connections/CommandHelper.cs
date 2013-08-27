@@ -53,8 +53,8 @@ namespace MongoDB.Driver.Core.Connections
                     throw new MongoOperationException(string.Format("Command '{0}' failed. No response returned.", command.GetElement(0).Name));
                 }
 
-                var serializer = BsonSerializer.LookupSerializer(typeof(TCommandResult));
-                return reply.DeserializeDocuments<TCommandResult>(serializer, null, new BsonBinaryReaderSettings()).Single();
+                var serializer = BsonSerializer.LookupSerializer<TCommandResult>();
+                return reply.DeserializeDocuments<TCommandResult>(serializer, new BsonBinaryReaderSettings()).Single();
             }
         }
     }

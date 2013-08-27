@@ -911,8 +911,8 @@ namespace MongoDB.Driver
         public virtual TCommandResult RunCommandAs<TCommandResult>(IMongoCommand command)
             where TCommandResult : CommandResult
         {
-            var resultSerializer = BsonSerializer.LookupSerializer(typeof(TCommandResult));
-            return RunCommandAs<TCommandResult>(command, resultSerializer, null);
+            var resultSerializer = BsonSerializer.LookupSerializer<TCommandResult>();
+            return RunCommandAs<TCommandResult>(command, resultSerializer);
         }
 
         /// <summary>
@@ -991,8 +991,7 @@ namespace MongoDB.Driver
         // private methods
         private TCommandResult RunCommandAs<TCommandResult>(
             IMongoCommand command,
-            IBsonSerializer resultSerializer,
-            IBsonSerializationOptions resultSerializationOptions) where TCommandResult : CommandResult
+            IBsonSerializer<TCommandResult> resultSerializer) where TCommandResult : CommandResult
         {
             var readerSettings = new BsonBinaryReaderSettings
             {
@@ -1022,7 +1021,6 @@ namespace MongoDB.Driver
                 flags,
                 null, // options
                 readPreference,
-                resultSerializationOptions,
                 resultSerializer);
 
             var connection = _server.AcquireConnection(readPreference);

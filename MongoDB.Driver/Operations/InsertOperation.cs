@@ -80,9 +80,9 @@ namespace MongoDB.Driver.Operations
                         if (idProvider != null)
                         {
                             object id;
-                            Type idNominalType;
+                            Type idType;
                             IIdGenerator idGenerator;
-                            if (idProvider.GetDocumentId(document, out id, out idNominalType, out idGenerator))
+                            if (idProvider.GetDocumentId(document, out id, out idType, out idGenerator))
                             {
                                 if (idGenerator != null && idGenerator.IsEmpty(id))
                                 {
@@ -92,7 +92,7 @@ namespace MongoDB.Driver.Operations
                             }
                         }
                     }
-                    message.AddDocument(stream, _documentType, document);
+                    message.AddDocument(stream, document);
 
                     if (message.MessageLength > connection.ServerInstance.MaxMessageLength)
                     {

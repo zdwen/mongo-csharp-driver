@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core
     /// Represents the result of a command (there are also subclasses for various commands).
     /// </summary>
     [Serializable]
-    [BsonSerializer(typeof(CommandResultSerializer))]
+    [BsonSerializer(typeof(CommandResultSerializer<CommandResult>))]
     public class CommandResult
     {
         // private fields

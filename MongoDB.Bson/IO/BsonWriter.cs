@@ -561,12 +561,14 @@ namespace MongoDB.Bson.IO
                 memoryStream.Position = 0;
                 using (var bsonReader = new BsonBinaryReader(memoryStream, BsonBinaryReaderSettings.Defaults))
                 {
+                    var deserializationContext = DeserializationContext.CreateRoot<BsonDocument>(bsonReader);
                     bsonReader.ReadStartDocument();
                     bsonReader.ReadName("x");
-                    var array = (BsonArray)BsonArraySerializer.Instance.Deserialize(bsonReader, typeof(BsonArray), null);
+                    var array = deserializationContext.DeserializeWithChildContext(BsonArraySerializer.Instance);
                     bsonReader.ReadEndDocument();
 
-                    BsonArraySerializer.Instance.Serialize(this, typeof(BsonArray), array, null);
+                    var serializationContext = SerializationContext.CreateRoot<BsonDocument>(this);
+                    serializationContext.SerializeWithChildContext(BsonArraySerializer.Instance, array);
                 }
             }
         }
@@ -594,8 +596,11 @@ namespace MongoDB.Bson.IO
             using (var stream = new ByteBufferStream(slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, BsonBinaryReaderSettings.Defaults))
             {
-                var document = BsonSerializer.Deserialize<BsonDocument>(bsonReader);
-                BsonDocumentSerializer.Instance.Serialize(this, typeof(BsonDocument), document, null);
+                var deserializationContext = DeserializationContext.CreateRoot<BsonDocument>(bsonReader);
+                var document = BsonDocumentSerializer.Instance.Deserialize(deserializationContext);
+
+                var serializationContext = SerializationContext.CreateRoot<BsonDocument>(this);
+                BsonDocumentSerializer.Instance.Serialize(serializationContext, document);
             }
         }
 

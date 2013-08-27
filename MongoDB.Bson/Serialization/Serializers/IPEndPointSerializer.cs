@@ -25,11 +25,8 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for IPEndPoints.
     /// </summary>
-    public class IPEndPointSerializer : BsonBaseSerializer
+    public class IPEndPointSerializer : BsonBaseSerializer<IPEndPoint>
     {
-        // private static fields
-        private static IPEndPointSerializer __instance = new IPEndPointSerializer();
-
         // constructors
         /// <summary>
         /// Initializes a new instance of the IPEndPointSerializer class.
@@ -38,40 +35,24 @@ namespace MongoDB.Bson.Serialization.Serializers
         {
         }
 
-        // public static properties
-        /// <summary>
-        /// Gets an instance of the IPEndPointSerializer class.
-        /// </summary>
-        [Obsolete("Use constructor instead.")]
-        public static IPEndPointSerializer Instance
-        {
-            get { return __instance; }
-        }
-
         // public methods
         /// <summary>
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override IPEndPoint Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(IPEndPoint));
+            var bsonReader = context.Reader;
+            string message;
 
             BsonType bsonType = bsonReader.GetCurrentBsonType();
-            string message;
             switch (bsonType)
             {
                 case BsonType.Null:
                     bsonReader.ReadNull();
                     return null;
+
                 case BsonType.String:
                     var stringValue = bsonReader.ReadString();
                     var match = Regex.Match(stringValue, @"^(?<address>(.+|\[.*\]))\:(?<port>\d+)$");
@@ -89,6 +70,7 @@ namespace MongoDB.Bson.Serialization.Serializers
                     }
                     message = string.Format("Invalid IPEndPoint value '{0}'.", stringValue);
                     throw new FileFormatException(message);
+
                 default:
                     message = string.Format("Cannot deserialize IPEndPoint from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -99,30 +81,25 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, IPEndPoint value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 bsonWriter.WriteNull();
             }
             else
             {
-                var endPoint = (IPEndPoint)value;
                 string stringValue;
-                if (endPoint.AddressFamily == AddressFamily.InterNetwork)
+                if (value.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    stringValue = string.Format("{0}:{1}", endPoint.Address, endPoint.Port); // IPv4
+                    stringValue = string.Format("{0}:{1}", value.Address, value.Port); // IPv4
                 }
                 else
                 {
-                    stringValue = string.Format("[{0}]:{1}", endPoint.Address, endPoint.Port); // IPv6
+                    stringValue = string.Format("[{0}]:{1}", value.Address, value.Port); // IPv6
                 }
                 bsonWriter.WriteString(stringValue);
             }

@@ -59,6 +59,17 @@ namespace MongoDB.Driver.Linq.Utils
                 var itemSerializationInfo = arraySerializer.GetItemSerializationInfo();
                 if (itemSerializationInfo != null)
                 {
+                    //var arrayOptions = serializationInfo.SerializationOptions as ArraySerializationOptions;
+                    //if (arrayOptions != null)
+                    //{
+                    //    var itemSerializationOptions = arrayOptions.ItemSerializationOptions;
+                    //    return new BsonSerializationInfo(
+                    //        itemSerializationInfo.ElementName,
+                    //        itemSerializationInfo.Serializer,
+                    //        itemSerializationInfo.NominalType,
+                    //        itemSerializationOptions);
+                    //}
+
                     return itemSerializationInfo;
                 }
             }
@@ -81,8 +92,7 @@ namespace MongoDB.Driver.Linq.Utils
             _serializationInfoCache[node] = new BsonSerializationInfo(
                 null,
                 serializer,
-                node.Type,
-                serializer.GetDefaultSerializationOptions());
+                node.Type);
         }
 
         /// <summary>

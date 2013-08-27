@@ -15,6 +15,7 @@
 
 using System;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using NUnit.Framework;
 
 namespace MongoDB.BsonUnitTests
@@ -28,6 +29,7 @@ namespace MongoDB.BsonUnitTests
         }
 
         private C _c = new C { X = 1 };
+        private IBsonSerializer<C> _serializer = BsonSerializer.LookupSerializer<C>();
 
         [Test]
         public void TestConstructorWithObject()
@@ -46,61 +48,62 @@ namespace MongoDB.BsonUnitTests
         }
 
         [Test]
-        public void TestConstructorWithNominalTypeAndObject()
+        public void TestConstructorWithSerializerAndObject()
         {
-            var wrapper = new BsonDocumentWrapper(typeof(C), _c);
+            var wrapper = new BsonDocumentWrapper(_c, _serializer);
             var expected = "{ \"X\" : 1 }";
             Assert.AreEqual(expected, wrapper.ToJson());
         }
 
         [Test]
-        public void TestConstructorWithNominalTypeAndNullObject()
+        public void TestConstructorWithSerializerAndNullObject()
         {
-            var wrapper = new BsonDocumentWrapper(typeof(C), null);
+            var wrapper = new BsonDocumentWrapper(null, _serializer);
             var expected = "null";
             Assert.AreEqual(expected, wrapper.ToJson());
         }
 
         [Test]
-        public void TestConstructorWithNullNominalTypeAndObject()
+        public void TestConstructorWithNullSerializerAndObject()
         {
-            Assert.Throws<ArgumentNullException>(() => { var wrapper = new BsonDocumentWrapper(null, _c); });
+            Assert.Throws<ArgumentNullException>(() => { var wrapper = new BsonDocumentWrapper(_c, null); });
         }
 
+
         [Test]
-        public void TestConstructorWithNominalTypeAndObjectAndIsUpdateDocument()
+        public void TestConstructorWithSerializerAndObjectAndIsUpdateDocument()
         {
-            var wrapper = new BsonDocumentWrapper(typeof(C), _c, false);
+            var wrapper = new BsonDocumentWrapper(_c, _serializer, false);
             var expected = "{ \"X\" : 1 }";
             Assert.AreEqual(expected, wrapper.ToJson());
         }
 
         [Test]
-        public void TestConstructorWithNominalTypeAndNullObjectAndIsUpdateDocument()
+        public void TestConstructorWithSerializerAndNullObjectAndIsUpdateDocument()
         {
-            var wrapper = new BsonDocumentWrapper(typeof(C), null, false);
+            var wrapper = new BsonDocumentWrapper(null, _serializer, false);
             var expected = "null";
             Assert.AreEqual(expected, wrapper.ToJson());
         }
 
         [Test]
-        public void TestConstructorWithNullNominalTypeAndObjectAndIsUpdateDocument()
+        public void TestConstructorWithNullSerializerAndObjectAndIsUpdateDocument()
         {
-            Assert.Throws<ArgumentNullException>(() => { var wrapper = new BsonDocumentWrapper(null, _c, false); });
+            Assert.Throws<ArgumentNullException>(() => { var wrapper = new BsonDocumentWrapper(_c, null, false); });
         }
 
         [Test]
-        public void TestCreateGenericWithValue()
+        public void TestCreateWithValue()
         {
-            var wrapper = BsonDocumentWrapper.Create<C>(_c);
+            var wrapper = BsonDocumentWrapper.Create(_c);
             var expected = "{ \"X\" : 1 }";
             Assert.AreEqual(expected, wrapper.ToJson());
         }
 
         [Test]
-        public void TestCreateGenericWithNullValue()
+        public void TestCreateWithNullValue()
         {
-            var wrapper = BsonDocumentWrapper.Create<C>(null);
+            var wrapper = BsonDocumentWrapper.Create((C)null);
             var expected = "null";
             Assert.AreEqual(expected, wrapper.ToJson());
         }

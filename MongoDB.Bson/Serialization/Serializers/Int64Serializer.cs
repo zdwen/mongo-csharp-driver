@@ -17,6 +17,7 @@ using System;
 using System.IO;
 using System.Xml;
 using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization.Serializers
@@ -24,28 +25,50 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Int64s.
     /// </summary>
-    public class Int64Serializer : BsonBaseSerializer
+    public class Int64Serializer : BsonBaseSerializer<long>, IBsonSerializerWithRepresentation<Int64Serializer>, IBsonSerializerWithRepresentationConverter<Int64Serializer>
     {
-        // private static fields
-        private static Int64Serializer __instance = new Int64Serializer();
+        // private fields
+        private readonly BsonType _representation;
+        private readonly RepresentationConverter _converter;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the Int64Serializer class.
+        /// Initializes a new instance of the <see cref="Int64Serializer"/> class.
         /// </summary>
         public Int64Serializer()
-            : base(new RepresentationSerializationOptions(BsonType.Int64))
+            : this(BsonType.Int64)
         {
         }
 
-        // public static properties
         /// <summary>
-        /// Gets an instance of the Int64Serializer class.
+        /// Initializes a new instance of the <see cref="Int64Serializer"/> class.
         /// </summary>
-        [Obsolete("Use constructor instead.")]
-        public static Int64Serializer Instance
+        /// <param name="representation">The representation.</param>
+        public Int64Serializer(BsonType representation)
+            : this(representation, new RepresentationConverter(false, false))
         {
-            get { return __instance; }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Int64Serializer"/> class.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <param name="converter">The converter.</param>
+        public Int64Serializer(BsonType representation, RepresentationConverter converter)
+        {
+            _representation = representation;
+            _converter = converter;
+        }
+
+        // public properties
+        public RepresentationConverter Converter
+        {
+            get { return _converter; }
+        }
+
+        public BsonType Representation
+        {
+            get { return _representation; }
         }
 
         // public methods
@@ -53,30 +76,26 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override long Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(long));
-            var representationSerializationOptions = EnsureSerializationOptions<RepresentationSerializationOptions>(options);
+            var bsonReader = context.Reader;
 
             var bsonType = bsonReader.GetCurrentBsonType();
             switch (bsonType)
             {
                 case BsonType.Double:
-                    return representationSerializationOptions.ToInt64(bsonReader.ReadDouble());
+                    return _converter.ToInt64(bsonReader.ReadDouble());
+
                 case BsonType.Int32:
-                    return representationSerializationOptions.ToInt64(bsonReader.ReadInt32());
+                    return _converter.ToInt64(bsonReader.ReadInt32());
+
                 case BsonType.Int64:
                     return bsonReader.ReadInt64();
+
                 case BsonType.String:
                     return XmlConvert.ToInt64(bsonReader.ReadString());
+
                 default:
                     var message = string.Format("Cannot deserialize Int64 from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -87,36 +106,68 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, long value)
         {
-            var int64Value = (long)value;
-            var representationSerializationOptions = EnsureSerializationOptions<RepresentationSerializationOptions>(options);
+            var bsonWriter = context.Writer;
 
-            switch (representationSerializationOptions.Representation)
+            switch (_representation)
             {
                 case BsonType.Double:
-                    bsonWriter.WriteDouble(representationSerializationOptions.ToDouble(int64Value));
+                    bsonWriter.WriteDouble(_converter.ToDouble(value));
                     break;
+
                 case BsonType.Int32:
-                    bsonWriter.WriteInt32(representationSerializationOptions.ToInt32(int64Value));
+                    bsonWriter.WriteInt32(_converter.ToInt32(value));
                     break;
+
                 case BsonType.Int64:
-                    bsonWriter.WriteInt64(int64Value);
+                    bsonWriter.WriteInt64(value);
                     break;
+
                 case BsonType.String:
-                    bsonWriter.WriteString(XmlConvert.ToString(int64Value));
+                    bsonWriter.WriteString(XmlConvert.ToString(value));
                     break;
+
                 default:
-                    var message = string.Format("'{0}' is not a valid Int64 representation.", representationSerializationOptions.Representation);
+                    var message = string.Format("'{0}' is not a valid Int64 representation.", _representation);
                     throw new BsonSerializationException(message);
             }
+        }
+
+        public Int64Serializer WithConverter(RepresentationConverter converter)
+        {
+            if (converter == _converter)
+            {
+                return this;
+            }
+            else
+            {
+                return new Int64Serializer(_representation, converter);
+            }
+        }
+
+        public Int64Serializer WithRepresentation(BsonType representation)
+        {
+            if (representation == _representation)
+            {
+                return this;
+            }
+            else
+            {
+                return new Int64Serializer(representation, _converter);
+            }
+        }
+
+        // explicit interface implementations
+        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        {
+            return WithConverter(converter);
+        }
+
+        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        {
+            return WithRepresentation(representation);
         }
     }
 }

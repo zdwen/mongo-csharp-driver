@@ -40,8 +40,7 @@ namespace MongoDB.Driver.Core.Operations
         private DatabaseNamespace _database;
         private bool _isQuery;
         private ReadPreference _readPreference;
-        private IBsonSerializer _serializer;
-        private IBsonSerializationOptions _serializationOptions;
+        private IBsonSerializer<TCommandResult> _serializer;
 
         // constructors
         /// <summary>
@@ -95,19 +94,10 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the serializer.
         /// </summary>
-        public IBsonSerializer Serializer
+        public IBsonSerializer<TCommandResult> Serializer
         {
             get { return _serializer; }
             set { _serializer = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the serialization options.
-        /// </summary>
-        public IBsonSerializationOptions SerializationOptions
-        {
-            get { return _serializationOptions; }
-            set { _serializationOptions = value; }
         }
 
         // public methods
@@ -127,16 +117,15 @@ namespace MongoDB.Driver.Core.Operations
                     __trace.TraceVerbose("running {0} on database {1} at {2}.", _command.ToJson(), _database.DatabaseName, channelProvider.Server.DnsEndPoint);
                 }
 
-                var args = new ExecuteCommandProtocolArgs
+                var args = new ExecuteCommandProtocolArgs<TCommandResult>
                 {
                     Command = _command,
+                    CommandResultSerializer = _serializer,
                     Database = _database,
-                    ReadPreference = _readPreference,
-                    SerializationOptions = _serializationOptions,
-                    Serializer = _serializer
+                    ReadPreference = _readPreference
                 };
 
-                return ExecuteCommandProtocol<TCommandResult>(channelProvider, args);
+                return ExecuteCommandProtocol(channelProvider, args);
             }
         }
 
@@ -152,11 +141,7 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull("ReadPreference", _readPreference);
             if (_serializer == null)
             {
-                _serializer = BsonSerializer.LookupSerializer(typeof(TCommandResult));
-                if (_serializationOptions == null)
-                {
-                    _serializationOptions = _serializer.GetDefaultSerializationOptions();
-                }
+                _serializer = BsonSerializer.LookupSerializer<TCommandResult>();
             }
         }
     }

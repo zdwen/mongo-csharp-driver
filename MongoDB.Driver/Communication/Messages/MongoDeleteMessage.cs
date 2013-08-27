@@ -57,7 +57,7 @@ namespace MongoDB.Driver.Internal
                 }
                 else
                 {
-                    BsonSerializer.Serialize(bsonWriter, _query.GetType(), _query, DocumentSerializationOptions.SerializeIdFirstInstance);
+                    BsonSerializer.Serialize(bsonWriter, _query.GetType(), _query);
                 }
             }
         }

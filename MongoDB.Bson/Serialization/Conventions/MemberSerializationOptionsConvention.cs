@@ -47,7 +47,7 @@ namespace MongoDB.Bson.Serialization.Conventions
         {
             if (memberMap.MemberType == _type)
             {
-                memberMap.SetSerializationOptions(_serializationOptions);
+                throw new NotImplementedException();
             }
         }
     }

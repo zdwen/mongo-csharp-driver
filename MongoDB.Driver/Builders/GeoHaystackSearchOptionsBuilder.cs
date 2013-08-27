@@ -18,6 +18,7 @@ using System.Linq.Expressions;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Linq.Utils;
 
@@ -74,6 +75,7 @@ namespace MongoDB.Driver.Builders
     /// A builder for the options of the GeoHaystackSearch command.
     /// </summary>
     [Serializable]
+    [BsonSerializer(typeof(GeoHaystackSearchOptionsBuilder.Serializer))]
     public class GeoHaystackSearchOptionsBuilder : BuilderBase, IMongoGeoHaystackSearchOptions
     {
         // private fields
@@ -132,16 +134,13 @@ namespace MongoDB.Driver.Builders
             return _document;
         }
 
-        // protected methods
-        /// <summary>
-        /// Serializes the result of the builder to a BsonWriter.
-        /// </summary>
-        /// <param name="bsonWriter">The writer.</param>
-        /// <param name="nominalType">The nominal type.</param>
-        /// <param name="options">The serialization options.</param>
-        protected override void Serialize(BsonWriter bsonWriter, Type nominalType, IBsonSerializationOptions options)
+        // nested classes
+        internal class Serializer : BsonBaseSerializer<GeoHaystackSearchOptionsBuilder>
         {
-            BsonDocumentSerializer.Instance.Serialize(bsonWriter, nominalType, _document, options);
+            public override void Serialize(SerializationContext context, GeoHaystackSearchOptionsBuilder value)
+            {
+                context.SerializeWithChildContext(BsonDocumentSerializer.Instance, value._document);
+            }
         }
     }
 
@@ -199,6 +198,7 @@ namespace MongoDB.Driver.Builders
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     [Serializable]
+    [BsonSerializer(typeof(GeoHaystackSearchOptionsBuilder<>.Serializer))]
     public class GeoHaystackSearchOptionsBuilder<TDocument> : BuilderBase, IMongoGeoHaystackSearchOptions
     {
         // private fields
@@ -262,16 +262,13 @@ namespace MongoDB.Driver.Builders
             return _geoHaystackBuilder.ToBsonDocument();
         }
 
-        // protected methods
-        /// <summary>
-        /// Serializes the result of the builder to a BsonWriter.
-        /// </summary>
-        /// <param name="bsonWriter">The writer.</param>
-        /// <param name="nominalType">The nominal type.</param>
-        /// <param name="options">The serialization options.</param>
-        protected override void Serialize(BsonWriter bsonWriter, Type nominalType, IBsonSerializationOptions options)
+        // nested classes
+        internal class Serializer : BsonBaseSerializer<GeoHaystackSearchOptionsBuilder<TDocument>>
         {
-            ((IBsonSerializable)_geoHaystackBuilder).Serialize(bsonWriter, nominalType, options);
+            public override void Serialize(SerializationContext context, GeoHaystackSearchOptionsBuilder<TDocument> value)
+            {
+                context.SerializeWithChildContext(BsonDocumentSerializer.Instance, value._geoHaystackBuilder.ToBsonDocument());
+            }
         }
     }
 }

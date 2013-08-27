@@ -22,7 +22,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for BsonInt64s.
     /// </summary>
-    public class BsonInt64Serializer : BsonBaseSerializer
+    public class BsonInt64Serializer : BsonBaseSerializer<BsonInt64>
     {
         // private static fields
         private static BsonInt64Serializer __instance = new BsonInt64Serializer();
@@ -49,23 +49,18 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
         /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override BsonInt64 Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(BsonInt64));
+            var bsonReader = context.Reader;
 
             var bsonType = bsonReader.GetCurrentBsonType();
             switch (bsonType)
             {
                 case BsonType.Int64:
                     return new BsonInt64(bsonReader.ReadInt64());
+
                 default:
                     var message = string.Format("Cannot deserialize BsonInt64 from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -76,22 +71,17 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, BsonInt64 value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 throw new ArgumentNullException("value");
             }
 
-            var bsonInt64 = (BsonInt64)value;
-            bsonWriter.WriteInt64(bsonInt64.Value);
+            bsonWriter.WriteInt64(value.Value);
         }
     }
 }

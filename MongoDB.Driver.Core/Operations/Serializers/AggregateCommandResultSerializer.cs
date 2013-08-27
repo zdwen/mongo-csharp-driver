@@ -28,37 +28,31 @@ namespace MongoDB.Driver.Core.Operations.Serializers
     /// Represents a serializer for a <see cref="AggregateCommandResult{TDocument}"/>.
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
-    public class AggregateCommandResultSerializer<TDocument> : BsonBaseSerializer
+    public class AggregateCommandResultSerializer<TDocument> : BsonBaseSerializer<AggregateCommandResult<TDocument>>
     {
         // private fields
-        private readonly IBsonSerializer _documentSerializer;
-        private readonly IBsonSerializationOptions _documentSerializationOptions;
+        private readonly IBsonSerializer<TDocument> _documentSerializer;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateCommandResultSerializer{TDocument}" /> class.
         /// </summary>
         /// <param name="documentSerializer">The document serializer.</param>
-        /// <param name="documentSerializationOptions">The document serialization options.</param>
-        public AggregateCommandResultSerializer(IBsonSerializer documentSerializer, IBsonSerializationOptions documentSerializationOptions)
+        public AggregateCommandResultSerializer(IBsonSerializer<TDocument> documentSerializer)
         {
             Ensure.IsNotNull("documentSerializer", documentSerializer);
-            Ensure.IsNotNull("documentSerializationOptions", documentSerializationOptions);
 
             _documentSerializer = documentSerializer;
-            _documentSerializationOptions = documentSerializationOptions;
         }
 
         /// <summary>
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
+        public override AggregateCommandResult<TDocument> Deserialize(DeserializationContext context)
         {
+            var bsonReader = context.Reader;
             var response = new BsonDocument();
             long cursorId = 0;
             IEnumerable<TDocument> firstBatch = null;
@@ -70,16 +64,16 @@ namespace MongoDB.Driver.Core.Operations.Serializers
                 switch (name)
                 {
                     case "result":
-                        firstBatch = DeserializeFirstBatch(bsonReader);
+                        firstBatch = DeserializeFirstBatch(context);
                         break;
                     case "cursor":
-                        var cursorResponse = DeserializeCursorResponse(bsonReader);
+                        var cursorResponse = DeserializeCursorResponse(context);
                         cursorId = cursorResponse.CursorId;
                         firstBatch = cursorResponse.FirstBatch;
                         response.Add("cursor", cursorResponse.Response);
                         break;
                     default:
-                        var value = (BsonValue)BsonValueSerializer.Instance.Deserialize(bsonReader, typeof(BsonValue), null);
+                        var value = BsonValueSerializer.Instance.Deserialize(context.CreateChild(typeof(BsonValue)));
                         response.Add(name, value);
                         break;
                 }
@@ -90,8 +84,9 @@ namespace MongoDB.Driver.Core.Operations.Serializers
         }
 
         // private methods
-        private CursorResponse DeserializeCursorResponse(BsonReader bsonReader)
+        private CursorResponse DeserializeCursorResponse(DeserializationContext context)
         {
+            var bsonReader = context.Reader;
             var response = new BsonDocument();
             long cursorId = 0;
             IEnumerable<TDocument> firstBatch = null;
@@ -107,10 +102,10 @@ namespace MongoDB.Driver.Core.Operations.Serializers
                         response.Add("id", cursorId);
                         break;
                     case "firstBatch":
-                        firstBatch = DeserializeFirstBatch(bsonReader);
+                        firstBatch = DeserializeFirstBatch(context);
                         break;
                     default:
-                        var value = (BsonValue)BsonValueSerializer.Instance.Deserialize(bsonReader, typeof(BsonValue), null);
+                        var value = BsonValueSerializer.Instance.Deserialize(context);
                         response.Add(name, value);
                         break;
                 }
@@ -120,14 +115,15 @@ namespace MongoDB.Driver.Core.Operations.Serializers
             return new CursorResponse { Response = response, CursorId = cursorId, FirstBatch = firstBatch };
         }
 
-        private IEnumerable<TDocument> DeserializeFirstBatch(BsonReader bsonReader)
+        private IEnumerable<TDocument> DeserializeFirstBatch(DeserializationContext context)
         {
+            var bsonReader = context.Reader;
             var firstBatch = new List<TDocument>();
 
             bsonReader.ReadStartArray();
             while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
             {
-                firstBatch.Add((TDocument)_documentSerializer.Deserialize(bsonReader, typeof(TDocument), _documentSerializationOptions));
+                firstBatch.Add(_documentSerializer.Deserialize(context.CreateChild(typeof(TDocument))));
             }
             bsonReader.ReadEndArray();
 

@@ -24,22 +24,25 @@ namespace MongoDB.Driver.Core
     /// <summary>
     /// Represents a serializer for a CommandResult.
     /// </summary>
-    public class CommandResultSerializer : BsonBaseSerializer
+    public class CommandResultSerializer<TCommandResult> : BsonBaseSerializer<TCommandResult> where TCommandResult : CommandResult
     {
+        // constructors
+        public CommandResultSerializer()
+        {
+        }
+
+        // public methods
         /// <summary>
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>
         /// An object.
         /// </returns>
-        public override object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
+        public override TCommandResult Deserialize(DeserializationContext context)
         {
-            var response = (BsonDocument)BsonDocumentSerializer.Instance.Deserialize(bsonReader, typeof(BsonDocument), null);
-            return (CommandResult)Activator.CreateInstance(actualType, new object[] { response });
+            var response = BsonDocumentSerializer.Instance.Deserialize(context.CreateChild(typeof(BsonDocument)));
+            return (TCommandResult)Activator.CreateInstance(typeof(TCommandResult), response);
         }
     }
 }

@@ -20,9 +20,7 @@ namespace MongoDB.Bson.Serialization.Attributes
     /// <summary>
     /// Abstract base class for serialization options attributes.
     /// </summary>
-#pragma warning disable 618 // obsoleted by IBsonMemberMapModifier
-    public abstract class BsonSerializationOptionsAttribute : Attribute, IBsonMemberMapAttribute, IBsonMemberMapModifier
-#pragma warning disable 618 
+    public abstract class BsonSerializationOptionsAttribute : Attribute, IBsonMemberMapAttribute
     {
         // constructors
         /// <summary>
@@ -39,23 +37,28 @@ namespace MongoDB.Bson.Serialization.Attributes
         /// <param name="memberMap">The member map.</param>
         public virtual void Apply(BsonMemberMap memberMap)
         {
-            var memberSerializer = memberMap.GetSerializer(memberMap.MemberType);
-            var memberSerializationOptions = memberMap.SerializationOptions;
-            if (memberSerializationOptions == null)
+            var serializer = memberMap.GetSerializer();
+            var reconfiguredSerializer = Apply(serializer);
+            memberMap.SetSerializer(reconfiguredSerializer);
+        }
+
+        // protected methods
+        protected virtual IBsonSerializer Apply(IBsonSerializer serializer)
+        {
+            // if none of the overrides applied the attribute to the serializer see if it can be applied to a child serializer
+            var serializerWithConfigurableChildSerializer = serializer as IBsonSerializerWithConfigurableChildSerializer;
+            if (serializerWithConfigurableChildSerializer != null)
             {
-                var memberDefaultSerializationOptions = memberSerializer.GetDefaultSerializationOptions();
-                if (memberDefaultSerializationOptions == null)
-                {
-                    var message = string.Format(
-                        "A serialization options attribute of type {0} cannot be used when the serializer is of type {1}.",
-                        BsonUtils.GetFriendlyTypeName(this.GetType()),
-                        BsonUtils.GetFriendlyTypeName(memberSerializer.GetType()));
-                    throw new NotSupportedException(message);
-                }
-                memberSerializationOptions = memberDefaultSerializationOptions.Clone();
-                memberMap.SetSerializationOptions(memberSerializationOptions);
+                var childSerializer = serializerWithConfigurableChildSerializer.ConfigurableChildSerializer;
+                var reconfiguredChildSerializer = Apply(childSerializer);
+                return serializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(reconfiguredChildSerializer);
             }
-            memberSerializationOptions.ApplyAttribute(memberSerializer, this);
+
+            var message = string.Format(
+                "A serializer of type '{0}' is not configurable using an attribute of type '{1}'.",
+                BsonUtils.GetFriendlyTypeName(serializer.GetType()),
+                BsonUtils.GetFriendlyTypeName(this.GetType()));
+            throw new NotSupportedException(message);
         }
     }
 }

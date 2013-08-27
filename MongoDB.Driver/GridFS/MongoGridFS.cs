@@ -592,14 +592,12 @@ namespace MongoDB.Driver.GridFS
                 var serverInstance = _server.RequestConnection.ServerInstance;
                 var database = GetDatabase();
                 var filesCollection = GetFilesCollection(database);
-                var serializationOptions = new MongoGridFSFileInfo.SerializationOptions
-                {
-                    Server = _server,
-                    ServerInstance = serverInstance,
-                    DatabaseName = _databaseName,
-                    GridFSSettings = _settings
-                };
-                return filesCollection.FindAs<MongoGridFSFileInfo>(query).SetSerializationOptions(serializationOptions);
+                var serializer = new MongoGridFSFileInfoSerializer(
+                    _server,
+                    serverInstance,
+                    _databaseName,
+                    _settings);
+                return filesCollection.FindAs<MongoGridFSFileInfo>(query).SetSerializer(serializer);
             }
         }
 

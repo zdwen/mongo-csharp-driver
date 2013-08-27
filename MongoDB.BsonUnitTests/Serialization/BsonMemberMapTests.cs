@@ -244,6 +244,8 @@ namespace MongoDB.BsonUnitTests.Serialization
 
             });
 
+            var originalSerializer = new Int32Serializer();
+
             var memberMap = classMap.GetMemberMap(x => x.Property);
             memberMap.SetDefaultValue(42);
             memberMap.SetElementName("oops");
@@ -251,8 +253,7 @@ namespace MongoDB.BsonUnitTests.Serialization
             memberMap.SetIgnoreIfDefault(true);
             memberMap.SetIsRequired(true);
             memberMap.SetOrder(21);
-            memberMap.SetSerializationOptions(new RepresentationSerializationOptions(BsonType.Int64));
-            memberMap.SetSerializer(new BsonInt64Serializer());
+            memberMap.SetSerializer(originalSerializer);
             memberMap.SetShouldSerializeMethod(o => false);
 
             memberMap.Reset();
@@ -264,8 +265,7 @@ namespace MongoDB.BsonUnitTests.Serialization
             Assert.IsFalse(memberMap.IgnoreIfNull);
             Assert.IsFalse(memberMap.IsRequired);
             Assert.AreEqual(int.MaxValue, memberMap.Order);
-            Assert.IsNull(memberMap.SerializationOptions);
-            Assert.IsNotInstanceOf<BsonInt64Serializer>(memberMap.GetSerializer(memberMap.MemberType));
+            Assert.AreNotSame(originalSerializer, memberMap.GetSerializer());
             Assert.IsNull(memberMap.ShouldSerializeMethod);
         }
     }

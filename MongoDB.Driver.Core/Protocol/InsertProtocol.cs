@@ -169,7 +169,7 @@ namespace MongoDB.Driver.Core.Protocol
                         while (enumerator.MoveNext())
                         {
                             var document = enumerator.Current;
-                            insertMessage.AddDocument(packet.Stream, _documentType, document);
+                            insertMessage.AddDocument(packet.Stream, document);
                             if (insertMessage.MessageLength > _maxMessageSize)
                             {
                                 overflowDocument = insertMessage.RemoveLastDocument(packet.Stream);

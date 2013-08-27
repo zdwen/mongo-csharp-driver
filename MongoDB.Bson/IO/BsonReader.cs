@@ -17,6 +17,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Bson.IO
@@ -655,15 +656,17 @@ namespace MongoDB.Bson.IO
             // overridden in BsonBinaryReader to read the raw bytes from the stream
             // for all other streams, deserialize the array and reserialize it using a BsonBinaryWriter to get the raw bytes
 
-            var array = BsonArraySerializer.Instance.Deserialize(this, typeof(BsonArray), null);
+            var deserializationContext = DeserializationContext.CreateRoot<BsonArray>(this);
+            var array = BsonArraySerializer.Instance.Deserialize(deserializationContext);
 
             using (var memoryStream = new MemoryStream())
             using (var bsonWriter = new BsonBinaryWriter(memoryStream, BsonBinaryWriterSettings.Defaults))
             {
+                var serializationContext = SerializationContext.CreateRoot<BsonDocument>(bsonWriter);
                 bsonWriter.WriteStartDocument();
                 var startPosition = memoryStream.Position + 3; // just past BsonType, "x" and null byte
                 bsonWriter.WriteName("x");
-                BsonArraySerializer.Instance.Serialize(bsonWriter, typeof(BsonArray), array, null);
+                serializationContext.SerializeWithChildContext(BsonArraySerializer.Instance, array);
                 var endPosition = memoryStream.Position;
                 bsonWriter.WriteEndDocument();
 
@@ -694,7 +697,8 @@ namespace MongoDB.Bson.IO
             // overridden in BsonBinaryReader to read the raw bytes from the stream
             // for all other streams, deserialize the document and use ToBson to get the raw bytes
 
-            var document = BsonDocumentSerializer.Instance.Deserialize(this, typeof(BsonDocument), null);
+            var deserializationContext = DeserializationContext.CreateRoot<BsonDocument>(this);
+            var document = BsonDocumentSerializer.Instance.Deserialize(deserializationContext);
             var bytes = document.ToBson();
             return new ByteArrayBuffer(bytes, 0, bytes.Length, true);
         }

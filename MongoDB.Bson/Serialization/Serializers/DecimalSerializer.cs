@@ -17,6 +17,7 @@ using System;
 using System.IO;
 using System.Xml;
 using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization.Serializers
@@ -24,28 +25,50 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Decimals.
     /// </summary>
-    public class DecimalSerializer : BsonBaseSerializer
+    public class DecimalSerializer : BsonBaseSerializer<decimal>, IBsonSerializerWithRepresentation<DecimalSerializer>, IBsonSerializerWithRepresentationConverter<DecimalSerializer>
     {
-        // private static fields
-        private static DecimalSerializer __instance = new DecimalSerializer();
+        // private fields
+        private readonly BsonType _representation;
+        private readonly RepresentationConverter _converter;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the DecimalSerializer class.
+        /// Initializes a new instance of the <see cref="DecimalSerializer"/> class.
         /// </summary>
         public DecimalSerializer()
-            : base(new RepresentationSerializationOptions(BsonType.String))
+            : this(BsonType.String)
         {
         }
 
-        // public static properties
         /// <summary>
-        /// Gets an instance of the DecimalSerializer class.
+        /// Initializes a new instance of the <see cref="DecimalSerializer"/> class.
         /// </summary>
-        [Obsolete("Use constructor instead.")]
-        public static DecimalSerializer Instance
+        /// <param name="representation">The representation.</param>
+        public DecimalSerializer(BsonType representation)
+            : this(representation, new RepresentationConverter(false, false))
         {
-            get { return __instance; }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DecimalSerializer"/> class.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <param name="converter">The converter.</param>
+        public DecimalSerializer(BsonType representation, RepresentationConverter converter)
+        {
+            _representation = representation;
+            _converter = converter;
+        }
+
+        // public properties
+        public RepresentationConverter Converter
+        {
+            get { return _converter; }
+        }
+
+        public BsonType Representation
+        {
+            get { return _representation; }
         }
 
         // public methods
@@ -53,38 +76,36 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
         /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override decimal Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(decimal));
-            var representationSerializationOptions = EnsureSerializationOptions<RepresentationSerializationOptions>(options);
+            var bsonReader = context.Reader;
 
             var bsonType = bsonReader.GetCurrentBsonType();
             switch (bsonType)
             {
                 case BsonType.Array:
-                    var array = (BsonArray)BsonArraySerializer.Instance.Deserialize(bsonReader, typeof(BsonArray), null);
+                    var array = context.DeserializeWithChildContext(BsonArraySerializer.Instance);
                     var bits = new int[4];
                     bits[0] = array[0].AsInt32;
                     bits[1] = array[1].AsInt32;
                     bits[2] = array[2].AsInt32;
                     bits[3] = array[3].AsInt32;
                     return new decimal(bits);
+
                 case BsonType.Double:
-                    return representationSerializationOptions.ToDecimal(bsonReader.ReadDouble());
+                    return _converter.ToDecimal(bsonReader.ReadDouble());
+
                 case BsonType.Int32:
-                    return representationSerializationOptions.ToDecimal(bsonReader.ReadInt32());
+                    return _converter.ToDecimal(bsonReader.ReadInt32());
+
                 case BsonType.Int64:
-                    return representationSerializationOptions.ToDecimal(bsonReader.ReadInt64());
+                    return _converter.ToDecimal(bsonReader.ReadInt64());
+
                 case BsonType.String:
                     return XmlConvert.ToDecimal(bsonReader.ReadString());
+
                 default:
                     var message = string.Format("Cannot deserialize Decimal from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -95,45 +116,78 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, decimal value)
         {
-            var decimalValue = (Decimal)value;
-            var representationSerializationOptions = EnsureSerializationOptions<RepresentationSerializationOptions>(options);
+            var bsonWriter = context.Writer;
 
-            switch (representationSerializationOptions.Representation)
+            switch (_representation)
             {
                 case BsonType.Array:
                     bsonWriter.WriteStartArray();
-                    var bits = Decimal.GetBits(decimalValue);
+                    var bits = Decimal.GetBits(value);
                     bsonWriter.WriteInt32(bits[0]);
                     bsonWriter.WriteInt32(bits[1]);
                     bsonWriter.WriteInt32(bits[2]);
                     bsonWriter.WriteInt32(bits[3]);
                     bsonWriter.WriteEndArray();
                     break;
+
                 case BsonType.Double:
-                    bsonWriter.WriteDouble(representationSerializationOptions.ToDouble(decimalValue));
+                    bsonWriter.WriteDouble(_converter.ToDouble(value));
                     break;
+
                 case BsonType.Int32:
-                    bsonWriter.WriteInt32(representationSerializationOptions.ToInt32(decimalValue));
+                    bsonWriter.WriteInt32(_converter.ToInt32(value));
                     break;
+
                 case BsonType.Int64:
-                    bsonWriter.WriteInt64(representationSerializationOptions.ToInt64(decimalValue));
+                    bsonWriter.WriteInt64(_converter.ToInt64(value));
                     break;
+
                 case BsonType.String:
-                    bsonWriter.WriteString(XmlConvert.ToString(decimalValue));
+                    bsonWriter.WriteString(XmlConvert.ToString(value));
                     break;
+
                 default:
-                    var message = string.Format("'{0}' is not a valid Decimal representation.", representationSerializationOptions.Representation);
+                    var message = string.Format("'{0}' is not a valid Decimal representation.", _representation);
                     throw new BsonSerializationException(message);
             }
+        }
+
+        public DecimalSerializer WithConverter(RepresentationConverter converter)
+        {
+            if (converter == _converter)
+            {
+                return this;
+            }
+            else
+            {
+                return new DecimalSerializer(_representation, converter);
+            }
+        }
+
+        public DecimalSerializer WithRepresentation(BsonType representation)
+        {
+            if (representation == _representation)
+            {
+                return this;
+            }
+            else
+            {
+                return new DecimalSerializer(representation, _converter);
+            }
+        }
+
+        // explicit interface implementations
+        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        {
+            return WithConverter(converter);
+        }
+
+        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        {
+            return WithRepresentation(representation);
         }
     }
 }

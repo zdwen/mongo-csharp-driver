@@ -15,6 +15,7 @@
 
 using System;
 using MongoDB.Bson.Serialization.Options;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Bson.Serialization.Attributes
 {
@@ -65,6 +66,18 @@ namespace MongoDB.Bson.Serialization.Attributes
         {
             get { return _units; }
             set { _units = value; }
+        }
+
+        // protected methods
+        protected override IBsonSerializer Apply(IBsonSerializer serializer)
+        {
+            var timeSpanSerializer = serializer as TimeSpanSerializer;
+            if (timeSpanSerializer != null)
+            {
+                return timeSpanSerializer.WithRepresentation(_representation, _units);
+            }
+
+            return base.Apply(serializer);
         }
     }
 }

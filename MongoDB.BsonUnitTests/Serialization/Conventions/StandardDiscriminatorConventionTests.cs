@@ -13,34 +13,25 @@
 * limitations under the License.
 */
 
-using MongoDB.Bson.Serialization;
+using System;
 using MongoDB.Bson.Serialization.Conventions;
 using NUnit.Framework;
 
-namespace MongoDB.BsonUnitTests.Jira.CSharp728
+namespace MongoDB.BsonUnitTests.Serialization.Conventions
 {
     [TestFixture]
-    public class CSharp728Tests
+    public class StandardDiscriminatorConventionTests
     {
-        private class A
+        [Test]
+        public void TestConstructorThrowsWhenElementNameContainsNulls()
         {
-            public string S { get; set; }
+            Assert.Throws<ArgumentException>(() => { var discriminatorConvention = new ScalarDiscriminatorConvention("a\0b"); });
         }
 
         [Test]
-        public void TestConventionProfileStillUsesDefaults()
+        public void TestConstructorThrowsWhenElementNameIsNull()
         {
-#pragma warning disable 618 
-            var conventions = new ConventionProfile();
-            conventions.SetElementNameConvention(new CamelCaseElementNameConvention());
-            BsonClassMap.RegisterConventions(conventions, t => t == typeof(A));
-#pragma warning restore 618
-            var classMap = new BsonClassMap<A>();
-            classMap.AutoMap();
-
-            var memberMap = classMap.GetMemberMap(x => x.S);
-
-            Assert.IsNotNull(memberMap);
+            Assert.Throws<ArgumentNullException>(() => { var discriminatorConvention = new ScalarDiscriminatorConvention(null); });
         }
     }
 }

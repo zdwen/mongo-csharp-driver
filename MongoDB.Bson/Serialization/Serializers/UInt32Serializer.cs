@@ -17,6 +17,7 @@ using System;
 using System.IO;
 using System.Xml;
 using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization.Serializers
@@ -24,28 +25,50 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for UInt32s.
     /// </summary>
-    public class UInt32Serializer : BsonBaseSerializer
+    public class UInt32Serializer : BsonBaseSerializer<uint>, IBsonSerializerWithRepresentation<UInt32Serializer>, IBsonSerializerWithRepresentationConverter<UInt32Serializer>
     {
-        // private static fields
-        private static UInt32Serializer __instance = new UInt32Serializer();
+        // private fields
+        private readonly BsonType _representation;
+        private readonly RepresentationConverter _converter;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the UInt32Serializer class.
+        /// Initializes a new instance of the <see cref="UInt32Serializer"/> class.
         /// </summary>
         public UInt32Serializer()
-            : base(new RepresentationSerializationOptions(BsonType.Int32))
+            : this(BsonType.Int32)
         {
         }
 
-        // public static properties
         /// <summary>
-        /// Gets an instance of the UInt32Serializer class.
+        /// Initializes a new instance of the <see cref="UInt32Serializer"/> class.
         /// </summary>
-        [Obsolete("Use constructor instead.")]
-        public static UInt32Serializer Instance
+        /// <param name="representation">The representation.</param>
+        public UInt32Serializer(BsonType representation)
+            : this(representation, new RepresentationConverter(false, false))
         {
-            get { return __instance; }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UInt32Serializer"/> class.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <param name="converter">The converter.</param>
+        public UInt32Serializer(BsonType representation, RepresentationConverter converter)
+        {
+            _representation = representation;
+            _converter = converter;
+        }
+
+        // public properties
+        public RepresentationConverter Converter
+        {
+            get { return _converter; }
+        }
+
+        public BsonType Representation
+        {
+            get { return _representation; }
         }
 
         // public methods
@@ -53,30 +76,26 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override uint Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(uint));
-            var representationSerializationOptions = EnsureSerializationOptions<RepresentationSerializationOptions>(options);
+            var bsonReader = context.Reader;
 
             var bsonType = bsonReader.GetCurrentBsonType();
             switch (bsonType)
             {
                 case BsonType.Double:
-                    return representationSerializationOptions.ToUInt32(bsonReader.ReadDouble());
+                    return _converter.ToUInt32(bsonReader.ReadDouble());
+
                 case BsonType.Int32:
-                    return representationSerializationOptions.ToUInt32(bsonReader.ReadInt32());
+                    return _converter.ToUInt32(bsonReader.ReadInt32());
+
                 case BsonType.Int64:
-                    return representationSerializationOptions.ToUInt32(bsonReader.ReadInt64());
+                    return _converter.ToUInt32(bsonReader.ReadInt64());
+
                 case BsonType.String:
                     return XmlConvert.ToUInt32(bsonReader.ReadString());
+
                 default:
                     var message = string.Format("Cannot deserialize UInt32 from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -87,36 +106,68 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, uint value)
         {
-            var uint32Value = (uint)value;
-            var representationSerializationOptions = EnsureSerializationOptions<RepresentationSerializationOptions>(options);
+            var bsonWriter = context.Writer;
 
-            switch (representationSerializationOptions.Representation)
+            switch (_representation)
             {
                 case BsonType.Double:
-                    bsonWriter.WriteDouble(representationSerializationOptions.ToDouble(uint32Value));
+                    bsonWriter.WriteDouble(_converter.ToDouble(value));
                     break;
+
                 case BsonType.Int32:
-                    bsonWriter.WriteInt32(representationSerializationOptions.ToInt32(uint32Value));
+                    bsonWriter.WriteInt32(_converter.ToInt32(value));
                     break;
+
                 case BsonType.Int64:
-                    bsonWriter.WriteInt64(representationSerializationOptions.ToInt64(uint32Value));
+                    bsonWriter.WriteInt64(_converter.ToInt64(value));
                     break;
+
                 case BsonType.String:
-                    bsonWriter.WriteString(XmlConvert.ToString(uint32Value));
+                    bsonWriter.WriteString(XmlConvert.ToString(value));
                     break;
+
                 default:
-                    var message = string.Format("'{0}' is not a valid UInt32 representation.", representationSerializationOptions.Representation);
+                    var message = string.Format("'{0}' is not a valid UInt32 representation.", _representation);
                     throw new BsonSerializationException(message);
             }
+        }
+
+        public UInt32Serializer WithConverter(RepresentationConverter converter)
+        {
+            if (converter == _converter)
+            {
+                return this;
+            }
+            else
+            {
+                return new UInt32Serializer(_representation, converter);
+            }
+        }
+
+        public UInt32Serializer WithRepresentation(BsonType representation)
+        {
+            if (representation == _representation)
+            {
+                return this;
+            }
+            else
+            {
+                return new UInt32Serializer(representation, _converter);
+            }
+        }
+
+        // explicit interface implementations
+        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        {
+            return WithConverter(converter);
+        }
+
+        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        {
+            return WithRepresentation(representation);
         }
     }
 }

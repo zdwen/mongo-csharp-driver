@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="channelProvider">The channel provider.</param>
         /// <param name="args">The args.</param>
         /// <returns>The result of the execution.</returns>
-        protected TCommandResult ExecuteCommandProtocol<TCommandResult>(IServerChannelProvider channelProvider, ExecuteCommandProtocolArgs args) where TCommandResult : CommandResult
+        protected TCommandResult ExecuteCommandProtocol<TCommandResult>(IServerChannelProvider channelProvider, ExecuteCommandProtocolArgs<TCommandResult> args) where TCommandResult : CommandResult
         {
             var readerSettings = GetServerAdjustedReaderSettings(channelProvider.Server);
             var writerSettings = GetServerAdjustedWriterSettings(channelProvider.Server);
@@ -47,8 +47,7 @@ namespace MongoDB.Driver.Core.Operations
                 numberToReturn: -1,
                 query: WrapQuery(channelProvider.Server, args.Command, null, args.ReadPreference),
                 readerSettings: readerSettings,
-                serializer: args.Serializer,
-                serializationOptions: args.SerializationOptions,
+                serializer: args.CommandResultSerializer,
                 skip: 0,
                 writerSettings: writerSettings);
 
@@ -90,12 +89,17 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Arguments for executing a command.
         /// </summary>
-        protected class ExecuteCommandProtocolArgs
+        protected class ExecuteCommandProtocolArgs<TCommandResult>
         {
             /// <summary>
             /// Gets or sets the command.
             /// </summary>
             public object Command { get; set; }
+
+            /// <summary>
+            /// Gets or sets the serializer.
+            /// </summary>
+            public IBsonSerializer<TCommandResult> CommandResultSerializer { get; set; }
 
             /// <summary>
             /// Gets or sets the database.
@@ -106,16 +110,6 @@ namespace MongoDB.Driver.Core.Operations
             /// Gets or sets the read preference.
             /// </summary>
             public ReadPreference ReadPreference { get; set; }
-
-            /// <summary>
-            /// Gets or sets the serializer.
-            /// </summary>
-            public IBsonSerializer Serializer { get; set; }
-
-            /// <summary>
-            /// Gets or sets the serialization options.
-            /// </summary>
-            public IBsonSerializationOptions SerializationOptions { get; set; }
         }
     }
 }

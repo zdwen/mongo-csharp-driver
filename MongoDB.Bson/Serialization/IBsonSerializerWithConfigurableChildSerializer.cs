@@ -13,22 +13,14 @@
 * limitations under the License.
 */
 
-using System;
-using System.Reflection;
-
-namespace MongoDB.Bson.Serialization.Conventions
+namespace MongoDB.Bson.Serialization
 {
-    /// <summary>
-    /// Represents an element name convention.
-    /// </summary>
-    [Obsolete("Use IMemberMapConvention instead.")]
-    public interface IElementNameConvention
+    // this interface is public so custom serializers can choose to implement it
+    // but typically you would choose to implement this interface explicitly
+    // these methods support forwarding attributes to child serializers and wouldn't normally be public
+    public interface IBsonSerializerWithConfigurableChildSerializer
     {
-        /// <summary>
-        /// Gets the element name for a member.
-        /// </summary>
-        /// <param name="member">The member.</param>
-        /// <returns>The element name.</returns>
-        string GetElementName(MemberInfo member);
+        IBsonSerializer ConfigurableChildSerializer { get; }
+        IBsonSerializer WithReconfiguredChildSerializer(IBsonSerializer childSerializer);
     }
 }

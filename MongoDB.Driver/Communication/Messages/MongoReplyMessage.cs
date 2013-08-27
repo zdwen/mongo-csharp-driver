@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Internal
     {
         // private fields
         private readonly BsonBinaryReaderSettings _readerSettings;
-        private readonly IBsonSerializer _serializer;
+        private readonly IBsonSerializer<TDocument> _serializer;
         private ResponseFlags _responseFlags;
         private long _cursorId;
         private int _startingFrom;
@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Internal
         private List<TDocument> _documents;
 
         // constructors
-        internal MongoReplyMessage(BsonBinaryReaderSettings readerSettings, IBsonSerializer serializer)
+        internal MongoReplyMessage(BsonBinaryReaderSettings readerSettings, IBsonSerializer<TDocument> serializer)
             : base(MessageOpcode.Reply)
         {
             if (readerSettings == null)
@@ -79,13 +79,8 @@ namespace MongoDB.Driver.Internal
         }
 
         // internal methods
-        internal void ReadFrom(Stream stream, IBsonSerializationOptions serializationOptions)
+        internal void ReadFrom(Stream stream)
         {
-            if (serializationOptions == null && typeof(TDocument) == typeof(BsonDocument))
-            {
-                serializationOptions = DocumentSerializationOptions.AllowDuplicateNamesInstance;
-            }
-
             var messageStartPosition = stream.Position;
 
             var streamReader = new BsonStreamReader(stream, _readerSettings.Encoding);
@@ -104,7 +99,8 @@ namespace MongoDB.Driver.Internal
                 BsonDocument document;
                 using (BsonReader bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
-                    document = (BsonDocument)BsonDocumentSerializer.Instance.Deserialize(bsonReader, typeof(BsonDocument), null);
+                    var context = DeserializationContext.CreateRoot<BsonDocument>(bsonReader);
+                    document = BsonDocumentSerializer.Instance.Deserialize(context);
                 }
                 var err = document.GetValue("$err", "Unknown error.");
                 var message = string.Format("QueryFailure flag was {0} (response was {1}).", err, document.ToJson());
@@ -116,7 +112,8 @@ namespace MongoDB.Driver.Internal
             {
                 using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
-                    var document = (TDocument)_serializer.Deserialize(bsonReader, typeof(TDocument), serializationOptions);
+                    var context = DeserializationContext.CreateRoot<TDocument>(bsonReader);
+                    var document = _serializer.Deserialize(context);
                     _documents.Add(document);
                 }
             }

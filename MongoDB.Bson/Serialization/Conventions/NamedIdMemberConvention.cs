@@ -23,9 +23,7 @@ namespace MongoDB.Bson.Serialization.Conventions
     /// <summary>
     /// A convention that finds the id member by name.
     /// </summary>
-#pragma warning disable 618 // about obsolete IIdMemberConvention
-    public class NamedIdMemberConvention : ConventionBase, IClassMapConvention, IIdMemberConvention
-#pragma warning restore 618
+    public class NamedIdMemberConvention : ConventionBase, IClassMapConvention
     {
         // private fields
         private readonly IEnumerable<string> _names;

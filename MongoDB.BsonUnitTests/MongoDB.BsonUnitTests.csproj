@@ -106,7 +106,6 @@
     <Compile Include="BsonUtilsTests.cs" />
     <Compile Include="IO\ByteArrayBufferTests.cs" />
     <Compile Include="IO\MultiChunkBufferTests.cs" />
-    <Compile Include="Jira\CSharp728Tests.cs" />
     <Compile Include="Jira\CSharp708Tests.cs" />
     <Compile Include="Jira\CSharp476Tests.cs" />
     <Compile Include="Jira\CSharp624Tests.cs" />
@@ -138,14 +137,13 @@
     <Compile Include="Serialization\Conventions\MemberNameElementNameConventionsTests.cs" />
     <Compile Include="Serialization\Conventions\NamedExtraElementsConventionsTests.cs" />
     <Compile Include="Serialization\Conventions\NamedIdConventionsTests.cs" />
-    <Compile Include="Serialization\Conventions\PropertyFinderConventionsTests.cs" />
     <Compile Include="Serialization\Conventions\ReadWriteMemberFinderConventionsTests.cs" />
+    <Compile Include="Serialization\Conventions\StandardDiscriminatorConventionTests.cs" />
     <Compile Include="Serialization\Conventions\StringObjectIdGeneratorConventionsTests.cs" />
     <Compile Include="Serialization\IdGenerators\AscendingGuidGeneratorTests.cs" />
     <Compile Include="Serialization\IdGenerators\CombGuidGeneratorTests.cs" />
-    <Compile Include="Serialization\LegacyBsonClassMapTests.cs" />
     <Compile Include="Serialization\Serializers\ExtraElementsTests.cs" />
-    <Compile Include="Serialization\Options\RepresentationSerializationOptionsTests.cs" />
+    <Compile Include="Serialization\Options\RepresentationConverterTests.cs" />
     <Compile Include="Serialization\Serializers\KeyValuePairSerializerTests.cs" />
     <Compile Include="Serialization\Serializers\LazyBsonArraySerializerTests.cs" />
     <Compile Include="Serialization\Serializers\LazyBsonDocumentSerializerTests.cs" />

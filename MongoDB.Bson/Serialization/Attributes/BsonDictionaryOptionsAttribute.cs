@@ -53,5 +53,17 @@ namespace MongoDB.Bson.Serialization.Attributes
             get { return _representation; }
             set { _representation = value; }
         }
+
+        // protected methods
+        protected override IBsonSerializer Apply(IBsonSerializer serializer)
+        {
+            var serializerWithDictionaryRepresentation = serializer as IBsonSerializerWithDictionaryRepresentation;
+            if (serializerWithDictionaryRepresentation != null)
+            {
+                return serializerWithDictionaryRepresentation.WithDictionaryRepresentation(_representation);
+            }
+
+            return base.Apply(serializer);
+        }
     }
 }

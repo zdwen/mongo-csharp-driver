@@ -24,27 +24,11 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for IPAddresses.
     /// </summary>
-    public class IPAddressSerializer : BsonBaseSerializer
+    public class IPAddressSerializer : BsonBaseSerializer<IPAddress>
     {
-        // private static fields
-        private static IPAddressSerializer __instance = new IPAddressSerializer();
-
         // constructors
-        /// <summary>
-        /// Initializes a new instance of the IPAddressSerializer class.
-        /// </summary>
         public IPAddressSerializer()
         {
-        }
-
-        // public static properties
-        /// <summary>
-        /// Gets an instance of the IPAddressSerializer class.
-        /// </summary>
-        [Obsolete("Use constructor instead.")]
-        public static IPAddressSerializer Instance
-        {
-            get { return __instance; }
         }
 
         // public methods
@@ -52,25 +36,19 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Deserializes an object from a BsonReader.
         /// </summary>
         /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="nominalType">The nominal type of the object.</param>
-        /// <param name="actualType">The actual type of the object.</param>
-        /// <param name="options">The serialization options.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(
-            BsonReader bsonReader,
-            Type nominalType,
-            Type actualType,
-            IBsonSerializationOptions options)
+        public override IPAddress Deserialize(DeserializationContext context)
         {
-            VerifyTypes(nominalType, actualType, typeof(IPAddress));
+            var bsonReader = context.Reader;
+            string message;
 
             BsonType bsonType = bsonReader.GetCurrentBsonType();
-            string message;
             switch (bsonType)
             {
                 case BsonType.Null:
                     bsonReader.ReadNull();
                     return null;
+
                 case BsonType.String:
                     var stringValue = bsonReader.ReadString();
                     IPAddress address;
@@ -80,6 +58,7 @@ namespace MongoDB.Bson.Serialization.Serializers
                     }
                     message = string.Format("Invalid IPAddress value '{0}'.", stringValue);
                     throw new FileFormatException(message);
+
                 default:
                     message = string.Format("Cannot deserialize IPAddress from BsonType {0}.", bsonType);
                     throw new FileFormatException(message);
@@ -90,30 +69,25 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Serializes an object to a BsonWriter.
         /// </summary>
         /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="nominalType">The nominal type.</param>
         /// <param name="value">The object.</param>
-        /// <param name="options">The serialization options.</param>
-        public override void Serialize(
-            BsonWriter bsonWriter,
-            Type nominalType,
-            object value,
-            IBsonSerializationOptions options)
+        public override void Serialize(SerializationContext context, IPAddress value)
         {
+            var bsonWriter = context.Writer;
+
             if (value == null)
             {
                 bsonWriter.WriteNull();
             }
             else
             {
-                var address = (IPAddress)value;
                 string stringValue;
-                if (address.AddressFamily == AddressFamily.InterNetwork)
+                if (value.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    stringValue = address.ToString();
+                    stringValue = value.ToString();
                 }
                 else
                 {
-                    stringValue = string.Format("[{0}]", address);
+                    stringValue = string.Format("[{0}]", value);
                 }
                 bsonWriter.WriteString(stringValue);
             }

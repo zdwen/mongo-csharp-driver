@@ -112,8 +112,7 @@ namespace MongoDB.Driver.Linq.Utils
             itemSerializationInfo = new BsonSerializationInfo(
                 index.ToString(),
                 itemSerializationInfo.Serializer,
-                itemSerializationInfo.NominalType,
-                itemSerializationInfo.SerializationOptions);
+                itemSerializationInfo.NominalType);
 
             return CombineSerializationInfo(serializationInfo, itemSerializationInfo);
         }
@@ -243,8 +242,7 @@ namespace MongoDB.Driver.Linq.Utils
             itemSerializationInfo = new BsonSerializationInfo(
                 index.ToString(),
                 itemSerializationInfo.Serializer,
-                itemSerializationInfo.NominalType,
-                itemSerializationInfo.SerializationOptions);
+                itemSerializationInfo.NominalType);
 
             return CombineSerializationInfo(serializationInfo, itemSerializationInfo);
         }
@@ -273,8 +271,7 @@ namespace MongoDB.Driver.Linq.Utils
             itemSerializationInfo = new BsonSerializationInfo(
                 index.ToString(),
                 itemSerializationInfo.Serializer,
-                itemSerializationInfo.NominalType,
-                itemSerializationInfo.SerializationOptions);
+                itemSerializationInfo.NominalType);
 
             return CombineSerializationInfo(serializationInfo, itemSerializationInfo);
         }
@@ -298,8 +295,7 @@ namespace MongoDB.Driver.Linq.Utils
             return new BsonSerializationInfo(
                 elementName,
                 newInfo.Serializer,
-                newInfo.NominalType,
-                newInfo.SerializationOptions);
+                newInfo.NominalType);
         }
 
         private static BsonSerializationInfo CreateSerializationInfo(Expression node, IBsonSerializer serializer)
@@ -307,8 +303,7 @@ namespace MongoDB.Driver.Linq.Utils
             return new BsonSerializationInfo(
                 null,
                 serializer,
-                node.Type,
-                serializer.GetDefaultSerializationOptions());
+                node.Type);
         }
     }
 }

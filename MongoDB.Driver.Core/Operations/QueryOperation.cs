@@ -41,8 +41,7 @@ namespace MongoDB.Driver.Core.Operations
         private BsonDocument _options;
         private object _query;
         private ReadPreference _readPreference;
-        private IBsonSerializer _serializer;
-        private IBsonSerializationOptions _serializationOptions;
+        private IBsonSerializer<TDocument> _serializer;
         private int _skip;
 
         // constructors
@@ -130,19 +129,10 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the serializer.
         /// </summary>
-        public IBsonSerializer Serializer
+        public IBsonSerializer<TDocument> Serializer
         {
             get { return _serializer; }
             set { _serializer = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the serialization options.
-        /// </summary>
-        public IBsonSerializationOptions SerializationOptions
-        {
-            get { return _serializationOptions; }
-            set { _serializationOptions = value; }
         }
 
         /// <summary>
@@ -189,7 +179,6 @@ namespace MongoDB.Driver.Core.Operations
                     query: WrapQuery(channelProvider.Server, _query, _options, _readPreference),
                     readerSettings: readerSettings,
                     serializer: _serializer,
-                    serializationOptions: _serializationOptions,
                     skip: _skip,
                     writerSettings: GetServerAdjustedWriterSettings(channelProvider.Server));
 
@@ -205,7 +194,6 @@ namespace MongoDB.Driver.Core.Operations
                         numberToReturn: _batchSize,
                         firstBatch: result.Documents,
                         serializer: Serializer,
-                        serializationOptions: SerializationOptions,
                         timeout: Timeout,
                         cancellationToken: CancellationToken,
                         readerSettings: readerSettings);
@@ -251,11 +239,7 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull("ReadPreference", _readPreference);
             if (_serializer == null)
             {
-                _serializer = BsonSerializer.LookupSerializer(typeof(TDocument));
-                if (_serializationOptions == null)
-                {
-                    _serializationOptions = _serializer.GetDefaultSerializationOptions();
-                }
+                _serializer = BsonSerializer.LookupSerializer<TDocument>();
             }
         }
 

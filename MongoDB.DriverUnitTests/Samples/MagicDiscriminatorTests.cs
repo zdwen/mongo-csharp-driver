@@ -56,9 +56,10 @@ namespace MongoDB.DriverUnitTests.Samples
 
             public Type GetActualType(BsonReader bsonReader, Type nominalType)
             {
+                var actualType = typeof(A);
+
                 var bookmark = bsonReader.GetBookmark();
                 bsonReader.ReadStartDocument();
-                var actualType = nominalType;
                 while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
                 {
                     var name = bsonReader.ReadName();
@@ -75,6 +76,7 @@ namespace MongoDB.DriverUnitTests.Samples
                     bsonReader.SkipValue();
                 }
                 bsonReader.ReturnToBookmark(bookmark);
+
                 return actualType;
             }
 
