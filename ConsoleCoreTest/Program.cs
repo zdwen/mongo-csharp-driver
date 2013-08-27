@@ -30,7 +30,6 @@ namespace MongoDB.DriverUnitTests.Jira
         public static void Main()
         {
             var events = new EventPublisher();
-            var traceManager = new TraceManager();
 
             // Performance Counters
 
@@ -43,7 +42,7 @@ namespace MongoDB.DriverUnitTests.Jira
 
             // 1) Create a Stream Factory
             IStreamFactory streamFactory = new NetworkStreamFactory(
-                NetworkStreamFactorySettings.Defaults,
+                NetworkStreamSettings.Defaults,
                 new DnsCache());
 
             // SSL
@@ -54,26 +53,21 @@ namespace MongoDB.DriverUnitTests.Jira
 
             // 2) Create a Connection Factory
             IConnectionFactory connectionFactory = new StreamConnectionFactory(
+                StreamConnectionSettings.Defaults,
                 streamFactory,
-                events,
-                traceManager);
-
-            // Authentication
-            //var authSettings = AuthenticationSettings.Create(b =>
-            //{
-            //    b.AddCredential(MongoCredential.CreateMongoCRCredential("users", "user", "password"));
-            //});
-            //connectionFactory = new AuthenticatedConnectionFactory(authSettings, connectionFactory);
+                events);
 
             // 3) Create a Channel Provider Factory
             IChannelProviderFactory channelProviderFactory = new ConnectionPoolChannelProviderFactory(
                 new ConnectionPoolFactory(
-                    ConnectionPoolSettings.Defaults,
+                    ConnectionPoolSettings.Create(s =>
+                    {
+                        s.SetConnectionMaxLifeTime(TimeSpan.FromSeconds(10));
+                        s.SetMinSize(2);
+                    }),
                     connectionFactory,
-                    events,
-                    traceManager),
-                events,
-                traceManager);
+                    events),
+                events);
 
             // A pipelined channel provider
             //channelProviderFactory = new PipelinedChannelProviderFactory(connectionFactory, 1);
@@ -83,8 +77,7 @@ namespace MongoDB.DriverUnitTests.Jira
                 ClusterableServerSettings.Defaults,
                 channelProviderFactory,
                 connectionFactory,
-                events,
-                traceManager);
+                events);
 
             // 5) Create a Cluster
             var settings = ClusterSettings.Defaults;
@@ -133,13 +126,7 @@ namespace MongoDB.DriverUnitTests.Jira
                 Session = session
             };
 
-            using (var result = aggregation.Execute())
-            {
-                while(result.MoveNext())
-                {
-                    Console.WriteLine(result.Current);
-                }
-            }
+            aggregation.ToList(); // pull back all the results
         }
 
         private static void ClearData(ISession session)
@@ -191,7 +178,10 @@ namespace MongoDB.DriverUnitTests.Jira
                 }
                 finally
                 {
-                    result.Dispose();
+                    if (result != null)
+                    {
+                        result.Dispose();
+                    }
                 }
 
                 if (doc == null)

@@ -16,8 +16,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Support;
 
@@ -28,6 +30,9 @@ namespace MongoDB.Driver.Core.Protocol
     /// </summary>
     public sealed class InsertProtocol : WriteProtocolBase<IEnumerable<WriteConcernResult>>
     {
+        // private static fields
+        private static readonly TraceSource _trace = MongoTraceSources.Operations;
+
         // private fields
         private readonly bool _checkInsertDocuments;
         private readonly Type _documentType;
@@ -83,8 +88,11 @@ namespace MongoDB.Driver.Core.Protocol
 
             var continueOnError = _flags.HasFlag(InsertFlags.ContinueOnError);
             Exception finalException = null;
+            int batchNumber = -1;
             foreach (var batch in GetBatches())
             {
+                batchNumber++;
+                _trace.TraceVerbose("inserting batch#{0} with {1} documents into {2} with {3}.", batchNumber, batch.Count, Collection.FullName, channel);
                 // Dispose of the Request as soon as possible to release the buffer(s)
                 SendPacketWithWriteConcernResult sendBatchResult;
                 using (batch.Packet)
@@ -176,7 +184,7 @@ namespace MongoDB.Driver.Core.Protocol
                     }
 
                     // ownership of the Request transfers to the caller and the caller must call Dispose on the Request
-                    yield return new Batch { Packet = packet, IsLast = overflowDocument == null };
+                    yield return new Batch { Count = insertMessage.DocumentCount, Packet = packet, IsLast = overflowDocument == null };
                 }
                 while (overflowDocument != null);
             }
@@ -203,6 +211,7 @@ namespace MongoDB.Driver.Core.Protocol
         // nested classes
         private class Batch
         {
+            public int Count;
             public BufferedRequestPacket Packet;
             public bool IsLast;
         }

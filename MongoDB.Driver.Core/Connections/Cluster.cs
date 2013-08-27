@@ -14,9 +14,11 @@
 */
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -26,9 +28,13 @@ namespace MongoDB.Driver.Core.Connections
     /// </summary>
     internal abstract class Cluster : ClusterBase
     {
+        // private static fields
+        private static readonly TraceSource __trace = MongoTraceSources.Connections;
+
         // private fields
         private readonly IClusterableServerFactory _serverFactory;
         private readonly StateHelper _state;
+        private readonly string _toStringDescription;
         private ManualResetEventSlim _selectServerEvent;
         private volatile ClusterDescription _description;
 
@@ -44,6 +50,7 @@ namespace MongoDB.Driver.Core.Connections
             _serverFactory = serverFactory;
             _state = new StateHelper(State.Uninitialized);
             _selectServerEvent = new ManualResetEventSlim();
+            _toStringDescription = string.Format("cluster#{0}", IdGenerator<ICluster>.GetNextId());
         }
 
         // public properties
@@ -120,6 +127,17 @@ namespace MongoDB.Driver.Core.Connections
             throw new MongoDriverException(string.Format("Unable to find a server matching '{0}'.", selector));
         }
 
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public sealed override string ToString()
+        {
+            return _toStringDescription;
+        }
+
         // protected methods
         /// <summary>
         /// Creates the server.
@@ -157,6 +175,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="description">The description.</param>
         protected void UpdateDescription(ClusterDescription description)
         {
+            __trace.TraceInformation("{0}: description updated: {1}", _toStringDescription, description);
             _description = description;
             var old = Interlocked.Exchange(ref _selectServerEvent, new ManualResetEventSlim());
             old.Set();

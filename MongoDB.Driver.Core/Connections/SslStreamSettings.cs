@@ -20,18 +20,18 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace MongoDB.Driver.Core
+namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
     /// Represents the settings for using SSL.
     /// </summary>
-    public class SslSettings
+    public class SslStreamSettings
     {
         // public static fields
         /// <summary>
         /// The default settings.
         /// </summary>
-        public static readonly SslSettings Defaults = new Builder().Build();
+        public static readonly SslStreamSettings Defaults = new Builder().Build();
 
         // private fields
         private readonly bool _checkCertificateRevocation;
@@ -42,14 +42,14 @@ namespace MongoDB.Driver.Core
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="SslSettings" /> class.
+        /// Initializes a new instance of the <see cref="SslStreamSettings" /> class.
         /// </summary>
         /// <param name="checkCertificateRevocation">whether to check certificate revocation.</param>
         /// <param name="clientCertificates">The client certificates.</param>
         /// <param name="clientCertificateSelector">The client certificate selector.</param>
         /// <param name="enabledProtocols">The enabled protocols.</param>
         /// <param name="serverCertificateValidator">The server certificate validator.</param>
-        public SslSettings(bool checkCertificateRevocation, X509CertificateCollection clientCertificates, LocalCertificateSelectionCallback clientCertificateSelector, SslProtocols enabledProtocols, RemoteCertificateValidationCallback serverCertificateValidator)
+        public SslStreamSettings(bool checkCertificateRevocation, X509CertificateCollection clientCertificates, LocalCertificateSelectionCallback clientCertificateSelector, SslProtocols enabledProtocols, RemoteCertificateValidationCallback serverCertificateValidator)
         {
             _checkCertificateRevocation = checkCertificateRevocation;
             _clientCertificates = clientCertificates;
@@ -105,7 +105,7 @@ namespace MongoDB.Driver.Core
         /// </summary>
         /// <param name="callback">The callback.</param>
         /// <returns>The built settings.</returns>
-        public static SslSettings Create(Action<Builder> callback)
+        public static SslStreamSettings Create(Action<Builder> callback)
         {
             var builder = new Builder();
             callback(builder);
@@ -113,7 +113,7 @@ namespace MongoDB.Driver.Core
         }
 
         /// <summary>
-        /// Used to build up <see cref="SslSettings"/>.
+        /// Used to build up <see cref="SslStreamSettings"/>.
         /// </summary>
         public class Builder
         {
@@ -129,9 +129,9 @@ namespace MongoDB.Driver.Core
                 _enabledSslProtocols = SslProtocols.Default;
             }
 
-            internal SslSettings Build()
+            internal SslStreamSettings Build()
             {
-                return new SslSettings(
+                return new SslStreamSettings(
                     checkCertificateRevocation: _checkCertificateRevocation,
                     clientCertificates: _clientCertificates,
                     clientCertificateSelector: _clientCertificateSelector,

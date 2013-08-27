@@ -15,6 +15,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -23,21 +24,21 @@ using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Support;
+using MongoDB.Driver.Core.Security;
 
 namespace MongoDB.Driver.Core.Connections
 {
     internal sealed class StreamConnection : ConnectionBase
     {
         // private static fields
-        private static int __nextId;
+        private static readonly TraceSource __trace = MongoTraceSources.Connections;
 
         // private fields
         private readonly DnsEndPoint _dnsEndPoint;
         private readonly IEventPublisher _events;
-        private readonly int _id;
+        private readonly StreamConnectionSettings _settings;
         private readonly IStreamFactory _streamFactory;
         private readonly string _toStringDescription;
-        private readonly TraceSource _traceSource;
         private bool _disposed;
         private State _state;
         private Stream _stream;
@@ -46,24 +47,25 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamConnection" /> class.
         /// </summary>
+        /// <param name="settings">The settings.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="streamFactory">The stream factory.</param>
         /// <param name="events">The events.</param>
-        /// <param name="traceManager">The trace manager.</param>
-        public StreamConnection(DnsEndPoint dnsEndPoint, IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager)
+        public StreamConnection(StreamConnectionSettings settings, DnsEndPoint dnsEndPoint, IStreamFactory streamFactory, IEventPublisher events)
         {
+            Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
             Ensure.IsNotNull("streamFactory", streamFactory);
             Ensure.IsNotNull("events", events);
-            Ensure.IsNotNull("traceManager", traceManager);
 
-            _id = Interlocked.Increment(ref __nextId);
             _dnsEndPoint = dnsEndPoint;
             _events = events;
+            _settings = settings;
             _streamFactory = streamFactory;
             _state = State.Initial;
-            _toStringDescription = string.Format("conn#{0}", _id);
-            _traceSource = traceManager.GetTraceSource<StreamConnection>();
+            _toStringDescription = string.Format("conn#{0}-{1}", IdGenerator<IConnection>.GetNextId(), dnsEndPoint);
+
+            __trace.TraceVerbose("{0}: {1}", _toStringDescription, _settings);
         }
 
         // public properties
@@ -72,7 +74,7 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         public override DnsEndPoint DnsEndPoint
         {
-            get 
+            get
             {
                 ThrowIfDisposed();
                 return _dnsEndPoint;
@@ -98,14 +100,14 @@ namespace MongoDB.Driver.Core.Connections
             {
                 try
                 {
-                    _traceSource.TraceInformation("{0}: opened with {1}.", _toStringDescription, _dnsEndPoint);
+                    __trace.TraceInformation("{0}: opened.", _toStringDescription);
                     _stream = _streamFactory.Create(_dnsEndPoint);
                     _state = State.Open;
                     _events.Publish(new ConnectionOpenedEvent(this));
                 }
-                catch(SocketException ex)
+                catch (SocketException ex)
                 {
-                    _traceSource.TraceError(ex, "{0}: failed to open with {1}.", _toStringDescription, _dnsEndPoint);
+                    __trace.TraceError(ex, "{0}: failed to open.", _toStringDescription);
                     HandleException(ex);
                     if (ex.SocketErrorCode == SocketError.TimedOut)
                     {
@@ -118,10 +120,15 @@ namespace MongoDB.Driver.Core.Connections
                 }
                 catch (Exception ex)
                 {
-                    _traceSource.TraceError(ex, "{0}: failed to open with {1}.", _toStringDescription, _dnsEndPoint);
+                    __trace.TraceError(ex, "{0}: failed to open.", _toStringDescription);
                     HandleException(ex);
                     throw new MongoDriverException("Unable to open connection.", ex);
                 }
+            }
+
+            foreach (var credential in _settings.Credentials)
+            {
+                Authenticate(credential);
             }
         }
 
@@ -137,7 +144,7 @@ namespace MongoDB.Driver.Core.Connections
             try
             {
                 var reply = ReplyMessage.ReadFrom(_stream);
-                _traceSource.TraceVerbose("{0}: received message#{1} with {2} bytes.", _toStringDescription, reply.ResponseTo, reply.Length);
+                __trace.TraceVerbose("{0}: received message#{1} with {2} bytes.", _toStringDescription, reply.ResponseTo, reply.Length);
                 _events.Publish(new ConnectionMessageReceivedEvent(this, reply));
 
                 return reply;
@@ -146,20 +153,20 @@ namespace MongoDB.Driver.Core.Connections
             {
                 if (ex.SocketErrorCode == SocketError.TimedOut)
                 {
-                    _traceSource.TraceWarning(ex, "{0}: timed out receiving message. Timeout = {1} milliseconds", _toStringDescription, _stream.ReadTimeout);
+                    __trace.TraceWarning(ex, "{0}: timed out receiving message. Timeout = {1} milliseconds", _toStringDescription, _stream.ReadTimeout);
                     HandleException(ex);
                     throw new MongoSocketReadTimeoutException(string.Format("Timed out receiving message. Timeout = {0} milliseconds", _stream.ReadTimeout), ex);
                 }
                 else
                 {
-                    _traceSource.TraceWarning(ex, "{0}: error receiving message.", _toStringDescription);
+                    __trace.TraceWarning(ex, "{0}: error receiving message.", _toStringDescription);
                     HandleException(ex);
                     throw new MongoSocketException("Error receiving message", ex);
                 }
             }
             catch (Exception ex)
             {
-                _traceSource.TraceWarning(ex, "{0}: error receiving message.", _toStringDescription);
+                __trace.TraceWarning(ex, "{0}: error receiving message.", _toStringDescription);
                 HandleException(ex);
                 if (ex is MongoDriverException)
                 {
@@ -185,27 +192,27 @@ namespace MongoDB.Driver.Core.Connections
             try
             {
                 packet.WriteTo(_stream);
-                _traceSource.TraceVerbose("{0}: sent message#{1} with {2} bytes.", _toStringDescription, packet.LastRequestId, packet.Length);
+                __trace.TraceVerbose("{0}: sent message#{1} with {2} bytes.", _toStringDescription, packet.LastRequestId, packet.Length);
                 _events.Publish(new ConnectionPacketSendingEvent(this, packet));
             }
             catch (SocketException ex)
             {
                 if (ex.SocketErrorCode == SocketError.TimedOut)
                 {
-                    _traceSource.TraceWarning(ex, "{0}: timed out sending message#{1}. Timeout = {2} milliseconds", _toStringDescription, packet.LastRequestId, _stream.ReadTimeout);
+                    __trace.TraceWarning(ex, "{0}: timed out sending message#{1}. Timeout = {2} milliseconds", _toStringDescription, packet.LastRequestId, _stream.ReadTimeout);
                     HandleException(ex);
                     throw new MongoSocketWriteTimeoutException(string.Format("Timed out sending message#{0}. Timeout = {1} milliseconds", packet.LastRequestId, _stream.ReadTimeout), ex);
                 }
                 else
                 {
-                    _traceSource.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, packet.LastRequestId);
+                    __trace.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, packet.LastRequestId);
                     HandleException(ex);
                     throw new MongoSocketException(string.Format("Error sending message #{0}", packet.LastRequestId), ex);
                 }
             }
             catch (Exception ex)
             {
-                _traceSource.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, packet.LastRequestId);
+                __trace.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, packet.LastRequestId);
                 HandleException(ex);
 
                 if (ex is MongoDriverException)
@@ -237,7 +244,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             if (!_disposed && disposing)
             {
-                _traceSource.TraceInformation("{0}: closed with {1}.", _toStringDescription, _dnsEndPoint);
+                __trace.TraceInformation("{0}: closed.", _toStringDescription);
                 _events.Publish(new ConnectionClosedEvent(this));
                 _state = State.Disposed;
                 try { _stream.Close(); }
@@ -248,6 +255,21 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         // private methods
+        private void Authenticate(MongoCredential credential)
+        {
+            foreach (var protocol in _settings.Protocols)
+            {
+                if (protocol.CanUse(credential))
+                {
+                    protocol.Authenticate(this, credential);
+                    return;
+                }
+            }
+
+            var message = string.Format("Unable to find a security protocol to authenticate. The credential for source {0}, username {1} over mechanism {2} could not be authenticated.", credential.Source, credential.Username, credential.Mechanism);
+            throw new MongoSecurityException(message);
+        }
+
         private void HandleException(Exception ex)
         {
             // we'll always dispose for any error.

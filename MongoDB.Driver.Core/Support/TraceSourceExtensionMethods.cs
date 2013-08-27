@@ -15,6 +15,7 @@
 
 using System;
 using System.Diagnostics;
+using MongoDB.Driver.Core.Diagnostics;
 
 namespace MongoDB.Driver.Core.Support
 {
@@ -25,10 +26,82 @@ namespace MongoDB.Driver.Core.Support
     {
         // public static methods
         /// <summary>
+        /// Traces an activity.
+        /// </summary>
+        /// <param name="traceSource">The trace source.</param>
+        /// <param name="message">The message.</param>
+        /// <returns></returns>
+        public static IDisposable TraceActivity(this TraceSource traceSource, string message)
+        {
+            return new TraceActivity(traceSource, message);
+        }
+
+        /// <summary>
+        /// Traces an activity.
+        /// </summary>
+        /// <param name="traceSource">The trace source.</param>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The args.</param>
+        /// <returns></returns>
+        public static IDisposable TraceActivity(this TraceSource traceSource, string format, params object[] args)
+        {
+            return new TraceActivity(traceSource, format, args);
+        }
+
+        /// <summary>
         /// Traces an error message.
         /// </summary>
         /// <param name="traceSource">The trace source.</param>
         /// <param name="message">The message.</param>
+        [Conditional("TRACE")]
+        public static void TraceCritical(this TraceSource traceSource, string message)
+        {
+            Trace(traceSource, TraceEventType.Critical, message);
+        }
+
+        /// <summary>
+        /// Traces an error message.
+        /// </summary>
+        /// <param name="traceSource">The trace source.</param>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The args.</param>
+        [Conditional("TRACE")]
+        public static void TraceCritical(this TraceSource traceSource, string format, params object[] args)
+        {
+            Trace(traceSource, TraceEventType.Critical, format, args);
+        }
+
+        /// <summary>
+        /// Traces an error message.
+        /// </summary>
+        /// <param name="traceSource">The trace source.</param>
+        /// <param name="ex">The ex.</param>
+        /// <param name="message">The message.</param>
+        [Conditional("TRACE")]
+        public static void TraceCritical(this TraceSource traceSource, Exception ex, string message)
+        {
+            Trace(traceSource, TraceEventType.Critical, ex, message);
+        }
+
+        /// <summary>
+        /// Traces an error message.
+        /// </summary>
+        /// <param name="traceSource">The trace source.</param>
+        /// <param name="ex">The ex.</param>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The args.</param>
+        [Conditional("TRACE")]
+        public static void TraceCritical(this TraceSource traceSource, Exception ex, string format, params object[] args)
+        {
+            Trace(traceSource, TraceEventType.Critical, ex, format, args);
+        }
+
+        /// <summary>
+        /// Traces an error message.
+        /// </summary>
+        /// <param name="traceSource">The trace source.</param>
+        /// <param name="message">The message.</param>
+        [Conditional("TRACE")]
         public static void TraceError(this TraceSource traceSource, string message)
         {
             Trace(traceSource, TraceEventType.Error, message);
@@ -40,6 +113,7 @@ namespace MongoDB.Driver.Core.Support
         /// <param name="traceSource">The trace source.</param>
         /// <param name="format">The format.</param>
         /// <param name="args">The args.</param>
+        [Conditional("TRACE")]
         public static void TraceError(this TraceSource traceSource, string format, params object[] args)
         {
             Trace(traceSource, TraceEventType.Error, format, args);
@@ -51,6 +125,7 @@ namespace MongoDB.Driver.Core.Support
         /// <param name="traceSource">The trace source.</param>
         /// <param name="ex">The ex.</param>
         /// <param name="message">The message.</param>
+        [Conditional("TRACE")]
         public static void TraceError(this TraceSource traceSource, Exception ex, string message)
         {
             Trace(traceSource, TraceEventType.Error, ex, message);
@@ -63,6 +138,7 @@ namespace MongoDB.Driver.Core.Support
         /// <param name="ex">The ex.</param>
         /// <param name="format">The format.</param>
         /// <param name="args">The args.</param>
+        [Conditional("TRACE")]
         public static void TraceError(this TraceSource traceSource, Exception ex, string format, params object[] args)
         {
             Trace(traceSource, TraceEventType.Error, ex, format, args);
@@ -73,6 +149,7 @@ namespace MongoDB.Driver.Core.Support
         /// </summary>
         /// <param name="traceSource">The trace source.</param>
         /// <param name="message">The message.</param>
+        [Conditional("TRACE")]
         public static void TraceVerbose(this TraceSource traceSource, string message)
         {
             Trace(traceSource, TraceEventType.Verbose, message);
@@ -84,6 +161,7 @@ namespace MongoDB.Driver.Core.Support
         /// <param name="traceSource">The trace source.</param>
         /// <param name="format">The format.</param>
         /// <param name="args">The args.</param>
+        [Conditional("TRACE")]
         public static void TraceVerbose(this TraceSource traceSource, string format, params object[] args)
         {
             Trace(traceSource, TraceEventType.Verbose, format, args);
@@ -94,6 +172,7 @@ namespace MongoDB.Driver.Core.Support
         /// </summary>
         /// <param name="traceSource">The trace source.</param>
         /// <param name="message">The message.</param>
+        [Conditional("TRACE")]
         public static void TraceWarning(this TraceSource traceSource, string message)
         {
             Trace(traceSource, TraceEventType.Warning, message);
@@ -105,6 +184,7 @@ namespace MongoDB.Driver.Core.Support
         /// <param name="traceSource">The trace source.</param>
         /// <param name="format">The format.</param>
         /// <param name="args">The args.</param>
+        [Conditional("TRACE")]
         public static void TraceWarning(this TraceSource traceSource, string format, params object[] args)
         {
             Trace(traceSource, TraceEventType.Warning, format, args);
@@ -116,6 +196,7 @@ namespace MongoDB.Driver.Core.Support
         /// <param name="traceSource">The trace source.</param>
         /// <param name="ex">The ex.</param>
         /// <param name="message">The message.</param>
+        [Conditional("TRACE")]
         public static void TraceWarning(this TraceSource traceSource, Exception ex, string message)
         {
             Trace(traceSource, TraceEventType.Warning, ex, message);
@@ -128,6 +209,7 @@ namespace MongoDB.Driver.Core.Support
         /// <param name="ex">The ex.</param>
         /// <param name="format">The format.</param>
         /// <param name="args">The args.</param>
+        [Conditional("TRACE")]
         public static void TraceWarning(this TraceSource traceSource, Exception ex, string format, params object[] args)
         {
             Trace(traceSource, TraceEventType.Warning, ex, format, args);
@@ -146,12 +228,14 @@ namespace MongoDB.Driver.Core.Support
 
         private static void Trace(TraceSource traceSource, TraceEventType eventType, Exception ex, string message)
         {
-            Trace(traceSource, eventType, message + ": " + ex.Message);
+            Trace(traceSource, eventType, message);
+            Trace(traceSource, eventType, ex.ToString());
         }
 
         private static void Trace(TraceSource traceSource, TraceEventType eventType, Exception ex, string format, params object[] args)
         {
-            Trace(traceSource, eventType, format + ": " + ex.Message, args);
+            Trace(traceSource, eventType, format, args);
+            Trace(traceSource, eventType, ex.ToString());
         }
     }
 }

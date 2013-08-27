@@ -89,6 +89,23 @@ namespace MongoDB.Driver.Core.Connections
             get { return _maxMessageSizeDefault; }
         }
 
+        // public methods
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return string.Format(
+                "{{ ConnectRetryFrequency: '{0}', HeartbeatFrequency: '{1}', MaxDocumentSizeDefault: {2}, MaxMessageSizeDefault: {3} }}",
+                _connectRetryFrequency,
+                _heartbeatFrequency,
+                _maxDocumentSizeDefault,
+                _maxMessageSizeDefault);
+        }
+
         // public static methods
         /// <summary>
         /// Creates the specified callback.

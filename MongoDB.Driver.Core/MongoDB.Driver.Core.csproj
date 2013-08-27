@@ -56,6 +56,10 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <DocumentationFile>
+    </DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -74,14 +78,15 @@
     <Compile Include="Connections\ConnectionPool.cs" />
     <Compile Include="Connections\ConnectionPoolBase.cs" />
     <Compile Include="Connections\ConnectionPoolFactory.cs" />
-    <Compile Include="Connections\DisposalProtectedChannel.cs" />
     <Compile Include="Connections\IClusterFactory.cs" />
     <Compile Include="Connections\IConnection.cs" />
     <Compile Include="Connections\IConnectionPoolFactory.cs" />
+    <Compile Include="Connections\IdGenerator.cs" />
     <Compile Include="Connections\PipelinedChannelProvider.cs" />
     <Compile Include="Connections\PipelinedChannelProviderFactory.cs" />
     <Compile Include="Connections\ChannelReceiveArgs.cs" />
     <Compile Include="Connections\StreamFactoryBase.cs" />
+    <Compile Include="Diagnostics\TraceActivity.cs" />
     <Compile Include="MongoSocketWriteTimeoutException.cs" />
     <Compile Include="MongoSocketReadTimeoutException.cs" />
     <Compile Include="Connections\IClusterableServer.cs" />
@@ -95,7 +100,7 @@
     <Compile Include="DatabaseNamespace.cs" />
     <Compile Include="LatencyLimitingServerSelector.cs" />
     <Compile Include="MongoOperationException.cs" />
-    <Compile Include="Diagnostics\TraceManager.cs" />
+    <Compile Include="Diagnostics\MongoTraceSources.cs" />
     <Compile Include="Events\ConnectionAuthenticatedEvent.cs" />
     <Compile Include="Events\ConnectionOpenedEvent.cs" />
     <Compile Include="Events\ServerDescriptionChangedEvent.cs" />
@@ -134,8 +139,6 @@
     <Compile Include="MongoCursorNotFoundException.cs" />
     <Compile Include="Protocol\Messages\ReplyMessage.cs" />
     <Compile Include="Protocol\Messages\RequestMessage.cs" />
-    <Compile Include="Security\AuthenticatedConnection.cs" />
-    <Compile Include="Security\AuthenticatedConnectionFactory.cs" />
     <Compile Include="Diagnostics\PerformanceCounterEventListeners.cs" />
     <Compile Include="Connections\DnsCache.cs" />
     <Compile Include="Events\ConnectionRemovedFromPoolEvent.cs" />
@@ -176,7 +179,7 @@
     <Compile Include="Support\EnumerableExtensionMethods.cs" />
     <Compile Include="CommandResult.cs" />
     <Compile Include="CommandResultSerializer.cs" />
-    <Compile Include="Security\AuthenticationSettings.cs" />
+    <Compile Include="Connections\StreamConnectionSettings.cs" />
     <Compile Include="Security\MongoSecurityException.cs" />
     <Compile Include="Security\IAuthenticationProtocol.cs" />
     <Compile Include="Security\ISaslMechanism.cs" />
@@ -220,7 +223,7 @@
     <Compile Include="Connections\ClusterConnectionMode.cs" />
     <Compile Include="Connections\ConnectionPoolChannelProvider.cs" />
     <Compile Include="Connections\ConnectionPoolSettings.cs" />
-    <Compile Include="Connections\NetworkStreamFactorySettings.cs" />
+    <Compile Include="Connections\NetworkStreamSettings.cs" />
     <Compile Include="Connections\MultiServerCluster.cs" />
     <Compile Include="Connections\IClusterableServerFactory.cs" />
     <Compile Include="Connections\SingleServerCluster.cs" />
@@ -240,10 +243,10 @@
     <Compile Include="ReadPreference.cs" />
     <Compile Include="ReadPreferenceMode.cs" />
     <Compile Include="ReadPreferenceServerSelector.cs" />
-    <Compile Include="Security\SslSettings.cs" />
+    <Compile Include="Connections\SslStreamSettings.cs" />
     <Compile Include="ReplicaSetTag.cs" />
     <Compile Include="ReplicaSetTagSet.cs" />
-    <Compile Include="Security\SslStreamFactory.cs" />
+    <Compile Include="Connections\SslStreamFactory.cs" />
     <Compile Include="Support\Ensure.cs" />
     <Compile Include="WriteConcernResult.cs" />
     <Compile Include="MongoException.cs" />

@@ -15,12 +15,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
@@ -117,8 +119,14 @@ namespace MongoDB.Driver.Core.Operations
         {
             EnsureRequiredProperties();
 
+            using (__trace.TraceActivity("GenericCommandOperation"))
             using (var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), _isQuery))
             {
+                if (__trace.Switch.ShouldTrace(TraceEventType.Verbose))
+                {
+                    __trace.TraceVerbose("running {0} on database {1} at {2}.", _command.ToJson(), _database.DatabaseName, channelProvider.Server.DnsEndPoint);
+                }
+
                 var args = new ExecuteCommandProtocolArgs
                 {
                     Command = _command,

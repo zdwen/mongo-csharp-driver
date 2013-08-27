@@ -15,11 +15,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
@@ -32,7 +34,11 @@ namespace MongoDB.Driver.Core.Operations
     /// <typeparam name="TDocument">The type of the document.</typeparam>
     internal sealed class Cursor<TDocument> : ICursor<TDocument>
     {
+        // private static fields
+        private static readonly TraceSource __trace = MongoTraceSources.Operations;
+
         // private fields
+        private readonly IDisposable _traceActivity;
         private readonly CancellationToken _cancellationToken;
         private readonly IServerChannelProvider _channelProvider;
         private readonly CollectionNamespace _collection;
@@ -53,6 +59,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Initializes a new instance of the <see cref="Cursor{TDocument}" /> class.
         /// </summary>
+        /// <param name="traceActivity">The trace activity.</param>
         /// <param name="channelProvider">The channel provider.</param>
         /// <param name="cursorId">The cursor id.</param>
         /// <param name="collection">The collection.</param>
@@ -64,8 +71,9 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="timeout">The timeout.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="readerSettings">The reader settings.</param>
-        public Cursor(IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int limit, int numberToReturn, IEnumerable<TDocument> firstBatch, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
+        public Cursor(IDisposable traceActivity, IServerChannelProvider channelProvider, long cursorId, CollectionNamespace collection, int limit, int numberToReturn, IEnumerable<TDocument> firstBatch, IBsonSerializer serializer, IBsonSerializationOptions serializationOptions, TimeSpan timeout, CancellationToken cancellationToken, BsonBinaryReaderSettings readerSettings)
         {
+            Ensure.IsNotNull("traceActivity", traceActivity);
             Ensure.IsNotNull("channelProvider", channelProvider);
             Ensure.IsNotNull("collection", collection);
             Ensure.IsGreaterThanOrEqualTo("limit", _limit, 0);
@@ -73,6 +81,7 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull("serializer", serializer);
             Ensure.IsNotNull("readerSettings", readerSettings);
 
+            _traceActivity = traceActivity;
             _channelProvider = channelProvider;
             _cursorId = cursorId;
             _collection = collection;
@@ -86,6 +95,11 @@ namespace MongoDB.Driver.Core.Operations
             _readerSettings = readerSettings;
             _currentBatchIndex = -1;
             _currentIndex = -1;
+
+            if (_cursorId != 0)
+            {
+                __trace.TraceVerbose("cursor {0}", _cursorId);
+            }
         }
 
         // public properties
@@ -160,6 +174,7 @@ namespace MongoDB.Driver.Core.Operations
                 finally
                 {
                     _channelProvider.Dispose();
+                    _traceActivity.Dispose();
                     _disposed = true;
                 }
             }
@@ -196,10 +211,14 @@ namespace MongoDB.Driver.Core.Operations
             {
                 var batch = GetNextBatch();
                 _cursorId = batch.CursorId;
-
+                if (_cursorId != 0)
+                {
+                    __trace.TraceVerbose("getmore cursor {0}", _cursorId);
+                }
                 var documents = batch.Documents.ToList();
                 if (documents.Count > 0)
                 {
+                    __trace.TraceVerbose("no documents returned from getmore.");
                     _currentBatch = documents;
                     _currentBatchIndex = 0;
                     return true;
@@ -242,6 +261,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             if (_cursorId != 0)
             {
+                __trace.TraceVerbose("killing cursor {0}.", _cursorId);
                 var protocol = new KillCursorsProtocol(new[] { _cursorId });
 
                 // Intentionally ignoring cancellation tokens and timeouts. 

@@ -16,6 +16,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 
 namespace MongoDB.Driver.Core.Connections
 {
@@ -87,6 +88,27 @@ namespace MongoDB.Driver.Core.Connections
         public int? Version
         {
             get { return _version; }
+        }
+
+        // public methods
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+            var members = string.Join(", ", _members.Select(m => "'" + m.ToString() + "'"));
+            builder.AppendFormat("{{ Primary: '{0}', Members: [{1}]", _primary, members);
+            if (_tags.Any())
+            {
+                var tags = string.Join(", ", _tags.Select(x => string.Format("{0}: '{1}'", x.Key, x.Value)));
+                builder.AppendFormat(", Tags: [{0}]", tags);
+            }
+            builder.Append(" }}");
+            return builder.ToString();
         }
     }
 }

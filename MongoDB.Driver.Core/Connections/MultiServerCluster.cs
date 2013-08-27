@@ -16,8 +16,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -27,6 +29,9 @@ namespace MongoDB.Driver.Core.Connections
     /// </summary>
     internal sealed class MultiServerCluster : Cluster
     {
+        // private static fields
+        private static readonly TraceSource __trace = MongoTraceSources.Connections;
+
         // private fields
         // Writes to _servers are secured underneath this _serversLock.
         // However, reads are free to be done without a lock.  The only access to
@@ -66,6 +71,8 @@ namespace MongoDB.Driver.Core.Connections
             }
             _state = new StateHelper(State.Uninitialized);
             PublishClusterDescription();
+
+            __trace.TraceVerbose("{0}: {1}", this, settings);
         }
 
         // public methods
@@ -77,6 +84,12 @@ namespace MongoDB.Driver.Core.Connections
             ThrowIfDisposed();
             if (_state.TryChange(State.Uninitialized, State.Initialized))
             {
+                __trace.TraceInformation("{0}: initialized.", this);
+                __trace.TraceInformation("{0}: type is {1}.", this, _clusterType);
+                if (!string.IsNullOrEmpty(_replicaSetName))
+                {
+                    __trace.TraceInformation("{0}: replica set name is {1}", this, _replicaSetName);
+                }
                 lock (_serversLock)
                 {
                     foreach (var entry in _servers)
@@ -108,6 +121,7 @@ namespace MongoDB.Driver.Core.Connections
 
                     _servers.Clear();
                 }
+                __trace.TraceInformation("{0}: closed.", this);
             }
             base.Dispose();
         }
@@ -141,6 +155,7 @@ namespace MongoDB.Driver.Core.Connections
 
                 if (_servers.TryAdd(host, new ServerDescriptionPair(server)))
                 {
+                    __trace.TraceInformation("{0}: added {1}.", this, server);
                     server.DescriptionChanged += ServerDescriptionChanged;
                     server.Initialize();
                 }
@@ -159,11 +174,13 @@ namespace MongoDB.Driver.Core.Connections
 
             foreach (var remove in needingRemoval)
             {
+                __trace.TraceVerbose("{0}: host is not in peers - {1}.", this, remove);
                 RemoveServer(remove);
             }
 
             foreach (var add in needingAddition)
             {
+                __trace.TraceVerbose("{0}: discovered new peer - {1}.", this, add);
                 AddServer(add);
             }
         }
@@ -174,8 +191,10 @@ namespace MongoDB.Driver.Core.Connections
             {
                 return;
             }
+
             if (!e.NewValue.Type.IsReplicaSetMember())
             {
+                __trace.TraceWarning("{0}: {1} is a {2} and cannot be in a replica set.", this, e.NewValue.DnsEndPoint, e.NewValue.Type);
                 RemoveServer(e.NewValue.DnsEndPoint);
                 return;
             }
@@ -183,10 +202,12 @@ namespace MongoDB.Driver.Core.Connections
             if (_replicaSetName == null)
             {
                 _replicaSetName = e.NewValue.ReplicaSetInfo.Name;
+                __trace.TraceInformation("{0}: replica set name is {1}.", this, _replicaSetName);
             }
 
             if (_replicaSetName != null && _replicaSetName != e.NewValue.ReplicaSetInfo.Name)
             {
+                __trace.TraceWarning("{0}: {1} is a member of a different replica set named {2}.", this, e.NewValue.DnsEndPoint, e.NewValue.ReplicaSetInfo.Name);
                 RemoveServer(e.NewValue.DnsEndPoint);
                 return;
             }
@@ -196,6 +217,7 @@ namespace MongoDB.Driver.Core.Connections
                 if (e.NewValue.ReplicaSetInfo.Version.HasValue)
                 {
                     _configVersion = e.NewValue.ReplicaSetInfo.Version.Value;
+                    __trace.TraceInformation("{0}: replica set config version set to {1}.", this, _configVersion);
                 }
 
                 EnsureServers(e.NewValue.ReplicaSetInfo.Members);
@@ -218,6 +240,7 @@ namespace MongoDB.Driver.Core.Connections
 
             if (e.NewValue.Type != ServerType.ShardRouter)
             {
+                __trace.TraceWarning("{0}: {1} is a {2} and cannot be in a sharded cluster.", this, e.NewValue.DnsEndPoint, e.NewValue.Type);
                 RemoveServer(e.NewValue.DnsEndPoint);
             }
         }
@@ -227,6 +250,7 @@ namespace MongoDB.Driver.Core.Connections
             ServerDescriptionPair entry;
             if (_servers.TryGetValue(host, out entry))
             {
+                __trace.TraceInformation("{0}: invalidating {1}.", this, entry.Server);
                 entry.Server.Invalidate();
                 entry.CachedDescription = entry.Server.Description;
             }
@@ -236,7 +260,6 @@ namespace MongoDB.Driver.Core.Connections
         {
             var serverDescriptions = _servers
                 .Select(x => x.Value.CachedDescription)
-                .Where(x => x != null)
                 .ToList();
 
             var newDescription = new ClusterDescription(_clusterType, serverDescriptions);
@@ -248,6 +271,7 @@ namespace MongoDB.Driver.Core.Connections
             ServerDescriptionPair entry;
             if (_servers.TryRemove(host, out entry))
             {
+                __trace.TraceInformation("{0}: removed {1}.", this, entry.Server);
                 entry.Server.DescriptionChanged -= ServerDescriptionChanged;
                 entry.Server.Dispose();
             }
@@ -269,6 +293,7 @@ namespace MongoDB.Driver.Core.Connections
                     if (_clusterType == ClusterType.Unknown)
                     {
                         _clusterType = deducedClusterType;
+                        __trace.TraceInformation("{0}: type is {1}.", this, _clusterType);
                     }
 
                     switch (_clusterType)

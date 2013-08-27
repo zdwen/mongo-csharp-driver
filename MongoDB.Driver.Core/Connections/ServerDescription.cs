@@ -14,7 +14,9 @@
 */
 
 using System;
+using System.Linq;
 using System.Net;
+using System.Text;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -131,6 +133,26 @@ namespace MongoDB.Driver.Core.Connections
         public ServerType Type
         {
             get { return _type; }
+        }
+
+        // public methods
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+            builder.AppendFormat("{{ EndPoint: '{0}', Server: '{1}', Type: '{2}', Status: '{3}', PingTime: '{4}'", _dnsEndPoint, _buildInfo, _type, _status, _averagePingTime);
+            if (_replicaSetInfo != null)
+            {
+                builder.AppendFormat(", ReplicaSetInfo: {0}", _replicaSetInfo);
+            }
+            builder.Append(" }");
+
+            return builder.ToString();
         }
     }
 }

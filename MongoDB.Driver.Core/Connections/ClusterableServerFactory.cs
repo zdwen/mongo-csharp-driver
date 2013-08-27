@@ -30,7 +30,6 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IConnectionFactory _connectionFactory;
         private readonly IChannelProviderFactory _channelProviderFactory;
         private readonly IEventPublisher _events;
-        private readonly TraceManager _traceManager;
 
         // constructors
         /// <summary>
@@ -40,20 +39,17 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="channelProviderFactory">The channel provider factory.</param>
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
-        /// <param name="traceManager">The trace manager.</param>
-        public ClusterableServerFactory(ClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
+        public ClusterableServerFactory(ClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IEventPublisher events)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("connectionPoolFactory", channelProviderFactory);
             Ensure.IsNotNull("connectionFactory", connectionFactory);
             Ensure.IsNotNull("events", events);
-            Ensure.IsNotNull("traceManager", traceManager);
 
             _settings = settings;
             _channelProviderFactory = channelProviderFactory;
             _connectionFactory = connectionFactory;
             _events = events;
-            _traceManager = traceManager;
         }
 
         // public methods
@@ -67,7 +63,7 @@ namespace MongoDB.Driver.Core.Connections
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
             var channelProvider = _channelProviderFactory.Create(dnsEndPoint);
-            return new ClusterableServer(_settings, dnsEndPoint, channelProvider, _connectionFactory, _events, _traceManager);
+            return new ClusterableServer(_settings, dnsEndPoint, channelProvider, _connectionFactory, _events);
         }
     }
 }

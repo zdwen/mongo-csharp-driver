@@ -16,10 +16,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Sessions;
+using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Operations
 {
@@ -109,8 +112,14 @@ namespace MongoDB.Driver.Core.Operations
         public override IEnumerable<WriteConcernResult> Execute()
         {
             EnsureRequiredProperties();
+            using (__trace.TraceActivity("InsertOperation"))
             using (var channelProvider = CreateServerChannelProvider(WritableServerSelector.Instance, false))
             {
+                if (__trace.Switch.ShouldTrace(TraceEventType.Verbose))
+                {
+                    __trace.TraceVerbose("inserting into collection {0} at {1}.", Collection.FullName, channelProvider.Server.DnsEndPoint);
+                }
+
                 var protocol = new InsertProtocol(
                     checkInsertDocuments: _checkInsertDocuments,
                     collection: Collection,

@@ -15,6 +15,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -80,6 +81,19 @@ namespace MongoDB.Driver.Core.Connections
         public ClusterType Type
         {
             get { return _type; }
+        }
+
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return string.Format("{{ Type: '{0}', Servers: [{1}] }}",
+                _type,
+                string.Join(", ", _servers.Select(x => x.ToString())));
         }
 
         // private static methods

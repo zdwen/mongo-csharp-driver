@@ -13,6 +13,9 @@
 * limitations under the License.
 */
 
+using System.Diagnostics;
+using MongoDB.Bson;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Sessions;
@@ -65,8 +68,14 @@ namespace MongoDB.Driver.Core.Operations
         {
             EnsureRequiredProperties();
 
+            using(__trace.TraceActivity("RemoveOperation"))
             using (var channelProvider = CreateServerChannelProvider(WritableServerSelector.Instance, false))
             {
+                if (__trace.Switch.ShouldTrace(TraceEventType.Verbose))
+                {
+                    __trace.TraceVerbose("removing {0} documents matching {1} from collection {1} at {2}.", _flags.HasFlag(DeleteFlags.Single) ? "one" : "many", _query.ToJson(), Collection.FullName, channelProvider.Server.DnsEndPoint);
+                }
+
                 var protocol = new DeleteProtocol(
                     collection: Collection,
                     flags: _flags,

@@ -27,25 +27,25 @@ namespace MongoDB.Driver.Core.Connections
     {
         // private fields
         private readonly IEventPublisher _events;
+        private readonly StreamConnectionSettings _settings;
         private readonly IStreamFactory _streamFactory;
-        private readonly TraceManager _traceManager;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamConnectionFactory" /> class.
         /// </summary>
+        /// <param name="settings">The settings.</param>
         /// <param name="streamFactory">The stream factory.</param>
         /// <param name="events">The events.</param>
-        /// <param name="traceManager">The trace manager.</param>
-        public StreamConnectionFactory(IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager)
+        public StreamConnectionFactory(StreamConnectionSettings settings, IStreamFactory streamFactory, IEventPublisher events)
         {
+            Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("streamFactory", streamFactory);
             Ensure.IsNotNull("events", events);
-            Ensure.IsNotNull("traceManager", traceManager);
 
+            _settings = settings;
             _streamFactory = streamFactory;
             _events = events;
-            _traceManager = traceManager;
         }
 
         // public methods
@@ -58,7 +58,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
-            return new StreamConnection(dnsEndPoint, _streamFactory, _events, _traceManager);
+            return new StreamConnection(_settings, dnsEndPoint, _streamFactory, _events);
         }
     }
 }

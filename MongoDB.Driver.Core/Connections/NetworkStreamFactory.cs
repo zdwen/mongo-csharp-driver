@@ -13,9 +13,11 @@
 * limitations under the License.
 */
 
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -25,9 +27,13 @@ namespace MongoDB.Driver.Core.Connections
     /// </summary>
     public class NetworkStreamFactory : StreamFactoryBase
     {
+        // private static fields
+        private static readonly TraceSource __trace = MongoTraceSources.Connections;
+
         // private fields
         private readonly DnsCache _dnsCache;
-        private readonly NetworkStreamFactorySettings _settings;
+        private readonly NetworkStreamSettings _settings;
+        private readonly string _toStringDescription;
 
         // constructors
         /// <summary>
@@ -35,13 +41,16 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="dnsCache">The DNS cache.</param>
-        public NetworkStreamFactory(NetworkStreamFactorySettings settings, DnsCache dnsCache)
+        public NetworkStreamFactory(NetworkStreamSettings settings, DnsCache dnsCache)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsCache", dnsCache);
 
             _settings = settings;
             _dnsCache = dnsCache;
+            _toStringDescription = string.Format("networkstreamfactory#{0}", IdGenerator<IStreamFactory>.GetNextId());
+
+            __trace.TraceVerbose("{0}: {1}", _toStringDescription, _settings);
         }
 
         // public methods
@@ -69,7 +78,7 @@ namespace MongoDB.Driver.Core.Connections
             if (!socket.Connected)
             {
                 socket.Close();
-                throw new SocketException((int)SocketError.TimedOut); // Connection timed out.
+                throw new SocketException((int)SocketError.TimedOut);
             }
 
             OnAfterConnectingSocket(socket);
@@ -89,6 +98,17 @@ namespace MongoDB.Driver.Core.Connections
             }
 
             return stream;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return _toStringDescription;
         }
 
         // protected methods

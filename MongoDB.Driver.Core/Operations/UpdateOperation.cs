@@ -13,6 +13,9 @@
 * limitations under the License.
 */
 
+using System.Diagnostics;
+using MongoDB.Bson;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Sessions;
@@ -86,8 +89,14 @@ namespace MongoDB.Driver.Core.Operations
         {
             EnsureRequiredProperties();
 
+            using (__trace.TraceActivity("UpdateOperation"))
             using (var channelProvider = CreateServerChannelProvider(WritableServerSelector.Instance, false))
             {
+                if (__trace.Switch.ShouldTrace(TraceEventType.Verbose))
+                {
+                    __trace.TraceVerbose("updating {0} matching {1} with {2} on {3} at {4}.", _flags.HasFlag(UpdateFlags.Multi) ? "many" : "one", _query.ToJson(), _update.ToJson(), Collection.FullName, channelProvider.Server.DnsEndPoint);
+                }
+
                 var protocol = new UpdateProtocol(
                     checkUpdateDocument: _checkUpdateDocument,
                     collection: Collection,

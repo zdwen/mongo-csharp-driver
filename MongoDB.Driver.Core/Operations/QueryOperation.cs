@@ -15,8 +15,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Sessions;
@@ -163,9 +165,15 @@ namespace MongoDB.Driver.Core.Operations
 
             // NOTE: not disposing of channel provider here because it will get disposed
             // by the cursor
+            var activity = __trace.TraceActivity("QueryOperation");
             var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true);
             try
             {
+                if (__trace.Switch.ShouldTrace(TraceEventType.Verbose))
+                {
+                    __trace.TraceVerbose("running query {0}, fields {1}, skip {2}, limit {3}, and batch size {4} on collection {5} at {6}.", _query.ToJson(), _fields.ToJson(), _skip, _limit, _batchSize, _collection.FullName, channelProvider.Server.DnsEndPoint);
+                }
+
                 var flags = _flags;
                 if (_readPreference.ReadPreferenceMode != ReadPreferenceMode.Primary)
                 {
@@ -189,6 +197,7 @@ namespace MongoDB.Driver.Core.Operations
                 {
                     var result = protocol.Execute(channel);
                     return new Cursor<TDocument>(
+                        activity,
                         channelProvider: channelProvider,
                         cursorId: result.CursorId,
                         collection: _collection,
@@ -205,6 +214,7 @@ namespace MongoDB.Driver.Core.Operations
             catch
             {
                 channelProvider.Dispose();
+                activity.Dispose();
                 throw;
             }
         }

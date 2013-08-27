@@ -14,9 +14,11 @@
 */
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
@@ -28,6 +30,12 @@ namespace MongoDB.Driver.Core.Operations
     /// <typeparam name="TOperationResult">The type of the result.</typeparam>
     public abstract class OperationBase<TOperationResult> : IOperation<TOperationResult>
     {
+        // protected static fields
+        /// <summary>
+        /// The TraceSource.
+        /// </summary>
+        protected static readonly TraceSource __trace = MongoTraceSources.Operations;
+
         // private fields
         private CancellationToken _cancellationToken;
         private bool _closeSessionOnExecute;

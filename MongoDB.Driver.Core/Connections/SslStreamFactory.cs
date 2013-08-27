@@ -13,22 +13,29 @@
 * limitations under the License.
 */
 
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Security;
 using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Support;
 
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
     /// Creates a <see cref="SslStream"/>.
     /// </summary>
     public class SslStreamFactory : StreamFactoryBase
     {
+        // private static fields
+        private static readonly TraceSource __trace = MongoTraceSources.Connections;
+
         // private fields
-        private readonly SslSettings _settings;
+        private readonly SslStreamSettings _settings;
         private readonly IStreamFactory _wrapped;
+        private readonly string _toStringRepresentation;
 
         // constructors
         /// <summary>
@@ -36,13 +43,14 @@ namespace MongoDB.Driver.Core.Security
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="wrapped">The wrapped.</param>
-        public SslStreamFactory(SslSettings settings, IStreamFactory wrapped)
+        public SslStreamFactory(SslStreamSettings settings, IStreamFactory wrapped)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("wrapped", wrapped);
 
             _settings = settings;
             _wrapped = wrapped;
+            _toStringRepresentation = string.Format("sslstreamfactory#{0}({1})", IdGenerator<IStreamFactory>.GetNextId(), wrapped);
         }
 
         // public methods
@@ -62,10 +70,19 @@ namespace MongoDB.Driver.Core.Security
             var serverCertificateValidationCallback = _settings.ServerCertificateValidationCallback;
 
             var sslStream = new SslStream(stream, false, serverCertificateValidationCallback, clientCertificateSelectionCallback);
-
             sslStream.AuthenticateAsClient(dnsEndPoint.Host, clientCertificateCollection, enabledSslProtocols, checkCertificateRevocation);
-
             return sslStream;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return _toStringRepresentation;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Core.Connections
             _connectionFactory = Substitute.For<IConnectionFactory>();
 
             var dnsEndPoint = new DnsEndPoint("localhost", 27017);
-            _subject = new ConnectionPool(_connectionPoolSettings, dnsEndPoint, _connectionFactory, new EventPublisher(), new TraceManager());
+            _subject = new ConnectionPool(_connectionPoolSettings, dnsEndPoint, _connectionFactory, new EventPublisher());
         }
 
         [Test]

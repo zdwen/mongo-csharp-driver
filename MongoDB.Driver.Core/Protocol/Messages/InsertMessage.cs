@@ -32,6 +32,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         private readonly CollectionNamespace _collectionNamespace;
         private readonly BsonBinaryWriterSettings _writerSettings;
         private int _lastDocumentStartPosition;
+        private int _documentCount;
 
         // constructors
         /// <summary>
@@ -50,6 +51,15 @@ namespace MongoDB.Driver.Core.Protocol.Messages
             _writerSettings = writerSettings;
         }
 
+        // public properties
+        /// <summary>
+        /// Gets the number of documents in the message.
+        /// </summary>
+        public int DocumentCount
+        {
+            get { return _documentCount; }
+        }
+
         // public methods
         /// <summary>
         /// Adds an already serialized document to the message.
@@ -58,6 +68,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// <param name="serializedDocument">The already serialized document.</param>
         public void AddDocument(Stream stream, byte[] serializedDocument)
         {
+            _documentCount++;
             _lastDocumentStartPosition = (int)stream.Position;
             stream.Write(serializedDocument, 0, serializedDocument.Length);
             BackpatchMessageLength(stream);
@@ -71,6 +82,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// <param name="document">The document.</param>
         public void AddDocument(Stream stream, Type nominalType, object document)
         {
+            _documentCount++;
             _lastDocumentStartPosition = (int)stream.Position;
             using (var bsonWriter = new BsonBinaryWriter(stream, _writerSettings))
             {
@@ -87,6 +99,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// <returns>The last document that was added to the message (in already serialized form).</returns>
         public byte[] RemoveLastDocument(Stream stream)
         {
+            _documentCount--;
             var streamReader = new BsonStreamReader(stream, _writerSettings.Encoding);
             var lastDocumentLength = (int)(stream.Position - _lastDocumentStartPosition);
 

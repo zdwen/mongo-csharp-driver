@@ -15,9 +15,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Operations.Serializers;
 using MongoDB.Driver.Core.Support;
 
@@ -117,9 +119,14 @@ namespace MongoDB.Driver.Core.Operations
             };
 
             // don't dispose of channelProvider. The cursor will do that for us.
+            var activity = __trace.TraceActivity("AggregationOperation");
             var channelProvider = CreateServerChannelProvider(new ReadPreferenceServerSelector(_readPreference), true);
             try
             {
+                if (__trace.Switch.ShouldTrace(TraceEventType.Verbose))
+                {
+                    __trace.TraceVerbose("aggregating on collection {0} with pipeline {1} at {2}.", _collection.FullName, command.ToJson(), channelProvider.Server.DnsEndPoint);
+                }
                 if (channelProvider.Server.BuildInfo.Version >= new Version(2, 5, 1))
                 {
                     command["cursor"] = new BsonDocument();
@@ -144,6 +151,7 @@ namespace MongoDB.Driver.Core.Operations
                 var result = ExecuteCommandProtocol<AggregateCommandResult<TDocument>>(channelProvider, args);
 
                 return new Cursor<TDocument>(
+                    activity,
                     channelProvider: channelProvider,
                     cursorId: result.CursorId,
                     collection: _collection,
@@ -159,6 +167,7 @@ namespace MongoDB.Driver.Core.Operations
             catch
             {
                 channelProvider.Dispose();
+                activity.Dispose();
                 throw;
             }
         }

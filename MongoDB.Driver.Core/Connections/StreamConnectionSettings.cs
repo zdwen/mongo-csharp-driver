@@ -16,27 +16,35 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Driver.Core.Security;
 using MongoDB.Driver.Core.Security.Mechanisms;
+using MongoDB.Driver.Core.Support;
 
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
     /// Authentication settings.
     /// </summary>
-    public class AuthenticationSettings
+    public class StreamConnectionSettings
     {
+        // public static readonly fields
+        public static readonly StreamConnectionSettings Defaults = new Builder().Build();
+
         // private fields
         private readonly IEnumerable<MongoCredential> _credentials;
         private readonly IEnumerable<IAuthenticationProtocol> _protocols;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="AuthenticationSettings" /> class.
+        /// Initializes a new instance of the <see cref="StreamConnectionSettings" /> class.
         /// </summary>
         /// <param name="credentials">The credentials.</param>
         /// <param name="protocols">The protocols.</param>
-        public AuthenticationSettings(IEnumerable<MongoCredential> credentials, IEnumerable<IAuthenticationProtocol> protocols)
+        public StreamConnectionSettings(IEnumerable<MongoCredential> credentials, IEnumerable<IAuthenticationProtocol> protocols)
         {
+            Ensure.IsNotNull("credentials", credentials);
+            Ensure.IsNotNull("protocols", protocols);
+
             _credentials = credentials.ToList().AsReadOnly();
             _protocols = protocols.ToList().AsReadOnly();
         }
@@ -63,16 +71,30 @@ namespace MongoDB.Driver.Core.Security
         /// </summary>
         /// <param name="callback">The callback.</param>
         /// <returns>The built settings.</returns>
-        public static AuthenticationSettings Create(Action<Builder> callback)
+        public static StreamConnectionSettings Create(Action<Builder> callback)
         {
             var builder = new Builder();
             callback(builder);
             return builder.Build();
         }
 
+        // public methods
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return string.Format("{{ Protocols: [{0}], Credentials: [{1}] }}",
+                string.Join(", ", _protocols.Select(x => string.Format("'{0}'", x.Name))),
+                string.Join(", ", _credentials.Select(x => string.Format("'{0}'", x))));
+        }
+
         // nested classes
         /// <summary>
-        /// Builds up <see cref="AuthenticationSettings"/>.
+        /// Builds up <see cref="StreamConnectionSettings"/>.
         /// </summary>
         public class Builder
         {
@@ -89,9 +111,9 @@ namespace MongoDB.Driver.Core.Security
                 };
             }
 
-            internal AuthenticationSettings Build()
+            internal StreamConnectionSettings Build()
             {
-                return new AuthenticationSettings(_credentials, _protocols);
+                return new StreamConnectionSettings(_credentials, _protocols);
             }
 
             /// <summary>

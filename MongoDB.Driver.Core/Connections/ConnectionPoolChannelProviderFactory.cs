@@ -28,7 +28,6 @@ namespace MongoDB.Driver.Core.Connections
         // private fields
         private readonly IConnectionPoolFactory _connectionPoolFactory;
         private readonly IEventPublisher _events;
-        private readonly TraceManager _traceManager;
 
         // constructors
         /// <summary>
@@ -36,16 +35,13 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="connectionPoolFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
-        /// <param name="traceManager">The trace manager.</param>
-        public ConnectionPoolChannelProviderFactory(IConnectionPoolFactory connectionPoolFactory, IEventPublisher events, TraceManager traceManager)
+        public ConnectionPoolChannelProviderFactory(IConnectionPoolFactory connectionPoolFactory, IEventPublisher events)
         {
             Ensure.IsNotNull("connectionFactory", connectionPoolFactory);
             Ensure.IsNotNull("events", events);
-            Ensure.IsNotNull("traceManager", traceManager);
 
             _connectionPoolFactory = connectionPoolFactory;
             _events = events;
-            _traceManager = traceManager;
         }
 
         // public methods
@@ -59,7 +55,7 @@ namespace MongoDB.Driver.Core.Connections
             Ensure.IsNotNull("address", dnsEndPoint);
 
             var connectionPool = _connectionPoolFactory.Create(dnsEndPoint);
-            return new ConnectionPoolChannelProvider(dnsEndPoint, connectionPool, _events, _traceManager);
+            return new ConnectionPoolChannelProvider(dnsEndPoint, connectionPool, _events);
         }
     }
 }

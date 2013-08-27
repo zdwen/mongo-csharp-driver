@@ -15,8 +15,11 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using MongoDB.Driver.Core.Diagnostics;
+using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
 {
@@ -25,6 +28,9 @@ namespace MongoDB.Driver.Core.Connections
     /// </summary>
     public sealed class DnsCache
     {
+        // private static fields
+        private static readonly TraceSource __trace = MongoTraceSources.Connections;
+
         // private fields
         private readonly ConcurrentDictionary<DnsEndPoint, Entry> _cache;
         private readonly AddressFamily _defaultAddressFamily;
@@ -112,6 +118,7 @@ namespace MongoDB.Driver.Core.Connections
                 {
                     if (ipAddress.AddressFamily == addressFamily)
                     {
+                        __trace.TraceVerbose("resolved {0} to {1}.", dnsEndPoint, ipAddress);
                         return new IPEndPoint(ipAddress, dnsEndPoint.Port);
                     }
                 }

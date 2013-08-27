@@ -105,6 +105,21 @@ namespace MongoDB.Driver.Core.Connections
             get { return _type; }
         }
 
+        // public methods
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return string.Format("{{ Type: '{0}', Hosts: [{1}], ReplicaSetName: '{2}' }}",
+                _type,
+                string.Join(", ", _hosts.Select(x => "'" + x.ToString() + "'")),
+                _replicaSetName);
+        }
+
         // public static methods
         /// <summary>
         /// Creates the specified callback.

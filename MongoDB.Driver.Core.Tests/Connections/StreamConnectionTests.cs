@@ -24,10 +24,10 @@ namespace MongoDB.Driver.Core.Connections
             _streamFactory = Substitute.For<IStreamFactory>();
 
             _subject = new StreamConnection(
+                StreamConnectionSettings.Defaults,
                 new DnsEndPoint("localhost", 27017),
                 _streamFactory,
-                Substitute.For<IEventPublisher>(),
-                new TraceManager());
+                Substitute.For<IEventPublisher>());
         }
 
         [Test]

@@ -15,7 +15,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -25,6 +27,9 @@ namespace MongoDB.Driver.Core.Connections
     /// </summary>
     internal sealed class SingleServerCluster : Cluster
     {
+        // private static fields
+        private static readonly TraceSource __trace = MongoTraceSources.Connections;
+
         // private fields
         private readonly ClusterType _clusterType;
         private readonly string _replicaSetName;
@@ -42,6 +47,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsEqualTo("settings.Hosts.Count", settings.Hosts.Count(), 1);
+            Ensure.IsNotNull("serverFactory", serverFactory);
 
             _clusterType = settings.Type;
             _replicaSetName = settings.ReplicaSetName;
@@ -49,6 +55,8 @@ namespace MongoDB.Driver.Core.Connections
 
             _server = CreateServer(settings.Hosts.Single());
             PublishServerDescription(_server.Description);
+
+            __trace.TraceVerbose("{0}: {1}", this, settings);
         }
 
         // public methods
@@ -60,6 +68,7 @@ namespace MongoDB.Driver.Core.Connections
             ThrowIfDisposed();
             if (_state.TryChange(State.Unitialized, State.Initialized))
             {
+                __trace.TraceInformation("{0}: initialized.", this);
                 _server.DescriptionChanged += ServerDescriptionChanged;
                 _server.Initialize();
             }
@@ -77,6 +86,7 @@ namespace MongoDB.Driver.Core.Connections
             {
                 _server.DescriptionChanged -= ServerDescriptionChanged;
                 _server.Dispose();
+                __trace.TraceInformation("{0}: closed.", this);
             }
             base.Dispose();
         }

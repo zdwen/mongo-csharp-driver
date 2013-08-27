@@ -117,6 +117,24 @@ namespace MongoDB.Driver.Core.Connections
             get { return _sizeMaintenanceFrequency; }
         }
 
+        // public methods
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return string.Format(
+                "{{ ConnectionMaxIdleTime: '{0}', ConnectionMaxLifeTime: '{1}', MaxSize: {2}, MinSize: {3}, MaxWaitQueueSize: {4} }}",
+                _connectionMaxIdleTime,
+                _connectionMaxLifeTime,
+                _maxSize,
+                _minSize,
+                _maxWaitQueueSize);
+        }
+
         // public static methods
         /// <summary>
         /// A method used to build up settings.

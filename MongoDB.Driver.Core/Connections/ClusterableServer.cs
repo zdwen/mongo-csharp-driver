@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Core.Connections
     internal sealed class ClusterableServer : ClusterableServerBase
     {
         // private static fields
-        private static int __nextId;
+        private static readonly TraceSource __trace = MongoTraceSources.Connections;
 
         // private fields
         private readonly object _descriptionUpdateLock = new object();
@@ -44,12 +44,10 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IChannelProvider _channelProvider;
         private readonly Timer _descriptionUpdateTimer;
         private readonly IEventPublisher _events;
-        private readonly int _id;
         private readonly PingTimeAggregator _pingTimeAggregator;
         private readonly ClusterableServerSettings _settings;
         private readonly StateHelper _state;
         private readonly string _toStringDescription;
-        private readonly TraceSource _trace;
         private IConnection _updateDescriptionConnection;
         private ServerDescription _currentDescription; // only read and written with Interlocked...
 
@@ -62,23 +60,19 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="channelProvider">The channel provider.</param>
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
-        /// <param name="traceManager">The trace manager.</param>
-        public ClusterableServer(ClusterableServerSettings settings, DnsEndPoint dnsEndPoint, IChannelProvider channelProvider, IConnectionFactory connectionFactory, IEventPublisher events, TraceManager traceManager)
+        public ClusterableServer(ClusterableServerSettings settings, DnsEndPoint dnsEndPoint, IChannelProvider channelProvider, IConnectionFactory connectionFactory, IEventPublisher events)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
             Ensure.IsNotNull("connectionProvider", channelProvider);
             Ensure.IsNotNull("connectionFactory", connectionFactory);
             Ensure.IsNotNull("events", events);
-            Ensure.IsNotNull("traceManager", traceManager);
 
-            _id = Interlocked.Increment(ref __nextId);
             _settings = settings;
             _dnsEndPoint = dnsEndPoint;
             _events = events;
             _pingTimeAggregator = new PingTimeAggregator(5);
-            _toStringDescription = string.Format("server#{0}", _id);
-            _trace = traceManager.GetTraceSource<ClusterableServer>();
+            _toStringDescription = string.Format("server#{0}-{1}", IdGenerator<IServer>.GetNextId(), _dnsEndPoint);
             _state = new StateHelper(State.Unitialized);
 
             _connectingDescription = new ServerDescription(
@@ -104,12 +98,11 @@ namespace MongoDB.Driver.Core.Connections
             _channelProvider = channelProvider;
             _connectionFactory = connectionFactory;
             _descriptionUpdateTimer = new Timer(o => UpdateDescription());
+
+            __trace.TraceVerbose("{0}: {1}", _toStringDescription, _settings);
         }
 
         // public properties
-        /// <summary>
-        /// Gets the description.
-        /// </summary>
         public override ServerDescription Description
         {
             get { return Interlocked.CompareExchange(ref _currentDescription, null, null); }
@@ -131,7 +124,8 @@ namespace MongoDB.Driver.Core.Connections
             ThrowIfDisposed();
             if (_state.TryChange(State.Unitialized, State.Initialized))
             {
-                _trace.TraceInformation("{0}: initialized with {1}.", _toStringDescription, _dnsEndPoint);
+                __trace.TraceInformation("{0}: initialized.", _toStringDescription);
+
                 UpdateDescription(_connectingDescription);
                 _channelProvider.Initialize();
                 _descriptionUpdateTimer.Change(TimeSpan.Zero, _settings.ConnectRetryFrequency);
@@ -144,6 +138,11 @@ namespace MongoDB.Driver.Core.Connections
             ThrowIfDisposed();
             UpdateDescription(_connectingDescription);
             ThreadPool.QueueUserWorkItem(_ => UpdateDescription());
+        }
+
+        public override string ToString()
+        {
+            return _toStringDescription;
         }
 
         // protected methods
@@ -167,7 +166,7 @@ namespace MongoDB.Driver.Core.Connections
                     status: ServerStatus.Disposed,
                     type: ServerType.Unknown);
 
-                _trace.TraceInformation("{0}: closed with {1}.", _toStringDescription, _dnsEndPoint);
+                __trace.TraceInformation("{0}: closed.", _toStringDescription);
                 UpdateDescription(description);
             }
         }
@@ -177,6 +176,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             // if we experienced some socket issue, let's referesh our state
             // immediately.
+            __trace.TraceInformation("{0}: refreshing state due to exception.", _toStringDescription);
             ThreadPool.QueueUserWorkItem(o => UpdateDescription());
         }
 
@@ -255,64 +255,74 @@ namespace MongoDB.Driver.Core.Connections
                     return;
                 }
 
-                ServerDescription description = null;
-                lock (_disposingLock)
+                using (__trace.TraceActivity("{0}: Health Check", _toStringDescription))
                 {
-                    if (_state.Current == State.Initialized)
+                    ServerDescription description = null;
+                    lock (_disposingLock)
                     {
-                        try
+                        if (_state.Current == State.Initialized)
                         {
-                            _trace.TraceVerbose("{0}: checking health.", _toStringDescription);
-                            description = LookupDescription();
-
-                            // we want to use the presumably longer frequency for normal status updates.
-                            _descriptionUpdateTimer.Change(_settings.HeartbeatFrequency, _settings.HeartbeatFrequency);
-                        }
-                        catch (Exception ex)
-                        {
-                            // we want to catch every exception because this is occuring on a background
-                            // thread and any unhandled exceptions could crash the process.
-
-                            bool takeDownServer = true;
-                            if (Description.Status == ServerStatus.Connected)
+                            try
                             {
-                                // if we used to be connected and we had an error, let's immediately try this
-                                // again in case it is just a one-time deal...
-                                _trace.TraceWarning(ex, "{0}: unable to communicate with server. Trying again immediately.", _toStringDescription);
+                                __trace.TraceVerbose("{0}: checking health.", _toStringDescription);
+                                description = LookupDescription();
 
-                                try
-                                {
-                                    description = LookupDescription();
-
-                                    // we want to use the presumably longer frequency for normal status updates.
-                                    _descriptionUpdateTimer.Change(_settings.HeartbeatFrequency, _settings.HeartbeatFrequency);
-
-                                    takeDownServer = false;
-                                }
-                                catch (Exception ex2)
-                                {
-                                    // we want the takeDownServer code below to report the next error 
-                                    // since the previous one was already reported
-                                    ex = ex2;
-                                }
+                                // we want to use the presumably longer frequency for normal status updates.
+                                _descriptionUpdateTimer.Change(_settings.HeartbeatFrequency, _settings.HeartbeatFrequency);
                             }
-
-                            if (takeDownServer)
+                            catch (Exception ex)
                             {
-                                _trace.TraceWarning(ex, "{0}: unable to communicate with server.", _toStringDescription);
-                                description = _connectingDescription;
+                                // we want to catch every exception because this is occuring on a background
+                                // thread and any unhandled exceptions could crash the process.
 
-                                // we want to use the presumably shorter frequency
-                                // when we are supposed to be connected but are not.
-                                _descriptionUpdateTimer.Change(_settings.ConnectRetryFrequency, _settings.ConnectRetryFrequency);
+                                bool takeDownServer = true;
+                                if (Description.Status == ServerStatus.Connected)
+                                {
+                                    // if we used to be connected and we had an error, let's immediately try this
+                                    // again in case it is just a one-time deal...
+                                    __trace.TraceWarning(ex, "{0}: unable to communicate with server. Trying again immediately.", _toStringDescription);
+
+                                    try
+                                    {
+                                        description = LookupDescription();
+
+                                        // we want to use the presumably longer frequency for normal status updates.
+                                        _descriptionUpdateTimer.Change(_settings.HeartbeatFrequency, _settings.HeartbeatFrequency);
+
+                                        takeDownServer = false;
+                                    }
+                                    catch (Exception ex2)
+                                    {
+                                        // we want the takeDownServer code below to report the next error 
+                                        // since the previous one was already reported
+                                        ex = ex2;
+                                    }
+                                }
+
+                                if (takeDownServer)
+                                {
+                                    __trace.TraceWarning(ex, "{0}: unable to communicate with server.", _toStringDescription);
+                                    description = _connectingDescription;
+
+                                    // we want to use the presumably shorter frequency
+                                    // when we are supposed to be connected but are not.
+                                    _descriptionUpdateTimer.Change(_settings.ConnectRetryFrequency, _settings.ConnectRetryFrequency);
+                                }
                             }
                         }
                     }
-                }
 
-                if (description != null)
-                {
-                    UpdateDescription(description);
+                    if (description != null)
+                    {
+                        try
+                        {
+                            UpdateDescription(description);
+                        }
+                        catch (Exception ex)
+                        {
+                            __trace.TraceError(ex, "{0}: error updating the description.", _toStringDescription);
+                        }
+                    }
                 }
             }
             finally
@@ -331,9 +341,8 @@ namespace MongoDB.Driver.Core.Connections
             bool areEqual = AreDescriptionsEqual(oldDescription, description);
             if (!areEqual)
             {
-                var descriptionString = GetServerDescriptionString(description);
                 _events.Publish(new ServerDescriptionChangedEvent(this));
-                _trace.TraceInformation("{0}: description updated - {1}.", _toStringDescription, descriptionString);
+                __trace.TraceInformation("{0}: description updated: {1}.", _toStringDescription, description);
                 var args = new ChangedEventArgs<ServerDescription>(oldDescription, description);
                 if (DescriptionChanged != null)
                 {
@@ -367,24 +376,6 @@ namespace MongoDB.Driver.Core.Connections
                 a.Tags.SequenceEqual(b.Tags);
         }
 
-        private string GetServerDescriptionString(ServerDescription description)
-        {
-            var builder = new StringBuilder();
-            builder.AppendFormat("Type={0},Status={1},PingTime={2}", description.Type, description.Status, description.AveragePingTime);
-            if (description.ReplicaSetInfo != null)
-            {
-                var members = string.Join(",", description.ReplicaSetInfo.Members);
-                builder.AppendFormat(",Primary={0},Members=[{1}]", description.ReplicaSetInfo.Primary, members);
-                if (description.ReplicaSetInfo.Tags.Any())
-                {
-                    var tags = string.Join(",", description.ReplicaSetInfo.Tags.Select(x => string.Format("{0}={1}", x.Key, x.Value)));
-                    builder.AppendFormat(",Tags=[{0}]", tags);
-                }
-            }
-
-            return builder.ToString();
-        }
-
         private static class State
         {
             public const int Unitialized = 0;
@@ -397,11 +388,13 @@ namespace MongoDB.Driver.Core.Connections
             private readonly ClusterableServer _server;
             private readonly IChannel _wrapped;
             private bool _disposed;
+            private string _toStringDescription;
 
             public ServerChannel(ClusterableServer server, IChannel wrapped)
             {
                 _server = server;
                 _wrapped = wrapped;
+                _toStringDescription = wrapped.ToString();
             }
 
             public override DnsEndPoint DnsEndPoint
@@ -439,6 +432,11 @@ namespace MongoDB.Driver.Core.Connections
                     _server.HandleException(ex);
                     throw;
                 }
+            }
+
+            public override string ToString()
+            {
+                return _toStringDescription;
             }
 
             protected override void Dispose(bool disposing)

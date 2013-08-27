@@ -33,7 +33,6 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IConnectionPool _connectionPool;
         private readonly DnsEndPoint _dnsEndPoint;
         private readonly IEventPublisher _events;
-        private readonly TraceSource _trace;
         private readonly StateHelper _state;
 
         // constructors
@@ -43,18 +42,15 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="connectionPool">The connection factory.</param>
         /// <param name="events">The events.</param>
-        /// <param name="traceManager">The trace manager.</param>
-        public ConnectionPoolChannelProvider(DnsEndPoint dnsEndPoint, IConnectionPool connectionPool, IEventPublisher events, TraceManager traceManager)
+        public ConnectionPoolChannelProvider(DnsEndPoint dnsEndPoint, IConnectionPool connectionPool, IEventPublisher events)
         {
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
             Ensure.IsNotNull("connectionFactory", connectionPool);
             Ensure.IsNotNull("events", events);
-            Ensure.IsNotNull("traceManager", traceManager);
 
             _connectionPool = connectionPool;
             _dnsEndPoint = dnsEndPoint;
             _events = events;
-            _trace = traceManager.GetTraceSource<ConnectionPoolChannelProvider>();
             _state = new StateHelper(State.Unitialized);
         }
 
@@ -126,6 +122,7 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
+        // nested classes
         private static class State
         {
             public const int Unitialized = 0;
@@ -137,10 +134,12 @@ namespace MongoDB.Driver.Core.Connections
         {
             private IConnection _connection;
             private bool _disposed;
+            private string _toStringDescription;
 
             public ConnectionChannel(IConnection connection)
             {
                 _connection = connection;
+                _toStringDescription = connection.ToString();
             }
 
             public IConnection Connection
@@ -179,6 +178,11 @@ namespace MongoDB.Driver.Core.Connections
             {
                 ThrowIfDisposed();
                 _connection.Send(packet);
+            }
+
+            public override string ToString()
+            {
+                return _toStringDescription;
             }
 
             protected override void Dispose(bool disposing)

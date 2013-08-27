@@ -22,13 +22,13 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Settings for the <see cref="NetworkStreamFactory"/>.
     /// </summary>
-    public sealed class NetworkStreamFactorySettings
+    public sealed class NetworkStreamSettings
     {
         // public static fields
         /// <summary>
         /// The default settings.
         /// </summary>
-        public static readonly NetworkStreamFactorySettings Defaults = new Builder().Build();
+        public static readonly NetworkStreamSettings Defaults = new Builder().Build();
 
         // private fields
         private readonly TimeSpan _connectTimeout;
@@ -39,14 +39,14 @@ namespace MongoDB.Driver.Core.Connections
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="NetworkStreamFactorySettings" /> class.
+        /// Initializes a new instance of the <see cref="NetworkStreamSettings" /> class.
         /// </summary>
         /// <param name="connectTimeout">The connect timeout.</param>
         /// <param name="readTimeout">The socket read timeout.</param>
         /// <param name="writeTimeout">The socket write timeout.</param>
         /// <param name="tcpReceiveBufferSize">The size of the TCP receive buffer.</param>
         /// <param name="tcpSendBufferSize">The size of the TCP send buffer.</param>
-        public NetworkStreamFactorySettings(TimeSpan connectTimeout, TimeSpan readTimeout, TimeSpan writeTimeout, int tcpReceiveBufferSize, int tcpSendBufferSize)
+        public NetworkStreamSettings(TimeSpan connectTimeout, TimeSpan readTimeout, TimeSpan writeTimeout, int tcpReceiveBufferSize, int tcpSendBufferSize)
         {
             Ensure.IsInfiniteOrGreaterThanOrEqualToZero("connectTimeout", connectTimeout);
             Ensure.IsInfiniteOrGreaterThanOrEqualToZero("readTimeout", readTimeout);
@@ -102,13 +102,30 @@ namespace MongoDB.Driver.Core.Connections
             get { return _writeTimeout; }
         }
 
+        // public methods
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return string.Format("{{ ConnectTimeout: '{0}', ReadTimeout: '{1}', TcpReceiveBufferSize: {2}, TcpSendBufferSize: {3}, WriteTimeout: '{4}' }}",
+                _connectTimeout,
+                _readTimeout,
+                _tcpReceiveBufferSize,
+                _tcpSendBufferSize,
+                _writeTimeout);
+        }
+
         // public static methods
         /// <summary>
         /// A method used to build up settings.
         /// </summary>
         /// <param name="callback">The callback.</param>
         /// <returns>The built settings.</returns>
-        public static NetworkStreamFactorySettings Create(Action<Builder> callback)
+        public static NetworkStreamSettings Create(Action<Builder> callback)
         {
             var builder = new Builder();
             callback(builder);
@@ -135,9 +152,9 @@ namespace MongoDB.Driver.Core.Connections
                 _writeTimeout = TimeSpan.FromMilliseconds(Timeout.Infinite); // OS default
             }
 
-            internal NetworkStreamFactorySettings Build()
+            internal NetworkStreamSettings Build()
             {
-                return new NetworkStreamFactorySettings(
+                return new NetworkStreamSettings(
                     _connectTimeout,
                     _readTimeout,
                     _writeTimeout,
