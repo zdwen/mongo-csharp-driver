@@ -42,16 +42,6 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
         }
 
         [Test]
-        public void The_local_document_ids_should_be_the_first_elements()
-        {
-            for (int i = 0; i < _docsToInsert.Count; i++)
-            {
-                var firstElement = _docsToInsert[0].GetElement(0);
-                Assert.AreEqual("_id", firstElement.Name, "The first element in document {0} was not _id", i);
-            }
-        }
-
-        [Test]
         public void The_documents_should_exist_in_the_database()
         {
             for (int i = 0; i < _docsToInsert.Count; i++)

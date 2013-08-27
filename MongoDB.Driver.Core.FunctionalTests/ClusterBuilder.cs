@@ -16,13 +16,12 @@ namespace MongoDB.Driver.Core
         public ICluster BuildCluster()
         {
             var settings = GetSettings();
-            var traceManager = BuildTraceManager(settings);
             var events = BuildEventPublisher(settings);
-            var streamFactory = BuildStreamFactory(events, traceManager, settings);
-            var connectionFactory = BuildConnectionFactory(streamFactory, events, traceManager, settings);
-            var channelProviderFactory = BuildChannelProviderFactory(connectionFactory, streamFactory, events, traceManager, settings);
-            var clusterableServerFactory = BuildClusterableServerFactory(channelProviderFactory, connectionFactory, streamFactory, events, traceManager, settings);
-            return BuildCluster(clusterableServerFactory, channelProviderFactory, connectionFactory, streamFactory, events, traceManager, settings);
+            var streamFactory = BuildStreamFactory(events, settings);
+            var connectionFactory = BuildConnectionFactory(streamFactory, events, settings);
+            var channelProviderFactory = BuildChannelProviderFactory(connectionFactory, streamFactory, events, settings);
+            var clusterableServerFactory = BuildClusterableServerFactory(channelProviderFactory, connectionFactory, streamFactory, events, settings);
+            return BuildCluster(clusterableServerFactory, channelProviderFactory, connectionFactory, streamFactory, events, settings);
         }
 
         protected virtual ITestSettings GetSettings()
@@ -30,72 +29,61 @@ namespace MongoDB.Driver.Core
             return new EnvironmentVariableTestSettings();
         }
 
-        protected virtual TraceManager BuildTraceManager(ITestSettings settings)
-        {
-            return new TraceManager();
-        }
-
         protected virtual IEventPublisher BuildEventPublisher(ITestSettings settings)
         {
             return new EventPublisher();
         }
 
-        protected virtual IStreamFactory BuildStreamFactory(IEventPublisher events, TraceManager traceManager, ITestSettings settings)
+        protected virtual IStreamFactory BuildStreamFactory(IEventPublisher events,  ITestSettings settings)
         {
             return new NetworkStreamFactory(
-                NetworkStreamFactorySettings.Defaults,
+                NetworkStreamSettings.Defaults,
                 new DnsCache());
         }
 
-        protected virtual IConnectionFactory BuildConnectionFactory(IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager, ITestSettings settings)
+        protected virtual IConnectionFactory BuildConnectionFactory(IStreamFactory streamFactory, IEventPublisher events,  ITestSettings settings)
         {
             return new StreamConnectionFactory(
+                StreamConnectionSettings.Defaults,
                 streamFactory,
-                events,
-                traceManager);
+                events);
         }
 
-        protected virtual IChannelProviderFactory BuildChannelProviderFactory(IConnectionFactory connectionFactory, IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager, ITestSettings settings)
+        protected virtual IChannelProviderFactory BuildChannelProviderFactory(IConnectionFactory connectionFactory, IStreamFactory streamFactory, IEventPublisher events,  ITestSettings settings)
         {
             return new ConnectionPoolChannelProviderFactory(
                 new ConnectionPoolFactory(
                     ConnectionPoolSettings.Defaults,
                     connectionFactory,
-                    events,
-                    traceManager),
-                events,
-                traceManager);
+                    events),
+                events);
         }
 
-        protected virtual IClusterableServerFactory BuildClusterableServerFactory(IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager, ITestSettings settings)
+        protected virtual IClusterableServerFactory BuildClusterableServerFactory(IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IStreamFactory streamFactory, IEventPublisher events,  ITestSettings settings)
         {
             return new ClusterableServerFactory(
-                false,
                 ClusterableServerSettings.Defaults,
                 channelProviderFactory,
                 connectionFactory,
-                events,
-                traceManager);
+                events);
         }
 
-        protected virtual ICluster BuildCluster(IClusterableServerFactory clusterableServerFactory, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IStreamFactory streamFactory, IEventPublisher events, TraceManager traceManager, ITestSettings settings)
+        protected virtual ICluster BuildCluster(IClusterableServerFactory clusterableServerFactory, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IStreamFactory streamFactory, IEventPublisher events,  ITestSettings settings)
         {
             var servers = settings.GetArrayValuesOrDefault("Cluster-DnsEndPoint", new[] { "localhost:27017" })
                 .Select(x => x.Split(new [] { ':' }, StringSplitOptions.RemoveEmptyEntries))
                 .Select(x => x.Length == 2 ? new DnsEndPoint(x[0], int.Parse(x[1])) : new DnsEndPoint(x[0], 27017))
                 .ToList();
 
-            if (servers.Count == 1)
+            var clusterSettings = ClusterSettings.Create(x =>
             {
-                return new SingleServerCluster(new DnsEndPoint("localhost", 27017), clusterableServerFactory);
-            }
-            else
-            {
-                return new ReplicaSetCluster(
-                    ReplicaSetClusterSettings.Defaults,
-                    servers,
-                    clusterableServerFactory);
-            }
+                foreach (var server in servers)
+                {
+                    x.AddHost(server);
+                }
+            });
+
+            return new ClusterFactory(clusterableServerFactory).Create(clusterSettings);
         }
     }
 }

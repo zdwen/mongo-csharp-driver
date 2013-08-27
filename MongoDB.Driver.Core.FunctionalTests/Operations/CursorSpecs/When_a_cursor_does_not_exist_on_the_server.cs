@@ -34,12 +34,11 @@ namespace MongoDB.Driver.Core.Operations.CursorSpecs
             };
 
             _cursor = ExecuteOperation(op);
+            KillCursor(_cursor.CursorId);
         }
 
         protected override void When()
         {
-            KillCursor(_cursor.CursorId);
-
             _exception = Catch(() => ReadCursorToEnd(_cursor));
         }
 
@@ -59,28 +58,15 @@ namespace MongoDB.Driver.Core.Operations.CursorSpecs
         {
             using (var session = BeginSession())
             {
-                var args = new CreateServerChannelProviderArgs(new SpecificServerSelector(_cursor.Server), true);
+                var selector = new DelegateServerSelector("blah", x => x.DnsEndPoint.Equals(_cursor.Server.DnsEndPoint));
+
+                var args = new CreateServerChannelProviderArgs(selector, true);
                 using (var channelProvider = session.CreateServerChannelProvider(args))
                 using (var channel = channelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None))
                 {
                     var protocol = new KillCursorsProtocol(new[] { id });
                     protocol.Execute(channel);
                 }
-            }
-        }
-
-        private class SpecificServerSelector : IServerSelector
-        {
-            private readonly ServerDescription _server;
-
-            public SpecificServerSelector(ServerDescription server)
-            {
-                _server = server;
-            }
-
-            public IEnumerable<ServerDescription> SelectServers(IEnumerable<ServerDescription> servers)
-            {
-                return servers.Where(x => x.DnsEndPoint.Equals(_server.DnsEndPoint));
             }
         }
     }

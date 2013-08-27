@@ -36,7 +36,8 @@ namespace MongoDB.Driver.Core.Operations
             };
 
             _cursor = ExecuteOperation(op);
-            ReadCursorToEnd(_cursor);
+            _cursor.MoveNext();
+            _cursor.MoveNext();
         }
 
         [Test]

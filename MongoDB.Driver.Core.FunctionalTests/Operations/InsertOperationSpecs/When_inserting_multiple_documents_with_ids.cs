@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
         }
 
         [Test]
-        public void The_local_documents_should_have_ids_id()
+        public void The_local_documents_should_still_have_ids()
         {
             Assert.IsTrue(_docsToInsert[0].Elements.Any(x => x.Name == "_id"));
             Assert.IsTrue(_docsToInsert[1].Elements.Any(x => x.Name == "_id"));
