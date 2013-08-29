@@ -31,7 +31,7 @@ namespace MongoDB.Driver.Core
             return request;
         }
 
-        public static ReplyMessage BuildReplyMessage(IEnumerable<BsonDocument> documents, int responseTo = 0)
+        public static ReplyMessage BuildReplyMessage(IEnumerable<BsonDocument> documents)
         {
             var stream = new MemoryStream();
             int docCount = 0;
@@ -48,13 +48,44 @@ namespace MongoDB.Driver.Core
             return new ReplyMessage(
                 (int)(4 + 4 + 4 + 4 + 4 + 8 + 4 + 4 + stream.Length),
                 0,
-                responseTo,
+                0,
                 OpCode.Reply,
                 ReplyFlags.AwaitCapable,
                 0,
                 0,
                 docCount,
                 stream);
+        }
+
+        public static byte[] EncodeReplyMessage(IEnumerable<BsonDocument> documents)
+        {
+            var docStream = new MemoryStream();
+            int docCount = 0;
+            using (var writer = BsonWriter.Create(docStream))
+            {
+                foreach (var document in documents)
+                {
+                    docCount++;
+                    BsonSerializer.Serialize(writer, document);
+                }
+            }
+
+            using (var replyStream = new MemoryStream())
+            {
+                var writer = new BsonStreamWriter(replyStream, new UTF8Encoding(false, true));
+
+                writer.WriteInt32((int)(4 + 4 + 4 + 4 + 4 + 8 + 4 + 4 + docStream.Length));
+                writer.WriteInt32(0);
+                writer.WriteInt32(0);
+                writer.WriteInt32((int)OpCode.Reply);
+                writer.WriteInt32((int)ReplyFlags.AwaitCapable);
+                writer.WriteInt64(0);
+                writer.WriteInt32(0);
+                writer.WriteInt32(docCount);
+                writer.WriteBytes(docStream.ToArray());
+
+                return replyStream.ToArray();
+            }
         }
 
         public static BsonDocument ReadQueryMessage(BufferedRequestPacket request)

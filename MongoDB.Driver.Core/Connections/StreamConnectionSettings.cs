@@ -28,6 +28,9 @@ namespace MongoDB.Driver.Core.Connections
     public class StreamConnectionSettings
     {
         // public static readonly fields
+        /// <summary>
+        /// The default settings.
+        /// </summary>
         public static readonly StreamConnectionSettings Defaults = new Builder().Build();
 
         // private fields

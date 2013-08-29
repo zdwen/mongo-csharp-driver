@@ -25,6 +25,7 @@ using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Support;
 using MongoDB.Driver.Core.Security;
+using MongoDB.Bson;
 
 namespace MongoDB.Driver.Core.Connections
 {
@@ -38,10 +39,10 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IEventPublisher _events;
         private readonly StreamConnectionSettings _settings;
         private readonly IStreamFactory _streamFactory;
-        private readonly string _toStringDescription;
         private bool _disposed;
         private State _state;
         private Stream _stream;
+        private string _toStringDescription;
 
         // constructors
         /// <summary>
@@ -63,9 +64,7 @@ namespace MongoDB.Driver.Core.Connections
             _settings = settings;
             _streamFactory = streamFactory;
             _state = State.Initial;
-            _toStringDescription = string.Format("conn#{0}-{1}", IdGenerator<IConnection>.GetNextId(), dnsEndPoint);
-
-            __trace.TraceVerbose("{0}: {1}", _toStringDescription, _settings);
+            _toStringDescription = string.Format("conn#(not open)-{0}", dnsEndPoint);
         }
 
         // public properties
@@ -100,14 +99,13 @@ namespace MongoDB.Driver.Core.Connections
             {
                 try
                 {
-                    __trace.TraceInformation("{0}: opened.", _toStringDescription);
                     _stream = _streamFactory.Create(_dnsEndPoint);
                     _state = State.Open;
+                    _toStringDescription = GetStringDescription();
                     _events.Publish(new ConnectionOpenedEvent(this));
                 }
                 catch (SocketException ex)
                 {
-                    __trace.TraceError(ex, "{0}: failed to open.", _toStringDescription);
                     HandleException(ex);
                     if (ex.SocketErrorCode == SocketError.TimedOut)
                     {
@@ -120,7 +118,6 @@ namespace MongoDB.Driver.Core.Connections
                 }
                 catch (Exception ex)
                 {
-                    __trace.TraceError(ex, "{0}: failed to open.", _toStringDescription);
                     HandleException(ex);
                     throw new MongoDriverException("Unable to open connection.", ex);
                 }
@@ -268,6 +265,23 @@ namespace MongoDB.Driver.Core.Connections
 
             var message = string.Format("Unable to find a security protocol to authenticate. The credential for source {0}, username {1} over mechanism {2} could not be authenticated.", credential.Source, credential.Username, credential.Mechanism);
             throw new MongoSecurityException(message);
+        }
+
+        private string GetStringDescription()
+        {
+            var command = new BsonDocument("getLastError", 1);
+            BsonValue connectionId;
+            try
+            {
+                var result = CommandHelper.RunCommand<BsonDocument>(new DatabaseNamespace("admin"), command, this);
+                connectionId = result.GetValue("connectionId", "*" + IdGenerator<IConnection>.GetNextId() + "*");
+            }
+            catch
+            {
+                connectionId = "*" + IdGenerator<IConnection>.GetNextId() + "*";
+            }
+
+            return string.Format("conn#{0}-{1}", connectionId, _dnsEndPoint);
         }
 
         private void HandleException(Exception ex)

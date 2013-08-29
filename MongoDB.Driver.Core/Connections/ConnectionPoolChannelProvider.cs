@@ -132,14 +132,12 @@ namespace MongoDB.Driver.Core.Connections
 
         private sealed class ConnectionChannel : ChannelBase
         {
-            private IConnection _connection;
+            private readonly IConnection _connection;
             private bool _disposed;
-            private string _toStringDescription;
 
             public ConnectionChannel(IConnection connection)
             {
                 _connection = connection;
-                _toStringDescription = connection.ToString();
             }
 
             public IConnection Connection
@@ -182,7 +180,7 @@ namespace MongoDB.Driver.Core.Connections
 
             public override string ToString()
             {
-                return _toStringDescription;
+                return _connection.ToString();
             }
 
             protected override void Dispose(bool disposing)
@@ -192,7 +190,6 @@ namespace MongoDB.Driver.Core.Connections
                     if (disposing)
                     {
                         _connection.Dispose();
-                        _connection = null;
                     }
                     _disposed = true;
                 }

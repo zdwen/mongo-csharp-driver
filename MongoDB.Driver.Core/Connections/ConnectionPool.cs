@@ -136,14 +136,14 @@ namespace MongoDB.Driver.Core.Connections
                             _events.Publish(new ConnectionRemovedFromPoolEvent(this, connection));
                             connection.Dispose();
 
-                            connection = CreateNewConnection();
+                            connection = OpenNewConnection();
                             __trace.TraceInformation("{0}: added {1}.", _toStringDescription, connection);
                             _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
                         }
                     }
                     else
                     {
-                        connection = CreateNewConnection();
+                        connection = OpenNewConnection();
                         __trace.TraceInformation("{0}: added {1}.", _toStringDescription, connection);
                         __trace.TraceInformation("{0}: pool size is {1}", _toStringDescription, CurrentSize);
                         _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
@@ -224,24 +224,6 @@ namespace MongoDB.Driver.Core.Connections
             __trace.TraceInformation("{0}: cleared.", _toStringDescription);
         }
 
-        private PooledConnection CreateNewConnection()
-        {
-            // we are going to set both LastUsedAtUtc and OpenedAtUtc.
-            // we want to make sure that connections that get checked
-            // out and not used are not thrown away.  This is also
-            // true for the connections created in EnsureMinSize.
-            // OpenedAtUtc will be roughly correct
-            // LastUsedAtUtc will get changed when it's used.
-            var info = new ConnectionInfo
-            {
-                GenerationId = Interlocked.CompareExchange(ref _currentGenerationId, 0, 0),
-                LastUsedAtUtc = DateTime.UtcNow,
-                OpenedAtUtc = DateTime.UtcNow
-            };
-            var connection = _connectionFactory.Create(_dnsEndPoint);
-            return new PooledConnection(connection, this, info);
-        }
-
         private void EnsureMinSize()
         {
             while (CurrentSize < _settings.MinSize)
@@ -255,8 +237,7 @@ namespace MongoDB.Driver.Core.Connections
                         return;
                     }
 
-                    var connection = CreateNewConnection();
-                    connection.Open();
+                    var connection = OpenNewConnection();
                     __trace.TraceInformation("{0}: added {1}.", _toStringDescription, connection);
                     __trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
                     _events.Publish(new ConnectionAddedToPoolEvent(this, connection));
@@ -360,6 +341,25 @@ namespace MongoDB.Driver.Core.Connections
                     Monitor.Exit(_maintainSizeLock);
                 }
             }
+        }
+
+        private PooledConnection OpenNewConnection()
+        {
+            // we are going to set both LastUsedAtUtc and OpenedAtUtc.
+            // we want to make sure that connections that get checked
+            // out and not used are not thrown away.  This is also
+            // true for the connections created in EnsureMinSize.
+            // OpenedAtUtc will be roughly correct
+            // LastUsedAtUtc will get changed when it's used.
+            var info = new ConnectionInfo
+            {
+                GenerationId = Interlocked.CompareExchange(ref _currentGenerationId, 0, 0),
+                LastUsedAtUtc = DateTime.UtcNow,
+                OpenedAtUtc = DateTime.UtcNow
+            };
+            var connection = _connectionFactory.Create(_dnsEndPoint);
+            connection.Open();
+            return new PooledConnection(connection, this, info);
         }
 
         private void PrunePool()
@@ -476,17 +476,14 @@ namespace MongoDB.Driver.Core.Connections
 
         private sealed class AcquiredConnection : ConnectionBase
         {
-            private readonly string _toStringDescription;
-            private ConnectionPool _pool;
-            private PooledConnection _wrapped;
+            private readonly PooledConnection _wrapped;
+            private readonly ConnectionPool _pool;
             private bool _disposed;
 
             public AcquiredConnection(PooledConnection connection, ConnectionPool pool)
             {
                 _wrapped = connection;
                 _pool = pool;
-
-                _toStringDescription = _wrapped.ToString();
             }
 
             public override DnsEndPoint DnsEndPoint
@@ -527,7 +524,7 @@ namespace MongoDB.Driver.Core.Connections
 
             public override string ToString()
             {
-                return _toStringDescription;
+                return _wrapped.ToString();
             }
 
             protected override void Dispose(bool disposing)
@@ -537,8 +534,6 @@ namespace MongoDB.Driver.Core.Connections
                     if (disposing)
                     {
                         _pool.ReleaseConnection(_wrapped);
-                        _pool = null;
-                        _wrapped = null;
                     }
                     _disposed = true;
                 }
@@ -556,10 +551,9 @@ namespace MongoDB.Driver.Core.Connections
 
         private sealed class PooledConnection : ConnectionBase
         {
-            private readonly string _toStringDescription;
-            private ConnectionInfo _info;
-            private ConnectionPool _pool;
-            private IConnection _wrapped;
+            private readonly IConnection _wrapped;
+            private readonly ConnectionPool _pool;
+            private readonly ConnectionInfo _info;
             private bool _disposed;
 
             public PooledConnection(IConnection connection, ConnectionPool pool, ConnectionInfo info)
@@ -567,7 +561,6 @@ namespace MongoDB.Driver.Core.Connections
                 _wrapped = connection;
                 _pool = pool;
                 _info = info;
-                _toStringDescription = _wrapped.ToString();
             }
 
             public override DnsEndPoint DnsEndPoint
@@ -639,7 +632,7 @@ namespace MongoDB.Driver.Core.Connections
 
             public override string ToString()
             {
-                return _toStringDescription;
+                return _wrapped.ToString();
             }
 
             protected override void Dispose(bool disposing)
@@ -649,9 +642,6 @@ namespace MongoDB.Driver.Core.Connections
                     if (disposing)
                     {
                         _wrapped.Dispose();
-                        _pool = null;
-                        _info = null;
-                        _wrapped = null;
                     }
                     _disposed = true;
                 }

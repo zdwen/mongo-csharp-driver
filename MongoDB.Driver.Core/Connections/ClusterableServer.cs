@@ -388,13 +388,11 @@ namespace MongoDB.Driver.Core.Connections
             private readonly ClusterableServer _server;
             private readonly IChannel _wrapped;
             private bool _disposed;
-            private string _toStringDescription;
 
             public ServerChannel(ClusterableServer server, IChannel wrapped)
             {
                 _server = server;
                 _wrapped = wrapped;
-                _toStringDescription = wrapped.ToString();
             }
 
             public override DnsEndPoint DnsEndPoint
@@ -436,7 +434,7 @@ namespace MongoDB.Driver.Core.Connections
 
             public override string ToString()
             {
-                return _toStringDescription;
+                return _wrapped.ToString();
             }
 
             protected override void Dispose(bool disposing)
