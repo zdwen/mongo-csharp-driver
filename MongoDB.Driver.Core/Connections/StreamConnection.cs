@@ -43,6 +43,7 @@ namespace MongoDB.Driver.Core.Connections
         private State _state;
         private Stream _stream;
         private string _toStringDescription;
+        private bool _disposeOnException;
 
         // constructors
         /// <summary>
@@ -59,6 +60,7 @@ namespace MongoDB.Driver.Core.Connections
             Ensure.IsNotNull("streamFactory", streamFactory);
             Ensure.IsNotNull("events", events);
 
+            _disposeOnException = false;
             _dnsEndPoint = dnsEndPoint;
             _events = events;
             _settings = settings;
@@ -103,6 +105,7 @@ namespace MongoDB.Driver.Core.Connections
                     _state = State.Open;
                     _toStringDescription = GetStringDescription();
                     _events.Publish(new ConnectionOpenedEvent(this));
+                    _disposeOnException = true;
                 }
                 catch (SocketException ex)
                 {
@@ -269,16 +272,20 @@ namespace MongoDB.Driver.Core.Connections
 
         private string GetStringDescription()
         {
-            var command = new BsonDocument("getLastError", 1);
-            BsonValue connectionId;
+
+            BsonValue connectionId = "*" + IdGenerator<IConnection>.GetNextId() + "*";
             try
             {
-                var result = CommandHelper.RunCommand<BsonDocument>(new DatabaseNamespace("admin"), command, this);
-                connectionId = result.GetValue("connectionId", "*" + IdGenerator<IConnection>.GetNextId() + "*");
+                var result = CommandHelper.RunCommand<BsonDocument>(
+                    new DatabaseNamespace("admin"),
+                    new BsonDocument("getLastError", 1),
+                    this);
+                connectionId = result.GetValue("connectionId", connectionId);
             }
             catch
             {
-                connectionId = "*" + IdGenerator<IConnection>.GetNextId() + "*";
+                // if this fails, then so be it... we'll just use the 
+                // local id generator version
             }
 
             return string.Format("conn#{0}-{1}", connectionId, _dnsEndPoint);
@@ -286,8 +293,11 @@ namespace MongoDB.Driver.Core.Connections
 
         private void HandleException(Exception ex)
         {
-            // we'll always dispose for any error.
-            Dispose();
+            if (_disposeOnException)
+            {
+                // we'll always dispose for any error.
+                Dispose();
+            }
         }
 
         private void ThrowIfDisposed()

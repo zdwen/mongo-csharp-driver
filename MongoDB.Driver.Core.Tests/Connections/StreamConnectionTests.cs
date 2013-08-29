@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Test]
-        public void Open_should_change_the_state_of_the_connection_to_open()
+        public void Open_should_change_the_state_of_the_connection_to_open_when_GLE_succeeds()
         {
             var stream = Substitute.For<Stream>();
             stream.CanRead.Returns(true);
@@ -41,6 +41,15 @@ namespace MongoDB.Driver.Core.Connections
             _streamFactory.Create(null).ReturnsForAnyArgs(stream);
             SetupOpen(stream);
 
+            _subject.Open();
+
+            Assert.IsTrue(_subject.IsOpen);
+        }
+
+        [Test]
+        public void Open_should_change_the_state_of_the_connection_to_open_when_GLE_fails()
+        {
+            var stream = Substitute.For<Stream>();
             _subject.Open();
 
             Assert.IsTrue(_subject.IsOpen);
