@@ -19,18 +19,21 @@ using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Bson
 {
-    // this class is a wrapper for an object that we intend to serialize as a BsonValue
-    // it is a subclass of BsonValue so that it may be used where a BsonValue is expected
+    // this class is a wrapper for an object that we intend to serialize as a BsonDocument
+    // it is a subclass of BsonDocument so that it may be used where a BsonDocument is expected
     // this class is mostly used by MongoCollection and MongoCursor when supporting generic query objects
+
+    // if all that ever happens with this wrapped object is that it gets serialized then the BsonDocument is never materialized
 
     /// <summary>
     /// Represents a BsonDocument wrapper.
     /// </summary>
-    public class BsonDocumentWrapper : BsonValue
+    public class BsonDocumentWrapper : MaterializedOnDemandBsonDocument
     {
         // private fields
         private readonly object _wrapped;
@@ -65,7 +68,6 @@ namespace MongoDB.Bson
         /// <param name="isUpdateDocument">if set to <c>true</c> then value is an update document.</param>
         /// <exception cref="System.ArgumentNullException">serializer</exception>
         public BsonDocumentWrapper(object value, IBsonSerializer serializer, bool isUpdateDocument)
-            : base(BsonType.Document)
         {
             if (serializer == null)
             {
@@ -228,6 +230,31 @@ namespace MongoDB.Bson
         public override string ToString()
         {
             return this.ToJson();
+        }
+
+        // protected methods
+        /// <summary>
+        /// Materializes the BsonDocument.
+        /// </summary>
+        /// <returns>The materialized elements.</returns>
+        protected override IEnumerable<BsonElement> Materialize()
+        {
+            var bsonDocument = new BsonDocument();
+            var writerSettings = BsonDocumentWriterSettings.Defaults;
+            using (var bsonWriter = new BsonDocumentWriter(bsonDocument, writerSettings))
+            {
+                var context = SerializationContext.CreateRoot(bsonWriter, _serializer.ValueType);
+                _serializer.Serialize(context, _wrapped);
+            }
+
+            return bsonDocument.Elements;
+        }
+
+        /// <summary>
+        /// Informs subclasses that the Materialize process completed so they can free any resources related to the unmaterialized state.
+        /// </summary>
+        protected override void MaterializeCompleted()
+        {
         }
     }
 }

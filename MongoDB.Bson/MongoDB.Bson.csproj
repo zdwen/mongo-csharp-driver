@@ -140,6 +140,7 @@
     <Compile Include="ObjectModel\LazyBsonDocument.cs" />
     <Compile Include="ObjectModel\RawBsonArray.cs" />
     <Compile Include="ObjectModel\RawBsonDocument.cs" />
+    <Compile Include="ObjectModel\MaterializedOnDemandBsonDocument.cs" />
     <Compile Include="Serialization\Attributes\BsonConstructorAttribute.cs" />
     <Compile Include="Serialization\Attributes\BsonDateTimeOptionsAttribute.cs" />
     <Compile Include="Serialization\Attributes\BsonDictionaryOptionsAttribute.cs" />
@@ -217,6 +218,7 @@
     <Compile Include="Serialization\IdGenerators\ZeroIdChecker.cs" />
     <Compile Include="Serialization\MostArgumentsCreatorSelector.cs" />
     <Compile Include="Serialization\SerializationContext.cs" />
+    <Compile Include="Serialization\Serializers\AbstractClassSerializer.cs" />
     <Compile Include="Serialization\Serializers\BitArraySerializer.cs" />
     <Compile Include="Serialization\Serializers\BooleanSerializer.cs" />
     <Compile Include="Serialization\Serializers\BsonArraySerializer.cs" />
