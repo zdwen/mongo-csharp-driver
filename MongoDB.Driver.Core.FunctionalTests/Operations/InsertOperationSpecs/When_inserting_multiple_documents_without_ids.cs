@@ -21,11 +21,10 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
                 new BsonDocument("x", 3),
                 new BsonDocument("x", 4)
             };
-            var op = new InsertOperation()
+            var op = new InsertOperation<BsonDocument>()
             {
                 Collection = _collection,
-                Documents = _docsToInsert,
-                DocumentType = typeof(BsonDocument)
+                Documents = _docsToInsert
             };
 
             ExecuteOperation(op);

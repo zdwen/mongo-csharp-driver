@@ -35,11 +35,11 @@ namespace MongoDB.Driver.Core.Operations
         // private fields
         private int _batchSize;
         private CollectionNamespace _collection;
-        private object _fields;
+        private BsonDocument _fields;
         private QueryFlags _flags;
         private int _limit;
         private BsonDocument _options;
-        private object _query;
+        private BsonDocument _query;
         private ReadPreference _readPreference;
         private IBsonSerializer<TDocument> _serializer;
         private int _skip;
@@ -75,7 +75,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the fields.
         /// </summary>
-        public object Fields
+        public BsonDocument Fields
         {
             get { return _fields; }
             set { _fields = value; }
@@ -111,7 +111,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the query object.
         /// </summary>
-        public object Query
+        public BsonDocument Query
         {
             get { return _query; }
             set { _query = value; }

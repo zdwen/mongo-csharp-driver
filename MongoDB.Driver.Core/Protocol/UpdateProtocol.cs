@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol.Messages;
@@ -28,8 +29,8 @@ namespace MongoDB.Driver.Core.Protocol
         // private fields
         private readonly bool _checkUpdateDocument;
         private readonly UpdateFlags _flags;
-        private readonly object _query;
-        private readonly object _update;
+        private readonly BsonDocument _query;
+        private readonly BsonDocument _update;
 
         // constructors
         /// <summary>
@@ -46,9 +47,9 @@ namespace MongoDB.Driver.Core.Protocol
         public UpdateProtocol(bool checkUpdateDocument,
             CollectionNamespace collection,
             UpdateFlags flags,
-            object query,
+            BsonDocument query,
             BsonBinaryReaderSettings readerSettings,
-            object update,
+            BsonDocument update,
             WriteConcern writeConcern,
             BsonBinaryWriterSettings writerSettings)
             : base(collection, readerSettings, writeConcern, writerSettings)

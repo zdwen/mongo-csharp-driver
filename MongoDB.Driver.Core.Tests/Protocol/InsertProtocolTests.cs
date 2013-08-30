@@ -63,12 +63,11 @@ namespace MongoDB.Driver.Core.Protocol
             }
         }
 
-        private InsertProtocol CreateSubject(InsertFlags flags, WriteConcern writeConcern, int numBatches)
+        private InsertProtocol<BsonDocument> CreateSubject(InsertFlags flags, WriteConcern writeConcern, int numBatches)
         {
-            return new InsertProtocol(
+            return new InsertProtocol<BsonDocument>(
                 checkInsertDocuments: true,
                 collection: new CollectionNamespace("admin", "YAY"),
-                documentType: typeof(BsonDocument),
                 documents: CreateDocumentBatch(numBatches),
                 flags: flags,
                 maxMessageSize: MAX_MESSAGE_SIZE,

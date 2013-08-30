@@ -30,7 +30,7 @@ namespace MongoDB.Driver.Core.Operations
     {
         // private fields
         private DeleteFlags _flags;
-        private object _query;
+        private BsonDocument _query;
 
         // constructors
         /// <summary>
@@ -53,7 +53,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the query object.
         /// </summary>
-        public object Query
+        public BsonDocument Query
         {
             get { return _query; }
             set { _query = value; }

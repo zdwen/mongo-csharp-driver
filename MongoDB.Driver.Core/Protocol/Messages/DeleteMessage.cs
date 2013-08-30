@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Support;
@@ -27,7 +28,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         // private fields
         private readonly DeleteFlags _flags;
         private readonly CollectionNamespace _collectionNamespace;
-        private readonly object _selector;
+        private readonly BsonDocument _selector;
         private readonly BsonBinaryWriterSettings _writerSettings;
 
         // constructors
@@ -38,7 +39,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// <param name="selector">The selector.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public DeleteMessage(CollectionNamespace collectionNamespace, object selector, DeleteFlags flags, BsonBinaryWriterSettings writerSettings)
+        public DeleteMessage(CollectionNamespace collectionNamespace, BsonDocument selector, DeleteFlags flags, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Delete)
         {
             Ensure.IsNotNull("collectionNamespace", collectionNamespace);

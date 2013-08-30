@@ -14,14 +14,10 @@
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using MongoDB.Bson.Serialization;
-using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
-using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Operations
@@ -29,36 +25,24 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Executes an insert.
     /// </summary>
-    public sealed class InsertOperation : WriteOperationBase<IEnumerable<WriteConcernResult>>
+    public sealed class InsertOperation<TDocument> : WriteOperationBase<IEnumerable<WriteConcernResult>>
     {
         // private fields
-        private bool _assignIdOnInsert;
         private bool _checkInsertDocuments;
-        private Type _documentType;
-        private IEnumerable _documents;
+        private IEnumerable<TDocument> _documents;
         private InsertFlags _flags;
         private int _maxMessageSize;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="InsertOperation" /> class.
+        /// Initializes a new instance of the <see cref="InsertOperation{TDocument}" /> class.
         /// </summary>
         public InsertOperation()
         {
-            _assignIdOnInsert = true;
             _checkInsertDocuments = true;
         }
 
         // public properties
-        /// <summary>
-        /// Gets or sets a value indicating whether to assign an id to documents missing them.
-        /// </summary>
-        public bool AssignIdOnInsert
-        {
-            get { return _assignIdOnInsert; }
-            set { _assignIdOnInsert = value; }
-        }
-
         /// <summary>
         /// Gets or sets a value indicating whether to check the documents.  What does this mean?
         /// </summary>
@@ -69,18 +53,9 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
-        /// Gets or sets the document type.
-        /// </summary>
-        public Type DocumentType
-        {
-            get { return _documentType; }
-            set { _documentType = value; }
-        }
-
-        /// <summary>
         /// Gets or sets the documents.
         /// </summary>
-        public IEnumerable Documents
+        public IEnumerable<TDocument> Documents
         {
             get { return _documents; }
             set { _documents = value; }
@@ -120,11 +95,10 @@ namespace MongoDB.Driver.Core.Operations
                     __trace.TraceVerbose("inserting into collection {0} at {1}.", Collection.FullName, channelProvider.Server.DnsEndPoint);
                 }
 
-                var protocol = new InsertProtocol(
+                var protocol = new InsertProtocol<TDocument>(
                     checkInsertDocuments: _checkInsertDocuments,
                     collection: Collection,
-                    documentType: _documentType,
-                    documents: PrepareDocuments(),
+                    documents: _documents,
                     flags: _flags,
                     maxMessageSize: (_maxMessageSize != 0) ? _maxMessageSize : channelProvider.Server.MaxMessageSize,
                     readerSettings: GetServerAdjustedReaderSettings(channelProvider.Server),
@@ -146,41 +120,6 @@ namespace MongoDB.Driver.Core.Operations
                         }
 
                         throw;
-                    }
-                }
-            }
-        }
-
-        // private methods
-        private IEnumerable PrepareDocuments()
-        {
-            foreach (var document in _documents)
-            {
-                PrepareDocument(document);
-                yield return document;
-            }
-        }
-
-        private void PrepareDocument(object document)
-        {
-            // Perhaps the caller should pass in a delegate to prepare the documents in any way they see fit?
-            // this code would then move to the delegate provided by the caller
-            if (_assignIdOnInsert)
-            {
-                var serializer = BsonSerializer.LookupSerializer(document.GetType());
-                var idProvider = serializer as IBsonIdProvider;
-                if (idProvider != null)
-                {
-                    object id;
-                    Type idType;
-                    IIdGenerator idGenerator;
-                    if (idProvider.GetDocumentId(document, out id, out idType, out idGenerator))
-                    {
-                        if (idGenerator != null && idGenerator.IsEmpty(id))
-                        {
-                            id = idGenerator.GenerateId(this, document);
-                            idProvider.SetDocumentId(document, id);
-                        }
                     }
                 }
             }

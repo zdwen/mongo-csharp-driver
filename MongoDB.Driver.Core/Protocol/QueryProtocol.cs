@@ -14,6 +14,7 @@
 */
 
 using System.Linq;
+using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Connections;
@@ -30,10 +31,10 @@ namespace MongoDB.Driver.Core.Protocol
     {
         // private fields
         private readonly CollectionNamespace _collection;
-        private readonly object _fields;
+        private readonly BsonDocument _fields;
         private readonly QueryFlags _flags;
         private readonly int _numberToReturn;
-        private readonly object _query;
+        private readonly BsonDocument _query;
         private readonly BsonBinaryReaderSettings _readerSettings;
         private readonly IBsonSerializer<TDocument> _serializer;
         private readonly int _skip;
@@ -53,10 +54,10 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="skip">The skip.</param>
         /// <param name="writerSettings">The writer settings.</param>
         public QueryProtocol(CollectionNamespace collection,
-            object fields,
+            BsonDocument fields,
             QueryFlags flags,
             int numberToReturn,
-            object query,
+            BsonDocument query,
             BsonBinaryReaderSettings readerSettings,
             IBsonSerializer<TDocument> serializer,
             int skip,

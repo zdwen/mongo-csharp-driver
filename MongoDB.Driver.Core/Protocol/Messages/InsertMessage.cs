@@ -13,18 +13,16 @@
 * limitations under the License.
 */
 
-using System;
 using System.IO;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
     /// Represents an Insert message.
     /// </summary>
-    public class InsertMessage : RequestMessage
+    public class InsertMessage<TDocument> : RequestMessage
     {
         // private fields
         private readonly bool _checkInsertDocuments;
@@ -36,7 +34,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="InsertMessage" /> class.
+        /// Initializes a new instance of the <see cref="InsertMessage{TDocument}" /> class.
         /// </summary>
         /// <param name="collectionNamespace">The namespace.</param>
         /// <param name="flags">The flags.</param>
@@ -79,7 +77,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <param name="document">The document.</param>
-        public void AddDocument(Stream stream, object document)
+        public void AddDocument(Stream stream, TDocument document)
         {
             _documentCount++;
             _lastDocumentStartPosition = (int)stream.Position;

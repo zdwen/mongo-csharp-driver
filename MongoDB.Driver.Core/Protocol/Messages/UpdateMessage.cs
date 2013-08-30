@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Options;
@@ -29,8 +30,8 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         private readonly bool _checkUpdateDocument;
         private readonly UpdateFlags _flags;
         private readonly CollectionNamespace _collectionNamespace;
-        private readonly object _selector;
-        private readonly object _update;
+        private readonly BsonDocument _selector;
+        private readonly BsonDocument _update;
         private readonly BsonBinaryWriterSettings _writerSettings;
 
         // constructors
@@ -43,7 +44,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// <param name="flags">The flags.</param>
         /// <param name="checkUpdateDocument">Set to true if the update document should be checked for invalid element names.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public UpdateMessage(CollectionNamespace collectionNamespace, object selector, object update, UpdateFlags flags, bool checkUpdateDocument, BsonBinaryWriterSettings writerSettings)
+        public UpdateMessage(CollectionNamespace collectionNamespace, BsonDocument selector, BsonDocument update, UpdateFlags flags, bool checkUpdateDocument, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Update)
         {
             Ensure.IsNotNull("collectionNamespace", collectionNamespace);

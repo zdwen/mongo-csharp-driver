@@ -20,11 +20,10 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
 
         protected override void When()
         {
-            var op = new InsertOperation()
+            var op = new InsertOperation<BsonDocument>()
             {
                 Collection = _collection,
-                Documents = new[] { new BsonDocument("_id", 1) },
-                DocumentType = typeof(BsonDocument)
+                Documents = new[] { new BsonDocument("_id", 1) }
             };
 
             _exception = Catch(() => ExecuteOperation(op));

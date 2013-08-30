@@ -94,7 +94,7 @@ namespace MongoDB.Driver.Core.Operations
             /// <summary>
             /// Gets or sets the command.
             /// </summary>
-            public object Command { get; set; }
+            public BsonDocument Command { get; set; }
 
             /// <summary>
             /// Gets or sets the serializer.

@@ -140,11 +140,10 @@ namespace MongoDB.Driver.Core
         {
             using (var session = BeginSession())
             {
-                var op = new InsertOperation()
+                var op = new InsertOperation<T>()
                 {
                     Collection = _collection,
                     Documents = documents,
-                    DocumentType = typeof(T),
                     Session = session
                 };
 

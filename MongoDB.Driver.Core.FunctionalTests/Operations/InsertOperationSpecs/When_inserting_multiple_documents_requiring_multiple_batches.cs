@@ -21,11 +21,10 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
                 var bytes = new byte[400];
                 _docsToInsert.Add(new BsonDocument("bytes", bytes));
             }
-            var op = new InsertOperation()
+            var op = new InsertOperation<BsonDocument>()
             {
                 Collection = _collection,
                 Documents = _docsToInsert,
-                DocumentType = typeof(BsonDocument),
                 MaxMessageSize = 1024
             };
 

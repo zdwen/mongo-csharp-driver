@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Protocol.Messages;
@@ -27,7 +28,7 @@ namespace MongoDB.Driver.Core.Protocol
     {
         // private fields
         private readonly DeleteFlags _flags;
-        private readonly object _query;
+        private readonly BsonDocument _query;
 
         // constructors
         /// <summary>
@@ -41,7 +42,7 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="writerSettings">The writer settings.</param>
         public DeleteProtocol(CollectionNamespace collection,
             DeleteFlags flags,
-            object query,
+            BsonDocument query,
             BsonBinaryReaderSettings readerSettings,
             WriteConcern writeConcern,
             BsonBinaryWriterSettings writerSettings)

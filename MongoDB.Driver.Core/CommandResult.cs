@@ -27,7 +27,7 @@ namespace MongoDB.Driver.Core
     public class CommandResult
     {
         // private fields
-        private object _command;
+        private BsonDocument _command;
         private BsonDocument _response;
 
         // constructors
@@ -52,7 +52,7 @@ namespace MongoDB.Driver.Core
         /// <summary>
         /// Gets the command.
         /// </summary>
-        public object Command
+        public BsonDocument Command
         {
             get { return _command; }
             set

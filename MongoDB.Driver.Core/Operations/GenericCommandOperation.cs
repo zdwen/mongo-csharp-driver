@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Core.Operations
     public sealed class GenericCommandOperation<TCommandResult> : CommandOperationBase<TCommandResult> where TCommandResult : CommandResult
     {
         // private fields
-        private object _command;
+        private BsonDocument _command;
         private DatabaseNamespace _database;
         private bool _isQuery;
         private ReadPreference _readPreference;
@@ -55,7 +55,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the command.
         /// </summary>
-        public object Command
+        public BsonDocument Command
         {
             get { return _command; }
             set { _command = value; }

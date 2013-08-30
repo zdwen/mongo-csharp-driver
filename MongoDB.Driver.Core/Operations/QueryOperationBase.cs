@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="options">The options.</param>
         /// <param name="readPreference">The read preference.</param>
         /// <returns>The query (possibly modified).</returns>
-        protected object WrapQuery(ServerDescription server, object query, BsonDocument options, ReadPreference readPreference)
+        protected BsonDocument WrapQuery(ServerDescription server, BsonDocument query, BsonDocument options, ReadPreference readPreference)
         {
             Ensure.IsNotNull("server", server);
 
@@ -72,10 +72,9 @@ namespace MongoDB.Driver.Core.Operations
             }
             else
             {
-                var queryDocument = (query == null) ? (BsonValue)new BsonDocument() : BsonDocumentWrapper.Create(query);
                 var wrappedQuery = new BsonDocument
                 {
-                    { "$query", queryDocument },
+                    { "$query", query ?? new BsonDocument() },
                     { "$readPreference", formattedReadPreference, formattedReadPreference != null }, // only if sending query to a mongos
                 };
                 wrappedQuery.Merge(options);

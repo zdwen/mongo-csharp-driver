@@ -215,11 +215,10 @@ namespace MongoDB.DriverUnitTests.Jira
 
         private static void Insert(ISession session, BsonDocument document)
         {
-            var insertOp = new InsertOperation()
+            var insertOp = new InsertOperation<BsonDocument>()
             {
                 Collection = _collection,
                 Documents = new [] { document },
-                DocumentType = typeof(BsonDocument),
                 Session = session
             };
 

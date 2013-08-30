@@ -31,8 +31,8 @@ namespace MongoDB.Driver.Core.Operations
         // private fields
         private bool _checkUpdateDocument;
         private UpdateFlags _flags;
-        private object _query;
-        private object _update;
+        private BsonDocument _query;
+        private BsonDocument _update;
 
         // constructors
         /// <summary>
@@ -65,7 +65,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the query object.
         /// </summary>
-        public object Query
+        public BsonDocument Query
         {
             get { return _query; }
             set { _query = value; }
@@ -74,7 +74,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the update object.
         /// </summary>
-        public object Update
+        public BsonDocument Update
         {
             get { return _update; }
             set { _update = value; }

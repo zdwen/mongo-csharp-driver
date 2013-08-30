@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Operations
         // private fields
         private int _batchSize;
         private CollectionNamespace _collection;
-        private object[] _pipeline;
+        private BsonDocument[] _pipeline;
         private ReadPreference _readPreference;
         private IBsonSerializer<TDocument> _documentSerializer;
 
@@ -78,7 +78,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// Gets or sets the pipeline.
         /// </summary>
-        public object[] Pipeline
+        public BsonDocument[] Pipeline
         {
             get { return _pipeline; }
             set { _pipeline = value; }

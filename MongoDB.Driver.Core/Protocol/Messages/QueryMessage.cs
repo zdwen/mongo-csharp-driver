@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Support;
@@ -29,8 +30,8 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         private readonly CollectionNamespace _collectionNamespace;
         private readonly int _numberToReturn;
         private readonly int _numberToSkip;
-        private readonly object _query;
-        private readonly object _returnFieldSelector;
+        private readonly BsonDocument _query;
+        private readonly BsonDocument _returnFieldSelector;
         private readonly BsonBinaryWriterSettings _writerSettings;
 
         // constructors
@@ -44,7 +45,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// <param name="numberToReturn">The number to return.</param>
         /// <param name="returnFieldSelector">The return field selector.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public QueryMessage(CollectionNamespace collectionNamespace, object query, QueryFlags flags, int numberToSkip, int numberToReturn, object returnFieldSelector, BsonBinaryWriterSettings writerSettings)
+        public QueryMessage(CollectionNamespace collectionNamespace, BsonDocument query, QueryFlags flags, int numberToSkip, int numberToReturn, BsonDocument returnFieldSelector, BsonBinaryWriterSettings writerSettings)
             : base(OpCode.Query)
         {
             Ensure.IsNotNull("collectionNamespace", collectionNamespace);

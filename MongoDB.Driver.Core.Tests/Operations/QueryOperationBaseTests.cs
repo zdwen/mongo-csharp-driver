@@ -103,17 +103,7 @@ namespace MongoDB.Driver.Core.Operations
 
             public BsonDocument TestWrapQuery(ServerDescription server, BsonDocument query, BsonDocument options, ReadPreference readPreference)
             {
-                var result = WrapQuery(server, query, options, readPreference);
-
-                // wrap query uses a BsonDocumentWrapper which makes checking its contents impossible.
-                var doc = new BsonDocument();
-                using (var writer = new BsonDocumentWriter(doc, new BsonDocumentWriterSettings()))
-                {
-                    BsonSerializer.Serialize(writer, result);
-                    writer.Flush();
-                }
-
-                return doc;
+                return WrapQuery(server, query, options, readPreference);
             }
         }
     }

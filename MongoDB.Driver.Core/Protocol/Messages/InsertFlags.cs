@@ -18,7 +18,7 @@ using System;
 namespace MongoDB.Driver.Core.Protocol.Messages
 {
     /// <summary>
-    /// Flags used in an <see cref="InsertMessage"/>.
+    /// Flags used in an <see cref="InsertMessage{TDocument}"/>.
     /// </summary>
     [Flags]
     public enum InsertFlags

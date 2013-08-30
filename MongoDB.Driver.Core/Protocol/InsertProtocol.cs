@@ -14,7 +14,6 @@
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using MongoDB.Bson.IO;
@@ -28,25 +27,23 @@ namespace MongoDB.Driver.Core.Protocol
     /// <summary>
     /// Represents the insert protocol.
     /// </summary>
-    public sealed class InsertProtocol : WriteProtocolBase<IEnumerable<WriteConcernResult>>
+    public sealed class InsertProtocol<TDocument> : WriteProtocolBase<IEnumerable<WriteConcernResult>>
     {
         // private static fields
         private static readonly TraceSource _trace = MongoTraceSources.Operations;
 
         // private fields
         private readonly bool _checkInsertDocuments;
-        private readonly Type _documentType;
-        private readonly IEnumerable _documents;
+        private readonly IEnumerable<TDocument> _documents;
         private readonly InsertFlags _flags;
         private readonly int _maxMessageSize;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="InsertProtocol" /> class.
+        /// Initializes a new instance of the <see cref="InsertProtocol{TDocument}" /> class.
         /// </summary>
         /// <param name="checkInsertDocuments">if set to <c>true</c> [check insert documents].</param>
         /// <param name="collection">The collection.</param>
-        /// <param name="documentType">Type of the document.</param>
         /// <param name="documents">The documents.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="maxMessageSize">Size of the max message.</param>
@@ -55,8 +52,7 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="writerSettings">The writer settings.</param>
         public InsertProtocol(bool checkInsertDocuments,
             CollectionNamespace collection,
-            Type documentType,
-            IEnumerable documents,
+            IEnumerable<TDocument> documents,
             InsertFlags flags,
             int maxMessageSize,
             BsonBinaryReaderSettings readerSettings,
@@ -64,11 +60,9 @@ namespace MongoDB.Driver.Core.Protocol
             BsonBinaryWriterSettings writerSettings)
             : base(collection, readerSettings, writeConcern, writerSettings)
         {
-            Ensure.IsNotNull("documentType", documentType);
             Ensure.IsNotNull("documents", documents);
 
             _checkInsertDocuments = checkInsertDocuments;
-            _documentType = documentType;
             _documents = documents;
             _flags = flags;
             _maxMessageSize = maxMessageSize;
@@ -149,7 +143,7 @@ namespace MongoDB.Driver.Core.Protocol
                 byte[] overflowDocument = null;
                 do
                 {
-                    var insertMessage = new InsertMessage(
+                    var insertMessage = new InsertMessage<TDocument>(
                         Collection,
                         _flags,
                         _checkInsertDocuments,
