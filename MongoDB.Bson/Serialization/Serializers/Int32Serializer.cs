@@ -61,11 +61,23 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public properties
+        /// <summary>
+        /// Gets the converter.
+        /// </summary>
+        /// <value>
+        /// The converter.
+        /// </value>
         public RepresentationConverter Converter
         {
             get { return _converter; }
         }
 
+        /// <summary>
+        /// Gets the representation.
+        /// </summary>
+        /// <value>
+        /// The representation.
+        /// </value>
         public BsonType Representation
         {
             get { return _representation; }
@@ -73,9 +85,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override int Deserialize(DeserializationContext context)
         {
@@ -103,30 +115,30 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, int int32Value)
+        public override void Serialize(SerializationContext context, int value)
         {
             var bsonWriter = context.Writer;
 
             switch (_representation)
             {
                 case BsonType.Double:
-                    bsonWriter.WriteDouble(_converter.ToDouble(int32Value));
+                    bsonWriter.WriteDouble(_converter.ToDouble(value));
                     break;
 
                 case BsonType.Int32:
-                    bsonWriter.WriteInt32(int32Value);
+                    bsonWriter.WriteInt32(value);
                     break;
 
                 case BsonType.Int64:
-                    bsonWriter.WriteInt64(_converter.ToInt64(int32Value));
+                    bsonWriter.WriteInt64(_converter.ToInt64(value));
                     break;
 
                 case BsonType.String:
-                    bsonWriter.WriteString(XmlConvert.ToString(int32Value));
+                    bsonWriter.WriteString(XmlConvert.ToString(value));
                     break;
 
                 default:
@@ -135,6 +147,11 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="converter">The converter.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public Int32Serializer WithConverter(RepresentationConverter converter)
         {
             if (converter == _converter)
@@ -147,6 +164,11 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified representation.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public Int32Serializer WithRepresentation(BsonType representation)
         {
             if (representation == _representation)

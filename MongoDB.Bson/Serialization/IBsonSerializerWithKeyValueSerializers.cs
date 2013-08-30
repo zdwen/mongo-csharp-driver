@@ -15,21 +15,81 @@
 
 namespace MongoDB.Bson.Serialization
 {
+    /// <summary>
+    /// Represents a dictionary serializer that has key and value serializers.
+    /// </summary>
     public interface IBsonSerializerWithKeyValueSerializers
     {
+        /// <summary>
+        /// Gets the key serializer.
+        /// </summary>
+        /// <value>
+        /// The key serializer.
+        /// </value>
         IBsonSerializer KeySerializer { get; }
+
+        /// <summary>
+        /// Gets the value serializer.
+        /// </summary>
+        /// <value>
+        /// The value serializer.
+        /// </value>
         IBsonSerializer ValueSerializer { get; }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified key serializer.
+        /// </summary>
+        /// <param name="keySerializer">The key serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         IBsonSerializer WithKeySerializer(IBsonSerializer keySerializer);
+
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified value serializer.
+        /// </summary>
+        /// <param name="valueSerializer">The value serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         IBsonSerializer WithValueSerializer(IBsonSerializer valueSerializer);
     }
 
-    public interface IBsonSerializerWithKeyValueSerializers<TSerializer, TDictionary, TKey, TValue> : IBsonSerializerWithKeyValueSerializers where TSerializer : IBsonSerializer<TDictionary>
+    /// <summary>
+    /// Represents a dictionary serializer that has key and value serializers.
+    /// </summary>
+    /// <typeparam name="TSerializer">The type of the serializer.</typeparam>
+    /// <typeparam name="TDictionary">The type of the dictionary.</typeparam>
+    /// <typeparam name="TKey">The type of the key.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    public interface IBsonSerializerWithKeyValueSerializers<TSerializer, TDictionary, TKey, TValue> :
+        IBsonSerializerWithKeyValueSerializers
+            where TSerializer : IBsonSerializer<TDictionary>
     {
-        IBsonSerializer<TKey> KeySerializer { get; } 
-        IBsonSerializer<TValue> ValueSerializer { get; }
+        /// <summary>
+        /// Gets the key serializer.
+        /// </summary>
+        /// <value>
+        /// The key serializer.
+        /// </value>
+        new IBsonSerializer<TKey> KeySerializer { get; }
 
+        /// <summary>
+        /// Gets the value serializer.
+        /// </summary>
+        /// <value>
+        /// The value serializer.
+        /// </value>
+        new IBsonSerializer<TValue> ValueSerializer { get; }
+
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified key serializer.
+        /// </summary>
+        /// <param name="keySerializer">The key serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         TSerializer WithKeySerializer(IBsonSerializer<TKey> keySerializer);
+
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified value serializer.
+        /// </summary>
+        /// <param name="valueSerializer">The value serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         TSerializer WithValueSerializer(IBsonSerializer<TValue> valueSerializer);
     }
 }

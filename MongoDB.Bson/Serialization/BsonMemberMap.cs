@@ -435,10 +435,15 @@ namespace MongoDB.Bson.Serialization
             throw new NotImplementedException();
         }
 
+        /// <summary>
         /// Sets the serializer.
         /// </summary>
         /// <param name="serializer">The serializer.</param>
-        /// <returns>The member map.</returns>
+        /// <returns>
+        /// The member map.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">serializer</exception>
+        /// <exception cref="System.ArgumentException">serializer</exception>
         public BsonMemberMap SetSerializer(IBsonSerializer serializer)
         {
             if (serializer == null)

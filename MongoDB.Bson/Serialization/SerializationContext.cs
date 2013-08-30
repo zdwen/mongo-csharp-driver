@@ -89,12 +89,14 @@ namespace MongoDB.Bson.Serialization
 
         // public static methods
         /// <summary>
-        /// Creates a root context for the specified writer and serializer.
+        /// Creates a root context.
         /// </summary>
         /// <typeparam name="TNominalType">The nominal type.</typeparam>
         /// <param name="writer">The writer.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns>A root context.</returns>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// A root context.
+        /// </returns>
         public static SerializationContext CreateRoot<TNominalType>(
             BsonWriter writer,
             Action<Builder> configurator = null)
@@ -108,11 +110,14 @@ namespace MongoDB.Bson.Serialization
         }
 
         /// <summary>
-        /// Creates a root context for the specified writer and serializer.
+        /// Creates a root context.
         /// </summary>
         /// <param name="writer">The writer.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns>A root context.</returns>
+        /// <param name="nominalType">The nominal type.</param>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// A root context.
+        /// </returns>
         public static SerializationContext CreateRoot(
             BsonWriter writer,
             Type nominalType,
@@ -128,11 +133,13 @@ namespace MongoDB.Bson.Serialization
 
         // public methods
         /// <summary>
-        /// Creates a child context for the specified serializer.
+        /// Creates a child context.
         /// </summary>
         /// <typeparam name="TNominalType">The nominal type.</typeparam>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns>A child context.</returns>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// A child context.
+        /// </returns>
         public SerializationContext CreateChild<TNominalType>(
             Action<Builder> configurator = null)
         {
@@ -145,10 +152,13 @@ namespace MongoDB.Bson.Serialization
         }
 
         /// <summary>
-        /// Creates a child context for the specified serializer.
+        /// Creates a child context.
         /// </summary>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns>A child context.</returns>
+        /// <param name="nominalType">The nominal typel.</param>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// A child context.
+        /// </returns>
         public SerializationContext CreateChild(
             Type nominalType,
             Action<Builder> configurator = null)
@@ -167,6 +177,7 @@ namespace MongoDB.Bson.Serialization
         /// <typeparam name="TNominalType">The nominal type.</typeparam>
         /// <param name="serializer">The serializer.</param>
         /// <param name="value">The value to serialize.</param>
+        /// <param name="configurator">The configurator.</param>
         public void SerializeWithChildContext<TNominalType>(
             IBsonSerializer<TNominalType> serializer,
             TNominalType value,
@@ -181,6 +192,7 @@ namespace MongoDB.Bson.Serialization
         /// </summary>
         /// <param name="serializer">The serializer.</param>
         /// <param name="value">The value to serialize.</param>
+        /// <param name="configurator">The configurator.</param>
         public void SerializeWithChildContext(
             IBsonSerializer serializer,
             object value,
@@ -191,6 +203,9 @@ namespace MongoDB.Bson.Serialization
         }
 
         // nested classes
+        /// <summary>
+        /// Represents a builder for a SerializationContext.
+        /// </summary>
         public class Builder
         {
             // private fields
@@ -200,7 +215,7 @@ namespace MongoDB.Bson.Serialization
             private BsonWriter _writer;
 
             // constructors
-            public Builder(SerializationContext parent, BsonWriter writer, Type nominalType)
+            internal Builder(SerializationContext parent, BsonWriter writer, Type nominalType)
             {
                 if (writer == null)
                 {
@@ -217,28 +232,56 @@ namespace MongoDB.Bson.Serialization
             }
 
             // properties
+            /// <summary>
+            /// Gets the nominal type.
+            /// </summary>
+            /// <value>
+            /// The nominal type.
+            /// </value>
             public Type NominalType
             {
                 get { return _nominalType; }
             }
 
+            /// <summary>
+            /// Gets the parent.
+            /// </summary>
+            /// <value>
+            /// The parent.
+            /// </value>
             public SerializationContext Parent
             {
                 get { return _parent; }
             }
 
+            /// <summary>
+            /// Gets or sets a value indicating whether to serialize the id first.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if the id should be serialized first]; otherwise, <c>false</c>.
+            /// </value>
             public bool SerializeIdFirst
             {
                 get { return _serializeIdFirst; }
                 set { _serializeIdFirst = value; }
             }
 
+            /// <summary>
+            /// Gets the writer.
+            /// </summary>
+            /// <value>
+            /// The writer.
+            /// </value>
             public BsonWriter Writer
             {
                 get { return _writer; }
             }
 
             // public methods
+            /// <summary>
+            /// Builds the SerializationContext instance.
+            /// </summary>
+            /// <returns>A SerializationContext.</returns>
             public SerializationContext Build()
             {
                 return new SerializationContext(_parent, _writer, _nominalType, _serializeIdFirst);

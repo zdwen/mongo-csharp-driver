@@ -68,6 +68,7 @@ namespace MongoDB.Bson.Serialization
             get { return _nominalType; }
         }
 
+        /// <summary>
         /// Deserializes the value.
         /// </summary>
         /// <param name="value">The value.</param>

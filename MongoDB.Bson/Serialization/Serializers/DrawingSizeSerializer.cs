@@ -34,10 +34,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object of type System.Drawing.Size from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="actualType">The actual type of the object.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override System.Drawing.Size Deserialize(DeserializationContext context)
         {
@@ -62,7 +61,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <summary>
         /// Serializes an object of type System.Drawing.Size  to a BsonWriter.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
         public override void Serialize(SerializationContext context, System.Drawing.Size value)
         {

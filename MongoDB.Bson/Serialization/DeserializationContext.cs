@@ -89,12 +89,14 @@ namespace MongoDB.Bson.Serialization
 
         // public static methods
         /// <summary>
-        /// Creates a root context for the specified serializer.
+        /// Creates a root context.
         /// </summary>
         /// <typeparam name="TNominalType">The nominal type.</typeparam>
         /// <param name="reader">The reader.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns>A root context.</returns>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// A root context.
+        /// </returns>
         public static DeserializationContext CreateRoot<TNominalType>(
             BsonReader reader,
             Action<Builder> configurator = null)
@@ -108,11 +110,14 @@ namespace MongoDB.Bson.Serialization
         }
 
         /// <summary>
-        /// Creates a root context for the specified serializer.
+        /// Creates a root context.
         /// </summary>
         /// <param name="reader">The reader.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns>A root context.</returns>
+        /// <param name="nominalType">The nominal type.</param>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// A root context.
+        /// </returns>
         public static DeserializationContext CreateRoot(
             BsonReader reader, 
             Type nominalType,
@@ -128,11 +133,13 @@ namespace MongoDB.Bson.Serialization
 
         // public methods
         /// <summary>
-        /// Creates a child context for the specified serializer.
+        /// Creates a child context.
         /// </summary>
         /// <typeparam name="TNominalType">The nominal type.</typeparam>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns>A child context.</returns>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// A child context.
+        /// </returns>
         public DeserializationContext CreateChild<TNominalType>(
             Action<Builder> configurator = null)
         {
@@ -145,10 +152,13 @@ namespace MongoDB.Bson.Serialization
         }
 
         /// <summary>
-        /// Creates a child context for the specified serializer.
+        /// Creates a child context.
         /// </summary>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns>A child context.</returns>
+        /// <param name="nominalType">The nominal type.</param>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// A child context.
+        /// </returns>
         public DeserializationContext CreateChild(
             Type nominalType,
             Action<Builder> configurator = null)
@@ -166,7 +176,10 @@ namespace MongoDB.Bson.Serialization
         /// </summary>
         /// <typeparam name="TNominalType">The nominal type.</typeparam>
         /// <param name="serializer">The serializer.</param>
-        /// <returns>The deserialized value.</returns>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// The deserialized value.
+        /// </returns>
         public TNominalType DeserializeWithChildContext<TNominalType>(
             IBsonSerializer<TNominalType> serializer,
             Action<Builder> configurator = null)
@@ -179,7 +192,10 @@ namespace MongoDB.Bson.Serialization
         /// Creates a child context and calls the Deserialize method of the serializer with it.
         /// </summary>
         /// <param name="serializer">The serializer.</param>
-        /// <returns>The deserialized value.</returns>
+        /// <param name="configurator">The configurator.</param>
+        /// <returns>
+        /// The deserialized value.
+        /// </returns>
         public object DeserializeWithChildContext(
             IBsonSerializer serializer,
             Action<Builder> configurator = null)
@@ -189,6 +205,9 @@ namespace MongoDB.Bson.Serialization
         }
 
         // nested classes
+        /// <summary>
+        /// Represents a builder for a DeserializationContext.
+        /// </summary>
         public class Builder
         {
             // private fields
@@ -198,7 +217,7 @@ namespace MongoDB.Bson.Serialization
             private BsonReader _reader;
 
             // constructors
-            public Builder(DeserializationContext parent, BsonReader reader, Type nominalType)
+            internal Builder(DeserializationContext parent, BsonReader reader, Type nominalType)
             {
                 if (reader == null)
                 {
@@ -219,28 +238,56 @@ namespace MongoDB.Bson.Serialization
             }
 
             // properties
+            /// <summary>
+            /// Gets or sets a value indicating whether to allow duplicate element names.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if duplicate element names should be allowed; otherwise, <c>false</c>.
+            /// </value>
             public bool AllowDuplicateElementNames
             {
                 get { return _allowDuplicateElementNames; }
                 set { _allowDuplicateElementNames = value; }
             }
 
+            /// <summary>
+            /// Gets the nominal type.
+            /// </summary>
+            /// <value>
+            /// The nominal type.
+            /// </value>
             public Type NominalType
             {
                 get { return _nominalType; }
             }
 
+            /// <summary>
+            /// Gets the parent.
+            /// </summary>
+            /// <value>
+            /// The parent.
+            /// </value>
             public DeserializationContext Parent
             {
                 get { return _parent; }
             }
 
+            /// <summary>
+            /// Gets the reader.
+            /// </summary>
+            /// <value>
+            /// The reader.
+            /// </value>
             public BsonReader Reader
             {
                 get { return _reader; }
             }
 
             // public methods
+            /// <summary>
+            /// Builds the DeserializationContext instance.
+            /// </summary>
+            /// <returns>A DeserializationContext.</returns>
             public DeserializationContext Build()
             {
                 return new DeserializationContext(_parent, _reader, _nominalType, _allowDuplicateElementNames);

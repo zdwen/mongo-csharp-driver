@@ -26,12 +26,14 @@ namespace MongoDB.Bson
     public static class BsonExtensionMethods
     {
         /// <summary>
-        /// Converts an object to a BSON document byte array.
+        /// Serializes an object to a BSON byte array.
         /// </summary>
         /// <typeparam name="TNominalType">The nominal type of the object.</typeparam>
         /// <param name="obj">The object.</param>
-        /// <param name="settings">The BsonBinaryWriter settings.</param>
-        /// <returns>A byte array.</returns>
+        /// <param name="serializer">The serializer.</param>
+        /// <param name="writerSettings">The writer settings.</param>
+        /// <param name="configurator">The serialization context configurator.</param>
+        /// <returns>A BSON byte array.</returns>
         public static byte[] ToBson<TNominalType>(
             this TNominalType obj,
             IBsonSerializer<TNominalType> serializer = null,
@@ -43,12 +45,16 @@ namespace MongoDB.Bson
         }
 
         /// <summary>
-        /// <summary>
-        /// Converts an object to a BSON document byte array.
+        /// Serializes an object to a BSON byte array.
         /// </summary>
         /// <param name="obj">The object.</param>
-        /// <param name="settings">The BsonBinaryWriter settings.</param>
-        /// <returns>A byte array.</returns>
+        /// <param name="nominalType">The nominal type of the object..</param>
+        /// <param name="writerSettings">The writer settings.</param>
+        /// <param name="serializer">The serializer.</param>
+        /// <param name="configurator">The serialization context configurator.</param>
+        /// <returns>A BSON byte array.</returns>
+        /// <exception cref="System.ArgumentNullException">nominalType</exception>
+        /// <exception cref="System.ArgumentException">serializer</exception>
         public static byte[] ToBson(
             this object obj,
             Type nominalType,
@@ -82,9 +88,13 @@ namespace MongoDB.Bson
             }
         }
 
-        /// Converts an object to a BsonDocument.
+        /// <summary>
+        /// Serializes an object to a BsonDocument.
         /// </summary>
+        /// <typeparam name="TNominalType">The nominal type of the object.</typeparam>
         /// <param name="obj">The object.</param>
+        /// <param name="serializer">The serializer.</param>
+        /// <param name="configurator">The serialization context configurator.</param>
         /// <returns>A BsonDocument.</returns>
         public static BsonDocument ToBsonDocument<TNominalType>(
             this TNominalType obj, 
@@ -95,10 +105,15 @@ namespace MongoDB.Bson
         }
 
         /// <summary>
-        /// Converts an object to a BsonDocument.
+        /// Serializes an object to a BsonDocument.
         /// </summary>
         /// <param name="obj">The object.</param>
+        /// <param name="nominalType">The nominal type of the object.</param>
+        /// <param name="serializer">The serializer.</param>
+        /// <param name="configurator">The serialization context configurator.</param>
         /// <returns>A BsonDocument.</returns>
+        /// <exception cref="System.ArgumentNullException">nominalType</exception>
+        /// <exception cref="System.ArgumentException">serializer</exception>
         public static BsonDocument ToBsonDocument(
             this object obj,
             Type nominalType,
@@ -143,11 +158,16 @@ namespace MongoDB.Bson
         }
 
         /// <summary>
-        /// Converts an object to a JSON string.
+        /// Serializes an object to a JSON string.
         /// </summary>
+        /// <typeparam name="TNominalType">The nominal type of the object.</typeparam>
         /// <param name="obj">The object.</param>
         /// <param name="writerSettings">The JsonWriter settings.</param>
-        /// <returns>A JSON string.</returns>
+        /// <param name="serializer">The serializer.</param>
+        /// <param name="configurator">The serializastion context configurator.</param>
+        /// <returns>
+        /// A JSON string.
+        /// </returns>
         public static string ToJson<TNominalType>(
             this TNominalType obj, 
             JsonWriterSettings writerSettings = null,
@@ -158,15 +178,18 @@ namespace MongoDB.Bson
         }
 
         /// <summary>
-        /// Converts an object to a JSON string.
+        /// Serializes an object to a JSON string.
         /// </summary>
         /// <param name="obj">The object.</param>
-        /// <param name="nominalType">Type of the document.</param>
-        /// <param name="serializer">The serializer.</param>
+        /// <param name="nominalType">The nominal type of the objectt.</param>
         /// <param name="writerSettings">The JsonWriter settings.</param>
+        /// <param name="serializer">The serializer.</param>
+        /// <param name="configurator">The serializastion context configurator.</param>
         /// <returns>
         /// A JSON string.
         /// </returns>
+        /// <exception cref="System.ArgumentNullException">nominalType</exception>
+        /// <exception cref="System.ArgumentException">serializer</exception>
         public static string ToJson(
             this object obj,
             Type nominalType,

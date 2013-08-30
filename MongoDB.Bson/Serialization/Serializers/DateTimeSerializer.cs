@@ -141,6 +141,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <summary>
         /// Gets the external representation.
         /// </summary>
+        /// <value>
+        /// The representation.
+        /// </value>
         public BsonType Representation
         {
             get { return _representation; }
@@ -148,9 +151,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override DateTime Deserialize(DeserializationContext context)
         {
@@ -220,9 +223,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
         public override void Serialize(SerializationContext context, DateTime value)
         {
@@ -288,6 +291,13 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified dateOnly value.
+        /// </summary>
+        /// <param name="dateOnly">if set to <c>true</c> the values will be required to be Date's only (zero time component).</param>
+        /// <returns>
+        /// The reconfigured serializer.
+        /// </returns>
         public DateTimeSerializer WithDateOnly(bool dateOnly)
         {
             if (dateOnly == _dateOnly)
@@ -300,6 +310,14 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified dateOnly value and representation.
+        /// </summary>
+        /// <param name="dateOnly">if set to <c>true</c> the values will be required to be Date's only (zero time component).</param>
+        /// <param name="representation">The representation.</param>
+        /// <returns>
+        /// The reconfigured serializer.
+        /// </returns>
         public DateTimeSerializer WithDateOnly(bool dateOnly, BsonType representation)
         {
             if (dateOnly == _dateOnly && representation == _representation)
@@ -312,6 +330,13 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified DateTimeKind value.
+        /// </summary>
+        /// <param name="kind">The DateTimeKind.</param>
+        /// <returns>
+        /// The reconfigured serializer.
+        /// </returns>
         public DateTimeSerializer WithKind(DateTimeKind kind)
         {
             if (kind == _kind && _dateOnly == false)
@@ -324,6 +349,14 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified DateTimeKind value and representation.
+        /// </summary>
+        /// <param name="kind">The DateTimeKind.</param>
+        /// <param name="representation">The representation.</param>
+        /// <returns>
+        /// The reconfigured serializer.
+        /// </returns>
         public DateTimeSerializer WithKind(DateTimeKind kind, BsonType representation)
         {
             if (kind == _kind && representation == _representation && _dateOnly == false)
@@ -336,6 +369,11 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified representation.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public DateTimeSerializer WithRepresentation(BsonType representation)
         {
             if (representation == _representation)

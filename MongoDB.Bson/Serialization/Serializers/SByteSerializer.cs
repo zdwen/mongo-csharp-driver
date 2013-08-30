@@ -25,23 +25,37 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for SBytes.
     /// </summary>
+    [CLSCompliant(false)]
     public class SByteSerializer : BsonBaseSerializer<sbyte>, IBsonSerializerWithRepresentation<SByteSerializer>
     {
         // private fields
         private readonly BsonType _representation;
 
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SByteSerializer"/> class.
+        /// </summary>
         public SByteSerializer()
             : this(BsonType.Int32)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SByteSerializer"/> class.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
         public SByteSerializer(BsonType representation)
         {
             _representation = representation;
         }
 
         // public properties
+        /// <summary>
+        /// Gets the representation.
+        /// </summary>
+        /// <value>
+        /// The representation.
+        /// </value>
         public BsonType Representation
         {
             get { return _representation; }
@@ -49,9 +63,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override sbyte Deserialize(DeserializationContext context)
         {
@@ -107,9 +121,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
         public override void Serialize(SerializationContext context, sbyte value)
         {
@@ -139,6 +153,11 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified representation.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public SByteSerializer WithRepresentation(BsonType representation)
         {
             if (representation == _representation)

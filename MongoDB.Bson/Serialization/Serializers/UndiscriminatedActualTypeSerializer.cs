@@ -33,12 +33,21 @@ namespace MongoDB.Bson.Serialization.Serializers
         private static readonly IBsonSerializer __instance = new UndiscriminatedActualTypeSerializer();
 
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UndiscriminatedActualTypeSerializer"/> class.
+        /// </summary>
         public UndiscriminatedActualTypeSerializer()
             : base(typeof(object))
         {
         }
 
         // public static properties
+        /// <summary>
+        /// Gets the instance.
+        /// </summary>
+        /// <value>
+        /// The instance.
+        /// </value>
         public static IBsonSerializer Instance
         {
             get { return __instance; }
@@ -46,9 +55,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Serializes a document to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The document.</param>
         public override void Serialize(SerializationContext context, object value)
         {
@@ -76,6 +85,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         private static readonly IBsonSerializer<TDocument> __instance = new UndiscriminatedActualTypeSerializer<TDocument>();
 
         // public static properties
+        /// <summary>
+        /// Gets the instance.
+        /// </summary>
+        /// <value>
+        /// The instance.
+        /// </value>
         public static IBsonSerializer<TDocument> Instance
         {
             get { return __instance; }
@@ -83,9 +98,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Serializes a document to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The document.</param>
         public override void Serialize(SerializationContext context, TDocument value)
         {

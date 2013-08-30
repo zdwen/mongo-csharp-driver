@@ -55,6 +55,12 @@ namespace MongoDB.Bson.Serialization
         }
 
         // public properties
+        /// <summary>
+        /// Gets a value indicating whether this serializer's discriminator is compatible with the object serializer.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this serializer's discriminator is compatible with the object serializer; otherwise, <c>false</c>.
+        /// </value>
         public bool IsDiscriminatorCompatibleWithObjectSerializer
         {
             get { return true; }
@@ -62,9 +68,9 @@ namespace MongoDB.Bson.Serialization
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override TClass Deserialize(DeserializationContext context)
         {
@@ -99,10 +105,9 @@ namespace MongoDB.Bson.Serialization
         }
 
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="actualType">The actual type of the object.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public TClass DeserializeClass(DeserializationContext context)
         {
@@ -336,9 +341,9 @@ namespace MongoDB.Bson.Serialization
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
         public override void Serialize(SerializationContext context, TClass value)
         {

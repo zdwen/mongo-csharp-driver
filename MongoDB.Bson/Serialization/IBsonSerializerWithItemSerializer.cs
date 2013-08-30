@@ -15,15 +15,48 @@
 
 namespace MongoDB.Bson.Serialization
 {
+    /// <summary>
+    /// Represents a array serializer that has an item serializer.
+    /// </summary>
     public interface IBsonSerializerWithItemSerializer
     {
+        /// <summary>
+        /// Gets the item serializer.
+        /// </summary>
+        /// <value>
+        /// The item serializer.
+        /// </value>
         IBsonSerializer ItemSerializer { get; }
+
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         IBsonSerializer WithItemSerializer(IBsonSerializer itemSerializer);
     }
 
+    /// <summary>
+    /// Represents a array serializer that has an item serializer.
+    /// </summary>
+    /// <typeparam name="TSerializer">The type of the serializer.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <typeparam name="TItem">The type of the item.</typeparam>
     public interface IBsonSerializerWithItemSerializer<TSerializer, TValue, TItem> : IBsonSerializerWithItemSerializer where TSerializer : IBsonSerializer<TValue>
     {
-        IBsonSerializer<TItem> ItemSerializer { get; }
+        /// <summary>
+        /// Gets the item serializer.
+        /// </summary>
+        /// <value>
+        /// The item serializer.
+        /// </value>
+        new IBsonSerializer<TItem> ItemSerializer { get; }
+
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         TSerializer WithItemSerializer(IBsonSerializer<TItem> itemSerializer);
     }
 }

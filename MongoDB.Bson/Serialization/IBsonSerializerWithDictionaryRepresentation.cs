@@ -17,13 +17,29 @@ using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization
 {
+    /// <summary>
+    /// Represents a serializer that has a DictionaryRepresentation property.
+    /// </summary>
     public interface IBsonSerializerWithDictionaryRepresentation
     {
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified dictionary representation.
+        /// </summary>
+        /// <param name="dictionaryRepresentation">The dictionary representation.</param>
+        /// <returns>The reconfigured serializer.</returns>
         IBsonSerializer WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation);
     }
 
+    /// <summary>
+    /// Represents a serializer that has a DictionaryRepresentation property.
+    /// </summary>
     public interface IBsonSerializerWithDictionaryRepresentation<TSerializer> : IBsonSerializerWithDictionaryRepresentation where TSerializer : IBsonSerializer
     {
-        TSerializer WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation);
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified dictionary representation.
+        /// </summary>
+        /// <param name="dictionaryRepresentation">The dictionary representation.</param>
+        /// <returns>The reconfigured serializer.</returns>
+        new TSerializer WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation);
     }
 }

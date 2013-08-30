@@ -1330,7 +1330,7 @@ namespace MongoDB.Bson.Serialization
         /// Creates an instance.
         /// </summary>
         /// <returns>An instance.</returns>
-        public TClass CreateInstance()
+        public new TClass CreateInstance()
         {
             return (TClass)base.CreateInstance();
         }

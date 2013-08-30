@@ -21,7 +21,7 @@ using System.Reflection;
 namespace MongoDB.Bson.Serialization.Conventions
 {
     /// <summary>
-    /// A convention that finds the extra elements member by name (and that is also of type BsonDocument or an IDictionary&lt;string, object&gt;).
+    /// A convention that finds the extra elements member by name (and that is also of type <see cref="BsonDocument"/> or <see cref="IDictionary{String, Object}"/>).
     /// </summary>
     public class NamedExtraElementsMemberConvention : ConventionBase, IClassMapConvention
     {

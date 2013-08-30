@@ -20,6 +20,8 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Interfaces.
     /// </summary>
+    /// <typeparam name="TInterface">The type of the interface.</typeparam>
+    /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
     public class ImpliedImplementationInterfaceSerializer<TInterface, TImplementation> :
         BsonBaseSerializer<TInterface>,
         IBsonSerializerWithConfigurableChildSerializer
@@ -29,6 +31,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         private readonly IBsonSerializer<TImplementation> _implementationSerializer;
 
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImpliedImplementationInterfaceSerializer{TInterface, TImplementation}"/> class.
+        /// </summary>
         public ImpliedImplementationInterfaceSerializer()
             : this(BsonSerializer.LookupSerializer<TImplementation>())
         {
@@ -50,6 +55,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public properties
+        /// <summary>
+        /// Gets the implementation serializer.
+        /// </summary>
+        /// <value>
+        /// The implementation serializer.
+        /// </value>
         public IBsonSerializer<TImplementation> ImplementationSerializer
         {
             get { return _implementationSerializer; }
@@ -57,9 +68,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes a document from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>
         /// A document.
         /// </returns>
@@ -80,9 +91,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Serializes a document to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The document.</param>
         public override void Serialize(SerializationContext context, TInterface value)
         {
@@ -107,6 +118,13 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified implementation serializer.
+        /// </summary>
+        /// <param name="implementationSerializer">The implementation serializer.</param>
+        /// <returns>
+        /// The reconfigured serializer.
+        /// </returns>
         public ImpliedImplementationInterfaceSerializer<TInterface, TImplementation> WithImplementationSerializer(IBsonSerializer<TImplementation> implementationSerializer)
         {
             if (implementationSerializer == ImplementationSerializer)

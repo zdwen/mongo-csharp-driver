@@ -17,10 +17,33 @@ using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization
 {
+    /// <summary>
+    /// Represents a dictionary serializer that can be used in LINQ queries.
+    /// </summary>
     public interface IBsonDictionarySerializer
     {
+        /// <summary>
+        /// Gets the dictionary representation.
+        /// </summary>
+        /// <value>
+        /// The dictionary representation.
+        /// </value>
         DictionaryRepresentation DictionaryRepresentation { get; }
+
+        /// <summary>
+        /// Gets the key serializer.
+        /// </summary>
+        /// <value>
+        /// The key serializer.
+        /// </value>
         IBsonSerializer KeySerializer { get; }
+
+        /// <summary>
+        /// Gets the value serializer.
+        /// </summary>
+        /// <value>
+        /// The value serializer.
+        /// </value>
         IBsonSerializer ValueSerializer { get; }
     }
 }

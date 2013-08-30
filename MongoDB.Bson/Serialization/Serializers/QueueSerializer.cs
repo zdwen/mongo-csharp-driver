@@ -31,16 +31,28 @@ namespace MongoDB.Bson.Serialization.Serializers
         IBsonArraySerializer
     {
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueSerializer"/> class.
+        /// </summary>
         public QueueSerializer()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueSerializer"/> class.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
         public QueueSerializer(IBsonSerializer itemSerializer)
             : base(itemSerializer)
         {
         }
 
         // public methods
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public QueueSerializer WithItemSerializer(IBsonSerializer itemSerializer)
         {
             if (itemSerializer == ItemSerializer)
@@ -121,16 +133,28 @@ namespace MongoDB.Bson.Serialization.Serializers
         IBsonArraySerializer
     {
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueSerializer{TItem}"/> class.
+        /// </summary>
         public QueueSerializer()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueSerializer{TItem}"/> class.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
         public QueueSerializer(IBsonSerializer<TItem> itemSerializer)
             : base(itemSerializer)
         {
         }
 
         // public methods
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public QueueSerializer<TItem> WithItemSerializer(IBsonSerializer<TItem> itemSerializer)
         {
             if (itemSerializer == ItemSerializer)

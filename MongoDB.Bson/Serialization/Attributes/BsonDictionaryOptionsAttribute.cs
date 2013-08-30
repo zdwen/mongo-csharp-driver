@@ -55,6 +55,11 @@ namespace MongoDB.Bson.Serialization.Attributes
         }
 
         // protected methods
+        /// <summary>
+        /// Reconfigures the specified serializer by applying this attribute to it.
+        /// </summary>
+        /// <param name="serializer">The serializer.</param>
+        /// <returns>A reconfigured serializer.</returns>
         protected override IBsonSerializer Apply(IBsonSerializer serializer)
         {
             var serializerWithDictionaryRepresentation = serializer as IBsonSerializerWithDictionaryRepresentation;

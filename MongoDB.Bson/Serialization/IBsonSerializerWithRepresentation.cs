@@ -15,13 +15,30 @@
 
 namespace MongoDB.Bson.Serialization
 {
+    /// <summary>
+    /// Represents a serializer that has a Representation property.
+    /// </summary>
     public interface IBsonSerializerWithRepresentation
     {
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified representation.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <returns>The reconfigured serializer.</returns>
         IBsonSerializer WithRepresentation(BsonType representation);
     }
 
+    /// <summary>
+    /// Represents a serializer that has a Representation property.
+    /// </summary>
+    /// <typeparam name="TSerializer">The type of the serializer.</typeparam>
     public interface IBsonSerializerWithRepresentation<TSerializer> : IBsonSerializerWithRepresentation where TSerializer : IBsonSerializer
     {
-        TSerializer WithRepresentation(BsonType representation);
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified representation.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <returns>The reconfigured serializer.</returns>
+        new TSerializer WithRepresentation(BsonType representation);
     }
 }

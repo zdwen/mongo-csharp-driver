@@ -38,16 +38,32 @@ namespace MongoDB.Bson
         private readonly bool _isUpdateDocument;
 
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BsonDocumentWrapper"/> class.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public BsonDocumentWrapper(object value)
             : this(value, UndiscriminatedActualTypeSerializer.Instance)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BsonDocumentWrapper"/> class.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="serializer">The serializer.</param>
         public BsonDocumentWrapper(object value, IBsonSerializer serializer)
             : this(value, serializer, false)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BsonDocumentWrapper"/> class.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="serializer">The serializer.</param>
+        /// <param name="isUpdateDocument">if set to <c>true</c> then value is an update document.</param>
+        /// <exception cref="System.ArgumentNullException">serializer</exception>
         public BsonDocumentWrapper(object value, IBsonSerializer serializer, bool isUpdateDocument)
             : base(BsonType.Document)
         {
@@ -70,6 +86,12 @@ namespace MongoDB.Bson
             get { return _isUpdateDocument; }
         }
 
+        /// <summary>
+        /// Gets the serializer.
+        /// </summary>
+        /// <value>
+        /// The serializer.
+        /// </value>
         public IBsonSerializer Serializer
         {
             get { return _serializer; }

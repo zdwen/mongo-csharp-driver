@@ -18,9 +18,25 @@ namespace MongoDB.Bson.Serialization
     // this interface is public so custom serializers can choose to implement it
     // but typically you would choose to implement this interface explicitly
     // these methods support forwarding attributes to child serializers and wouldn't normally be public
+
+    /// <summary>
+    /// Represents a serializer that has a child serializer that configuration attributes can be forwarded to.
+    /// </summary>
     public interface IBsonSerializerWithConfigurableChildSerializer
     {
+        /// <summary>
+        /// Gets the configurable child serializer.
+        /// </summary>
+        /// <value>
+        /// The configurable child serializer.
+        /// </value>
         IBsonSerializer ConfigurableChildSerializer { get; }
+
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified child serializer.
+        /// </summary>
+        /// <param name="childSerializer">The child serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         IBsonSerializer WithReconfiguredChildSerializer(IBsonSerializer childSerializer);
     }
 }

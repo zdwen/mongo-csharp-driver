@@ -24,10 +24,17 @@ namespace MongoDB.Bson.Serialization.Serializers
     public abstract class IEnumerableSerializerBase<TValue> : EnumerableSerializerBase<TValue>, IBsonArraySerializer where TValue : class, IEnumerable
     {
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IEnumerableSerializerBase{TValue}"/> class.
+        /// </summary>
         protected IEnumerableSerializerBase()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IEnumerableSerializerBase{TValue}"/> class.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
         protected IEnumerableSerializerBase(IBsonSerializer itemSerializer)
             : base(itemSerializer)
         {
@@ -68,14 +75,22 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for enumerable values.
     /// </summary>
-    /// <typeparam name="TItem">The type of the elements.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <typeparam name="TItem">The type of the items.</typeparam>
     public abstract class IEnumerableSerializerBase<TValue, TItem> : EnumerableSerializerBase<TValue, TItem>, IBsonArraySerializer where TValue : class, IEnumerable<TItem>
     {
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IEnumerableSerializerBase{TValue, TItem}"/> class.
+        /// </summary>
         public IEnumerableSerializerBase()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IEnumerableSerializerBase{TValue, TItem}"/> class.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
         public IEnumerableSerializerBase(IBsonSerializer<TItem> itemSerializer)
             : base(itemSerializer)
         {

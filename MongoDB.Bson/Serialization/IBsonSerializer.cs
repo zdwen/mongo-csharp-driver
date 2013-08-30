@@ -34,17 +34,16 @@ namespace MongoDB.Bson.Serialization
 
         // methods
         /// <summary>
-        /// Deserializes a value from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// 
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         object Deserialize(DeserializationContext context);
 
         /// <summary>
-        /// Serializes a value to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
         void Serialize(SerializationContext context, object value);
     }
@@ -56,17 +55,16 @@ namespace MongoDB.Bson.Serialization
     public interface IBsonSerializer<TValue> : IBsonSerializer
     {
         /// <summary>
-        /// Deserializes a value from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// 
+        /// <param name="context">The deserialization context.</param>
         /// <returns>A T.</returns>
         new TValue Deserialize(DeserializationContext context);
 
         /// <summary>
-        /// Serializes a value to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
         void Serialize(SerializationContext context, TValue value);
     }

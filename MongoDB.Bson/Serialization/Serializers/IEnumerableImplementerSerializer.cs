@@ -19,6 +19,10 @@ using System.Collections.Generic;
 
 namespace MongoDB.Bson.Serialization.Serializers
 {
+    /// <summary>
+    /// Represents a serializer for a class that implements IEnumerable.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     public class IEnumerableImplementerSerializer<TValue> :
         IEnumerableSerializerBase<TValue>,
         IBsonSerializerWithConfigurableChildSerializer,
@@ -26,16 +30,28 @@ namespace MongoDB.Bson.Serialization.Serializers
             where TValue : class, IList, new()
     {
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IEnumerableImplementerSerializer{TValue}"/> class.
+        /// </summary>
         public IEnumerableImplementerSerializer()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IEnumerableImplementerSerializer{TValue}"/> class.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
         public IEnumerableImplementerSerializer(IBsonSerializer itemSerializer)
             : base(itemSerializer)
         {
         }
 
         // public methods
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public IEnumerableImplementerSerializer<TValue> WithItemSerializer(IBsonSerializer itemSerializer)
         {
             if (itemSerializer == ItemSerializer)
@@ -49,6 +65,10 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // protected methods
+        /// <summary>
+        /// Creates the accumulator.
+        /// </summary>
+        /// <returns>The accumulator.</returns>
         protected override object CreateAccumulator()
         {
             return new TValue();
@@ -71,6 +91,11 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
     }
 
+    /// <summary>
+    /// Represents a serializer for a class that implementes <see cref="IEnumerable{TItem}"/>.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <typeparam name="TItem">The type of the item.</typeparam>
     public class IEnumerableImplementerSerializer<TValue, TItem> : 
         IEnumerableSerializerBase<TValue, TItem>,
         IBsonSerializerWithConfigurableChildSerializer,
@@ -78,16 +103,28 @@ namespace MongoDB.Bson.Serialization.Serializers
             where TValue : class, IEnumerable<TItem>
     {
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IEnumerableImplementerSerializer{TValue, TItem}"/> class.
+        /// </summary>
         public IEnumerableImplementerSerializer()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IEnumerableImplementerSerializer{TValue, TItem}"/> class.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
         public IEnumerableImplementerSerializer(IBsonSerializer<TItem> itemSerializer)
             : base(itemSerializer)
         {
         }
 
         // public methods
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public IEnumerableImplementerSerializer<TValue, TItem> WithItemSerializer(IBsonSerializer<TItem> itemSerializer)
         {
             if (itemSerializer == ItemSerializer)
@@ -101,11 +138,20 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // protected methods
+        /// <summary>
+        /// Creates the accumulator.
+        /// </summary>
+        /// <returns>The accumulator.</returns>
         protected override object CreateAccumulator()
         {
             return new List<TItem>();
         }
 
+        /// <summary>
+        /// Finalizes the result.
+        /// </summary>
+        /// <param name="accumulator">The accumulator.</param>
+        /// <returns>The final result.</returns>
         protected override TValue FinalizeResult(object accumulator)
         {
             // find and call a constructor that we can pass the accumulator to

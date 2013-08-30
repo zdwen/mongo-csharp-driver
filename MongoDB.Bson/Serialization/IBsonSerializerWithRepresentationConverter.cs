@@ -17,13 +17,30 @@ using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization
 {
+    /// <summary>
+    /// Represents a serializer that has a representation converter.
+    /// </summary>
     public interface IBsonSerializerWithRepresentationConverter
     {
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="converter">The converter.</param>
+        /// <returns>The reconfigured serializer.</returns>
         IBsonSerializer WithConverter(RepresentationConverter converter);
     }
 
+    /// <summary>
+    /// Represents a serializer that has a representation converter.
+    /// </summary>
+    /// <typeparam name="TSerializer">The type of the serializer.</typeparam>
     public interface IBsonSerializerWithRepresentationConverter<TSerializer> : IBsonSerializerWithRepresentationConverter where TSerializer : IBsonSerializer
     {
-        TSerializer WithConverter(RepresentationConverter converter);
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="converter">The converter.</param>
+        /// <returns>The reconfigured serializer.</returns>
+        new TSerializer WithConverter(RepresentationConverter converter);
     }
 }

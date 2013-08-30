@@ -55,6 +55,12 @@ namespace MongoDB.Bson.Serialization.Serializers
             _itemSerializer = itemSerializer;
         }
 
+        /// <summary>
+        /// Gets the item serializer.
+        /// </summary>
+        /// <value>
+        /// The item serializer.
+        /// </value>
         public IBsonSerializer ItemSerializer
         {
             get { return _itemSerializer; }
@@ -62,10 +68,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="actualType">The actual type of the object.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override TValue Deserialize(DeserializationContext context)
         {
@@ -106,9 +111,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
         public override void Serialize(SerializationContext context, TValue value)
         {
@@ -161,7 +166,8 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for enumerable values.
     /// </summary>
-    /// <typeparam name="TItem">The type of the elements.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <typeparam name="TItem">The type of the items.</typeparam>
     public abstract class EnumerableSerializerBase<TValue, TItem> : BsonBaseSerializer<TValue>, IBsonArraySerializer where TValue : class, IEnumerable<TItem>
     {
         // private fields
@@ -192,6 +198,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public properties
+        /// <summary>
+        /// Gets the item serializer.
+        /// </summary>
+        /// <value>
+        /// The item serializer.
+        /// </value>
         public IBsonSerializer<TItem> ItemSerializer
         {
             get { return _itemSerializer; }
@@ -199,9 +211,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override TValue Deserialize(DeserializationContext context)
         {
@@ -245,9 +257,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
         public override void Serialize(SerializationContext context, TValue value)
         {

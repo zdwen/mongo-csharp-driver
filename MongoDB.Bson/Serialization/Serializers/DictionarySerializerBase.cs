@@ -34,16 +34,29 @@ namespace MongoDB.Bson.Serialization.Serializers
         private readonly IBsonSerializer _valueSerializer;
 
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DictionarySerializerBase{TDictionary}"/> class.
+        /// </summary>
         public DictionarySerializerBase()
             : this(DictionaryRepresentation.Dynamic)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DictionarySerializerBase{TDictionary}"/> class.
+        /// </summary>
+        /// <param name="dictionaryRepresentation">The dictionary representation.</param>
         public DictionarySerializerBase(DictionaryRepresentation dictionaryRepresentation)
             : this(dictionaryRepresentation, new ObjectSerializer(), new ObjectSerializer())
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DictionarySerializerBase{TDictionary}"/> class.
+        /// </summary>
+        /// <param name="dictionaryRepresentation">The dictionary representation.</param>
+        /// <param name="keySerializer">The key serializer.</param>
+        /// <param name="valueSerializer">The value serializer.</param>
         public DictionarySerializerBase(DictionaryRepresentation dictionaryRepresentation, IBsonSerializer keySerializer, IBsonSerializer valueSerializer)
         {
             _dictionaryRepresentation = dictionaryRepresentation;
@@ -52,16 +65,34 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public properties
+        /// <summary>
+        /// Gets the dictionary representation.
+        /// </summary>
+        /// <value>
+        /// The dictionary representation.
+        /// </value>
         public DictionaryRepresentation DictionaryRepresentation
         {
             get { return _dictionaryRepresentation; }
         }
 
+        /// <summary>
+        /// Gets the key serializer.
+        /// </summary>
+        /// <value>
+        /// The key serializer.
+        /// </value>
         public IBsonSerializer KeySerializer
         {
             get { return _keySerializer; }
         }
 
+        /// <summary>
+        /// Gets the value serializer.
+        /// </summary>
+        /// <value>
+        /// The value serializer.
+        /// </value>
         public IBsonSerializer ValueSerializer
         {
             get { return _valueSerializer; }
@@ -69,10 +100,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="actualType">The actual type of the object.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override TDictionary Deserialize(DeserializationContext context)
         {
@@ -145,9 +175,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
         public override void Serialize(SerializationContext context, TDictionary value)
         {
@@ -211,6 +241,10 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // protected methods
+        /// <summary>
+        /// Creates the instance.
+        /// </summary>
+        /// <returns>The instance.</returns>
         protected abstract TDictionary CreateInstance();
 
         // private methods
@@ -279,7 +313,7 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DictionarySerializer{TKey, TValue}"/> class.
+        /// Initializes a new instance of the <see cref="DictionarySerializerBase{TDictionary, TKey, TValue}"/> class.
         /// </summary>
         public DictionarySerializerBase()
             : this(DictionaryRepresentation.Dynamic)
@@ -287,7 +321,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DictionarySerializer{TKey, TValue}" /> class.
+        /// Initializes a new instance of the <see cref="DictionarySerializerBase{TDictionary, TKey, TValue}" /> class.
         /// </summary>
         /// <param name="dictionaryRepresentation">The dictionary representation.</param>
         public DictionarySerializerBase(DictionaryRepresentation dictionaryRepresentation)
@@ -296,7 +330,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DictionarySerializer{TKey, TValue}" /> class.
+        /// Initializes a new instance of the <see cref="DictionarySerializerBase{TDictionary, TKey, TValue}" /> class.
         /// </summary>
         /// <param name="dictionaryRepresentation">The dictionary representation.</param>
         /// <param name="keySerializer">The key serializer.</param>
@@ -309,16 +343,34 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public properties
+        /// <summary>
+        /// Gets the dictionary representation.
+        /// </summary>
+        /// <value>
+        /// The dictionary representation.
+        /// </value>
         public DictionaryRepresentation DictionaryRepresentation
         {
             get { return _dictionaryRepresentation; }
         }
 
+        /// <summary>
+        /// Gets the key serializer.
+        /// </summary>
+        /// <value>
+        /// The key serializer.
+        /// </value>
         public IBsonSerializer<TKey> KeySerializer
         {
             get { return _keySerializer; }
         }
 
+        /// <summary>
+        /// Gets the value serializer.
+        /// </summary>
+        /// <value>
+        /// The value serializer.
+        /// </value>
         public IBsonSerializer<TValue> ValueSerializer
         {
             get { return _valueSerializer; }
@@ -326,10 +378,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <param name="actualType">The actual type of the object.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override TDictionary Deserialize(DeserializationContext context)
         {
@@ -402,9 +453,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
         public override void Serialize(SerializationContext context, TDictionary value)
         {
@@ -471,6 +522,10 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // protected methods
+        /// <summary>
+        /// Creates the instance.
+        /// </summary>
+        /// <returns>The instance.</returns>
         protected abstract TDictionary CreateInstance();
 
         // private methods

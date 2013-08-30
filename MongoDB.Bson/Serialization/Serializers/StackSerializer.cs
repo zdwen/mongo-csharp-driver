@@ -32,16 +32,28 @@ namespace MongoDB.Bson.Serialization.Serializers
         IBsonArraySerializer
     {
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StackSerializer"/> class.
+        /// </summary>
         public StackSerializer()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StackSerializer"/> class.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
         public StackSerializer(IBsonSerializer itemSerializer)
             : base(itemSerializer)
         {
         }
 
          // public methods
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public StackSerializer WithItemSerializer(IBsonSerializer itemSerializer)
         {
             if (itemSerializer == ItemSerializer)
@@ -68,7 +80,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <summary>
         /// Creates the accumulator.
         /// </summary>
-        /// <param name="actualType">The actual type.</param>
         /// <returns>The accumulator.</returns>
         protected override object CreateAccumulator()
         {
@@ -123,16 +134,28 @@ namespace MongoDB.Bson.Serialization.Serializers
         IBsonArraySerializer
     {
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StackSerializer{TItem}"/> class.
+        /// </summary>
         public StackSerializer()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StackSerializer{TItem}"/> class.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
         public StackSerializer(IBsonSerializer<TItem> itemSerializer)
             : base(itemSerializer)
         {
         }
 
         // public methods
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public StackSerializer<TItem> WithItemSerializer(IBsonSerializer<TItem> itemSerializer)
         {
             if (itemSerializer == ItemSerializer)

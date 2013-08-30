@@ -47,6 +47,11 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public methods
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
+        /// </summary>
+        /// <param name="itemSerializer">The item serializer.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public ArraySerializer<TItem> WithItemSerializer(IBsonSerializer<TItem> itemSerializer)
         {
             if (itemSerializer == ItemSerializer)

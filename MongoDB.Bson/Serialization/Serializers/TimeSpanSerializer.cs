@@ -60,11 +60,23 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // public properties
+        /// <summary>
+        /// Gets the representation.
+        /// </summary>
+        /// <value>
+        /// The representation.
+        /// </value>
         public BsonType Representation
         {
             get { return _representation; }
         }
 
+        /// <summary>
+        /// Gets the units.
+        /// </summary>
+        /// <value>
+        /// The units.
+        /// </value>
         public TimeSpanUnits Units
         {
             get { return _units; }
@@ -72,9 +84,9 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override TimeSpan Deserialize(DeserializationContext context)
         {
@@ -102,9 +114,9 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
+        /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
         public override void Serialize(SerializationContext context, TimeSpan value)
         {
@@ -134,6 +146,11 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified representation.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <returns>The reconfigured serializer.</returns>
         public TimeSpanSerializer WithRepresentation(BsonType representation)
         {
             if (representation == _representation)
@@ -146,6 +163,14 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// Returns a serializer that has been reconfigured with the specified representation and units.
+        /// </summary>
+        /// <param name="representation">The representation.</param>
+        /// <param name="units">The units.</param>
+        /// <returns>
+        /// The reconfigured serializer.
+        /// </returns>
         public TimeSpanSerializer WithRepresentation(BsonType representation, TimeSpanUnits units)
         {
             if (representation == _representation && units == _units)

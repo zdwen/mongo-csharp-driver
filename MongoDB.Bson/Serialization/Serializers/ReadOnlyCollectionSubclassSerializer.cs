@@ -19,14 +19,28 @@ using System.Collections.ObjectModel;
 
 namespace MongoDB.Bson.Serialization.Serializers
 {
+    /// <summary>
+    /// Represents a serializer for a subclass of ReadOnlyCollection.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <typeparam name="TItem">The type of the item.</typeparam>
     public class ReadOnlyCollectionSubclassSerializer<TValue, TItem> : IEnumerableSerializerBase<TValue, TItem> where TValue : ReadOnlyCollection<TItem>
     {
         // protected methods
+        /// <summary>
+        /// Creates the accumulator.
+        /// </summary>
+        /// <returns>The accumulator.</returns>
         protected override object CreateAccumulator()
         {
             return new List<TItem>();
         }
 
+        /// <summary>
+        /// Finalizes the result.
+        /// </summary>
+        /// <param name="accumulator">The accumulator.</param>
+        /// <returns>The final result.</returns>
         protected override TValue FinalizeResult(object accumulator)
         {
             // the subclass must have a constructor that takes an IList<T> to wrap
