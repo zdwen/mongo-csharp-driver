@@ -19,7 +19,7 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
             for(int i = 0; i < 10; i++)
             {
                 var bytes = new byte[400];
-                _docsToInsert.Add(new BsonDocument("bytes", bytes));
+                _docsToInsert.Add(new BsonDocument { { "i", i }, { "bytes", bytes } });
             }
             var op = new InsertOperation<BsonDocument>()
             {
@@ -32,11 +32,11 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
         }
 
         [Test]
-        public void The_local_documents_should_have_been_assigned_an_id()
+        public void The_local_documents_should_still_not_have_an_id()
         {
             for (int i = 0; i < _docsToInsert.Count; i++)
             {
-                Assert.IsTrue(_docsToInsert[i].Elements.Any(x => x.Name == "_id"), "Document {0} did not have an id", i);
+                Assert.IsFalse(_docsToInsert[i].Elements.Any(x => x.Name == "_id"));
             }
         }
 
@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
         {
             for (int i = 0; i < _docsToInsert.Count; i++)
             {
-                var result = FindOne<BsonDocument>(new BsonDocument("_id", _docsToInsert[i]["_id"]));
+                var result = FindOne<BsonDocument>(new BsonDocument("i", i));
                 Assert.IsNotNull(result, "Document {0} was not inserted.", i);
                 Assert.AreEqual(400, result["bytes"].AsBsonBinaryData.Bytes.Length, "Document {0} did not have 400 bytes.", i);
             }

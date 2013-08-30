@@ -31,36 +31,23 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
         }
 
         [Test]
-        public void The_local_documents_should_have_been_assigned_an_id()
+        public void The_local_documents_should_still_not_have_an_id()
         {
-            Assert.IsTrue(_docsToInsert[0].Elements.Any(x => x.Name == "_id"));
-            Assert.IsTrue(_docsToInsert[1].Elements.Any(x => x.Name == "_id"));
-            Assert.IsTrue(_docsToInsert[2].Elements.Any(x => x.Name == "_id"));
-        }
-
-        [Test]
-        public void The_local_document_ids_should_be_the_first_elements()
-        {
-            var firstElement = _docsToInsert[0].GetElement(0);
-            Assert.AreEqual("_id", firstElement.Name);
-
-            firstElement = _docsToInsert[1].GetElement(0);
-            Assert.AreEqual("_id", firstElement.Name);
-
-            firstElement = _docsToInsert[2].GetElement(0);
-            Assert.AreEqual("_id", firstElement.Name);
+            Assert.IsFalse(_docsToInsert[0].Elements.Any(x => x.Name == "_id"));
+            Assert.IsFalse(_docsToInsert[1].Elements.Any(x => x.Name == "_id"));
+            Assert.IsFalse(_docsToInsert[2].Elements.Any(x => x.Name == "_id"));
         }
 
         [Test]
         public void The_documents_should_exist_in_the_database()
         {
-            var result = FindOne<BsonDocument>(new BsonDocument("_id", _docsToInsert[0]["_id"]));
+            var result = FindOne<BsonDocument>(new BsonDocument("x", _docsToInsert[0]["x"]));
             Assert.AreEqual(2, result["x"].AsInt32);
 
-            result = FindOne<BsonDocument>(new BsonDocument("_id", _docsToInsert[1]["_id"]));
+            result = FindOne<BsonDocument>(new BsonDocument("x", _docsToInsert[1]["x"]));
             Assert.AreEqual(3, result["x"].AsInt32);
 
-            result = FindOne<BsonDocument>(new BsonDocument("_id", _docsToInsert[2]["_id"]));
+            result = FindOne<BsonDocument>(new BsonDocument("x", _docsToInsert[2]["x"]));
             Assert.AreEqual(4, result["x"].AsInt32);
         }
     }

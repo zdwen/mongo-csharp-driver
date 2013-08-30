@@ -26,15 +26,15 @@ namespace MongoDB.Driver.Core.Operations.InsertOperationSpecs
         }
 
         [Test]
-        public void The_local_document_should_have_been_assigned_an_id()
+        public void The_local_document_should_still_not_have_an_id()
         {
-            Assert.IsTrue(_docToInsert.Elements.Any(x => x.Name == "_id"));
+            Assert.IsFalse(_docToInsert.Elements.Any(x => x.Name == "_id"));
         }
 
         [Test]
         public void The_document_should_exist_in_the_database()
         {
-            var result = FindOne<BsonDocument>(new BsonDocument("_id", _docToInsert["_id"]));
+            var result = FindOne<BsonDocument>();
             Assert.AreEqual(2, result["x"].AsInt32);
         }
     }

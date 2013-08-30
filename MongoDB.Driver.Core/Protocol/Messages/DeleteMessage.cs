@@ -66,7 +66,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
             using (var bsonWriter = new BsonBinaryWriter(streamWriter.BaseStream, _writerSettings))
             {
                 // TODO: pass in a serializer for this guy?
-                BsonSerializer.Serialize(bsonWriter, _selector.GetType(), _selector);
+                BsonSerializer.Serialize(bsonWriter, _selector);
             }
         }
     }

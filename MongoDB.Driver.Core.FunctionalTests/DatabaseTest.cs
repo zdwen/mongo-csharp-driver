@@ -120,6 +120,11 @@ namespace MongoDB.Driver.Core
             }
         }
 
+        public T FindOne<T>()
+        {
+            return FindOne<T>(new BsonDocument());
+        }
+
         public T FindOne<T>(BsonDocument query)
         {
             using (var session = BeginSession())
