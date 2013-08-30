@@ -28,23 +28,21 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
     {
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <returns>
-        /// An object.
-        /// </returns>
-        /// <exception cref="System.FormatException">Actual type of GeoJsonCoordinates must be provided explicitly.</exception>
+        /// <param name="context">The deserialization context.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="System.InvalidOperationException">Only concrete subclasses of GeoJsonCoordinates can be serialized.</exception>
         public override GeoJsonCoordinates Deserialize(DeserializationContext context)
         {
             throw new InvalidOperationException("Only concrete subclasses of GeoJsonCoordinates can be serialized.");
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="value">The object.</param>
+        /// <param name="context">The serialization context.</param>
+        /// <param name="value">The value.</param>
         /// <exception cref="System.InvalidOperationException">Only concrete subclasses of GeoJsonCoordinates can be serialized.</exception>
         public override void Serialize(SerializationContext context, GeoJsonCoordinates value)
         {

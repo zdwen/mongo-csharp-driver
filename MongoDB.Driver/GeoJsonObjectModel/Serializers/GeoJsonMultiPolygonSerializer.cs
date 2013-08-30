@@ -28,12 +28,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
     {
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <returns>
-        /// An object.
-        /// </returns>
+        /// <param name="context">The deserialization context.</param>
+        /// <returns>The value.</returns>
         public override GeoJsonMultiPolygon<TCoordinates> Deserialize(DeserializationContext context)
         {
             var helper = new Helper();
@@ -41,10 +39,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="value">The object.</param>
+        /// <param name="context">The serialization context.</param>
+        /// <param name="value">The value.</param>
         public override void Serialize(SerializationContext context, GeoJsonMultiPolygon<TCoordinates> value)
         {
             var helper = new Helper();
@@ -80,7 +78,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// <summary>
             /// Deserializes a field.
             /// </summary>
-            /// <param name="bsonReader">The BsonReader.</param>
+            /// <param name="context">The context.</param>
             /// <param name="name">The name.</param>
             protected override void DeserializeField(DeserializationContext context, string name)
             {
@@ -94,7 +92,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// <summary>
             /// Serializes the fields.
             /// </summary>
-            /// <param name="bsonWriter">The BsonWriter.</param>
+            /// <param name="context">The context.</param>
             /// <param name="obj">The GeoJson object.</param>
             protected override void SerializeFields(SerializationContext context, GeoJsonObject<TCoordinates> obj)
             {

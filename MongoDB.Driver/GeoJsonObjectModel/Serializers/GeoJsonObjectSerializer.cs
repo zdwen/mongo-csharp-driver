@@ -29,12 +29,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
     {
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <returns>
-        /// An object.
-        /// </returns>
+        /// <param name="context">The deserialization context.</param>
+        /// <returns>The value.</returns>
         public override GeoJsonObject<TCoordinates> Deserialize(DeserializationContext context)
         {
             var helper = new Helper();
@@ -42,10 +40,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="value">The object.</param>
+        /// <param name="context">The serialization context.</param>
+        /// <param name="value">The value.</param>
         public override void Serialize(SerializationContext context, GeoJsonObject<TCoordinates> value)
         {
             var helper = new Helper();
@@ -67,19 +65,19 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
 
             // constructors
             /// <summary>
-            /// Initializes a new instance of the <see cref="ObjectData"/> class.
+            /// Initializes a new instance of the <see cref="Helper" /> class.
             /// </summary>
-            /// <param name="expectedDiscriminator">The expected type.</param>
             public Helper()
                 : this(typeof(GeoJsonObject<TCoordinates>), null, null)
             {
             }
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="ObjectData"/> class.
+            /// Initializes a new instance of the <see cref="Helper" /> class.
             /// </summary>
+            /// <param name="objectType">The object type.</param>
+            /// <param name="expectedDiscriminator">The expected discriminator.</param>
             /// <param name="args">The args.</param>
-            /// <param name="expectedDiscriminator">The expected type.</param>
             protected Helper(Type objectType, string expectedDiscriminator, GeoJsonObjectArgs<TCoordinates> args)
             {
                 _objectType = objectType;
@@ -95,12 +93,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
 
             // public methods
             /// <summary>
-            /// Deserializes an object from a BsonReader.
+            /// Deserializes a value.
             /// </summary>
-            /// <param name="bsonReader">The BsonReader.</param>
-            /// <returns>
-            /// An object.
-            /// </returns>
+            /// <param name="context">The deserialization context.</param>
+            /// <returns>The value.</returns>
             public GeoJsonObject<TCoordinates> Deserialize(DeserializationContext context)
             {
                 var bsonReader = context.Reader;
@@ -126,10 +122,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             }
 
             /// <summary>
-            /// Serializes an object to a BsonWriter.
+            /// Serializes a value.
             /// </summary>
-            /// <param name="bsonWriter">The BsonWriter.</param>
-            /// <param name="value">The object.</param>
+            /// <param name="context">The serialization context.</param>
+            /// <param name="value">The value.</param>
             public void Serialize(SerializationContext context, GeoJsonObject<TCoordinates> value)
             {
                 var bsonWriter = context.Writer;
@@ -166,9 +162,8 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// <summary>
             /// Deserializes a field.
             /// </summary>
-            /// <param name="bsonReader">The BsonReader.</param>
+            /// <param name="context">The context.</param>
             /// <param name="name">The name.</param>
-            /// <param name="data">The data.</param>
             protected virtual void DeserializeField(DeserializationContext context, string name)
             {
                 switch (name)
@@ -183,7 +178,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// <summary>
             /// Serializes the fields.
             /// </summary>
-            /// <param name="bsonWriter">The BsonWriter.</param>
+            /// <param name="context">The context.</param>
             /// <param name="obj">The GeoJson object.</param>
             protected virtual void SerializeFields(SerializationContext context, GeoJsonObject<TCoordinates> obj)
             {

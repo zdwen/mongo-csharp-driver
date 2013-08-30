@@ -120,7 +120,7 @@ namespace MongoDB.Driver.Builders
         }
 
         // nested classes
-        internal class Serializer : BsonBaseSerializer<SortByBuilder>
+        new internal class Serializer : BsonBaseSerializer<SortByBuilder>
         {
             public override void Serialize(SerializationContext context, SortByBuilder value)
             {
@@ -174,7 +174,7 @@ namespace MongoDB.Driver.Builders
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="SortByBuilder&lt;TDocument&gt;"/> class.
+        /// Initializes a new instance of the <see cref="SortByBuilder{TDocument}"/> class.
         /// </summary>
         public SortByBuilder()
             : this(new BsonSerializationInfoHelper())
@@ -239,7 +239,7 @@ namespace MongoDB.Driver.Builders
         }
 
         // nested classes
-        internal class Serializer : BsonBaseSerializer<SortByBuilder<TDocument>>
+        new internal class Serializer : BsonBaseSerializer<SortByBuilder<TDocument>>
         {
             public override void Serialize(SerializationContext context, SortByBuilder<TDocument> value)
             {

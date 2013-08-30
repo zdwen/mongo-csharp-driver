@@ -40,6 +40,7 @@ namespace MongoDB.Driver.Wrappers
         /// <summary>
         /// Initializes a new instance of the BaseWrapper class.
         /// </summary>
+        /// <param name="nominalType">The nominal Type.</param>
         /// <param name="obj">The wrapped object.</param>
         protected BaseWrapper(Type nominalType, object obj)
         {

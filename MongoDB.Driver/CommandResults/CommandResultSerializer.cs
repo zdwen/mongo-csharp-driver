@@ -28,12 +28,10 @@ namespace MongoDB.Driver
     public class CommandResultSerializer : BsonBaseSerializer<CommandResult>
     {
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <returns>
-        /// An object.
-        /// </returns>
+        /// <param name="context">The deserialization context.</param>
+        /// <returns>The value.</returns>
         public override CommandResult Deserialize(DeserializationContext context)
         {
             var response = BsonDocumentSerializer.Instance.Deserialize(context.CreateChild(typeof(BsonDocument)));

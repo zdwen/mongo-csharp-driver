@@ -32,12 +32,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <returns>
-        /// An object.
-        /// </returns>
+        /// <param name="context">The deserialization context.</param>
+        /// <returns>The value.</returns>
         public override GeoJsonPolygonCoordinates<TCoordinates> Deserialize(DeserializationContext context)
         {
             var bsonReader = context.Reader;
@@ -65,10 +63,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="value">The object.</param>
+        /// <param name="context">The serialization context.</param>
+        /// <param name="value">The value.</param>
         public override void Serialize(SerializationContext context, GeoJsonPolygonCoordinates<TCoordinates> value)
         {
             var bsonWriter = context.Writer;

@@ -27,15 +27,18 @@ namespace MongoDB.Driver.Core
     public class CommandResultSerializer<TCommandResult> : BsonBaseSerializer<TCommandResult> where TCommandResult : CommandResult
     {
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CommandResultSerializer{TCommandResult}"/> class.
+        /// </summary>
         public CommandResultSerializer()
         {
         }
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>
         /// An object.
         /// </returns>

@@ -107,7 +107,7 @@ namespace MongoDB.Driver.Builders
         }
 
         // nested classes
-        internal class Serializer : BsonBaseSerializer<GroupByBuilder>
+        new internal class Serializer : BsonBaseSerializer<GroupByBuilder>
         {
             public override void Serialize(SerializationContext context, GroupByBuilder value)
             {
@@ -147,7 +147,7 @@ namespace MongoDB.Driver.Builders
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="GroupByBuilder&lt;TDocument&gt;"/> class.
+        /// Initializes a new instance of the <see cref="GroupByBuilder{TDocument}"/> class.
         /// </summary>
         public GroupByBuilder()
         {
@@ -181,7 +181,7 @@ namespace MongoDB.Driver.Builders
         }
 
         // nested classes
-        internal class Serializer : BsonBaseSerializer<GroupByBuilder<TDocument>>
+        new internal class Serializer : BsonBaseSerializer<GroupByBuilder<TDocument>>
         {
             public override void Serialize(SerializationContext context, GroupByBuilder<TDocument> value)
             {

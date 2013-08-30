@@ -239,7 +239,7 @@ namespace MongoDB.Driver.Builders
         }
 
         // nested classes
-        internal class Serializer : BsonBaseSerializer<IndexOptionsBuilder>
+        new internal class Serializer : BsonBaseSerializer<IndexOptionsBuilder>
         {
             public override void Serialize(SerializationContext context, IndexOptionsBuilder value)
             {

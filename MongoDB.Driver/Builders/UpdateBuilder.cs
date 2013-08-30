@@ -552,8 +552,16 @@ namespace MongoDB.Driver.Builders
         /// <summary>
         /// Replaces the entire document with a new document (the _id must remain the same).
         /// </summary>
+        /// <param name="nominalType">The nominal type.</param>
         /// <param name="document">The replacement document.</param>
-        /// <returns>An UpdateWrapper.</returns>
+        /// <returns>
+        /// An UpdateWrapper.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">
+        /// nominalType
+        /// or
+        /// document
+        /// </exception>
         public static IMongoUpdate Replace(Type nominalType, object document)
         {
             if (nominalType == null) { throw new ArgumentNullException("nominalType"); }
@@ -1503,7 +1511,7 @@ namespace MongoDB.Driver.Builders
         }
 
         // nested classes
-        internal class Serializer : BsonBaseSerializer<UpdateBuilder>
+        new internal class Serializer : BsonBaseSerializer<UpdateBuilder>
         {
             public override void Serialize(SerializationContext context, UpdateBuilder value)
             {
@@ -2401,7 +2409,7 @@ namespace MongoDB.Driver.Builders
         }
 
         // nested classes
-        internal class Serializer : BsonBaseSerializer<UpdateBuilder<TDocument>>
+        new internal class Serializer : BsonBaseSerializer<UpdateBuilder<TDocument>>
         {
             public override void Serialize(SerializationContext context, UpdateBuilder<TDocument> value)
             {

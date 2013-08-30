@@ -51,12 +51,10 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <returns>
-        /// An object.
-        /// </returns>
+        /// <param name="context">The deserialization context.</param>
+        /// <returns>The value.</returns>
         public override DistinctCommandResult<TValue> Deserialize(DeserializationContext context)
         {
             var bsonReader = context.Reader;

@@ -192,7 +192,7 @@ namespace MongoDB.Driver.Builders
         }
 
         // nested classes
-        internal class Serializer : BsonBaseSerializer<FieldsBuilder>
+        new internal class Serializer : BsonBaseSerializer<FieldsBuilder>
         {
             public override void Serialize(SerializationContext context, FieldsBuilder value)
             {
@@ -387,7 +387,7 @@ namespace MongoDB.Driver.Builders
         }
 
         // nested classes
-        internal class Serializer : BsonBaseSerializer<FieldsBuilder<TDocument>>
+        new internal class Serializer : BsonBaseSerializer<FieldsBuilder<TDocument>>
         {
             public override void Serialize(SerializationContext context, FieldsBuilder<TDocument> value)
             {

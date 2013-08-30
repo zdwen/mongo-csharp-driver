@@ -537,6 +537,11 @@ namespace MongoDB.Driver
             return this;
         }
 
+        /// <summary>
+        /// Sets the serializer.
+        /// </summary>
+        /// <param name="serializer">The serializer.</param>
+        /// <returns>The cursor (so you can chain method calls to it).</returns>
         public virtual MongoCursor SetSerializer(IBsonSerializer serializer)
         {
             if (_isFrozen) { ThrowFrozen(); }
@@ -682,7 +687,7 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets the serializer.
         /// </summary>
-        public virtual IBsonSerializer<TDocument> Serializer
+        public new virtual IBsonSerializer<TDocument> Serializer
         {
             get { return (IBsonSerializer<TDocument>)base.Serializer; }
         }
@@ -876,7 +881,12 @@ namespace MongoDB.Driver
             return (MongoCursor<TDocument>)base.SetReadPreference(readPreference);
         }
 
-        public new virtual MongoCursor<TDocument> SetSerializer(IBsonSerializer<TDocument> serializer)
+        /// <summary>
+        /// Sets the serializer.
+        /// </summary>
+        /// <param name="serializer">The serializer.</param>
+        /// <returns>The cursor (so you can chain method calls to it).</returns>
+        public virtual MongoCursor<TDocument> SetSerializer(IBsonSerializer<TDocument> serializer)
         {
             return (MongoCursor<TDocument>)base.SetSerializer(serializer);
         }

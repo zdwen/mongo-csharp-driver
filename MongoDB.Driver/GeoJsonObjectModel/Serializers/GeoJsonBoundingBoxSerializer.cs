@@ -33,12 +33,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
 
         // public methods
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
-        /// <returns>
-        /// An object.
-        /// </returns>
+        /// <param name="context">The deserialization context.</param>
+        /// <returns>The value.</returns>
         /// <exception cref="System.FormatException">Bounding box array does not have an even number of values.</exception>
         public override GeoJsonBoundingBox<TCoordinates> Deserialize(DeserializationContext context)
         {
@@ -80,10 +78,10 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         }
 
         /// <summary>
-        /// Serializes an object to a BsonWriter.
+        /// Serializes a value.
         /// </summary>
-        /// <param name="bsonWriter">The BsonWriter.</param>
-        /// <param name="value">The object.</param>
+        /// <param name="context">The serialization context.</param>
+        /// <param name="value">The value.</param>
         public override void Serialize(SerializationContext context, GeoJsonBoundingBox<TCoordinates> value)
         {
             var bsonWriter = context.Writer;

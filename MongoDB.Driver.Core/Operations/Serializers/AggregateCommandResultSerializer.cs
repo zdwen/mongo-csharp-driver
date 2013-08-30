@@ -46,9 +46,9 @@ namespace MongoDB.Driver.Core.Operations.Serializers
         }
 
         /// <summary>
-        /// Deserializes an object from a BsonReader.
+        /// Deserializes a value.
         /// </summary>
-        /// <param name="bsonReader">The BsonReader.</param>
+        /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
         public override AggregateCommandResult<TDocument> Deserialize(DeserializationContext context)
         {
