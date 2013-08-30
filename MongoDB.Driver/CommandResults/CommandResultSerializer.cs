@@ -25,17 +25,17 @@ namespace MongoDB.Driver
     /// <summary>
     /// Represents a serializer for a CommandResult.
     /// </summary>
-    public class CommandResultSerializer : BsonBaseSerializer<CommandResult>
+    public class CommandResultSerializer<TCommandResult> : BsonBaseSerializer<TCommandResult> where TCommandResult : CommandResult
     {
         /// <summary>
         /// Deserializes a value.
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
-        public override CommandResult Deserialize(DeserializationContext context)
+        public override TCommandResult Deserialize(DeserializationContext context)
         {
             var response = BsonDocumentSerializer.Instance.Deserialize(context.CreateChild(typeof(BsonDocument)));
-            return new CommandResult(response);
+            return (TCommandResult)Activator.CreateInstance(typeof(TCommandResult), new object[] { response });
         }
     }
 }

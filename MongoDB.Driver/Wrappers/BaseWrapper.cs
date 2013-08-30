@@ -16,35 +16,62 @@
 using System;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Driver.Wrappers
 {
     /// <summary>
     /// Abstract base class for wrapper classes.
     /// </summary>
+    [BsonSerializer(typeof(BaseWrapper.Serializer))]
     public abstract class BaseWrapper
     {
         // private fields
-        private object _obj;
+        private Type _nominalType;
+        private object _wrapped;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the BaseWrapper class.
         /// </summary>
-        /// <param name="obj">The wrapped object.</param>
-        protected BaseWrapper(object obj)
+        /// <param name="wrapped">The wrapped object.</param>
+        protected BaseWrapper(object wrapped)
         {
-            _obj = obj;
+            _nominalType = wrapped.GetType();
+            _wrapped = wrapped;
         }
 
         /// <summary>
         /// Initializes a new instance of the BaseWrapper class.
         /// </summary>
-        /// <param name="nominalType">The nominal Type.</param>
-        /// <param name="obj">The wrapped object.</param>
-        protected BaseWrapper(Type nominalType, object obj)
+        /// <param name="nominalType">The nominal type of the wrapped object.</param>
+        /// <param name="wrapped">The wrapped object.</param>
+        protected BaseWrapper(Type nominalType, object wrapped)
         {
-            _obj = obj;
+            _nominalType = nominalType;
+            _wrapped = wrapped;
+        }
+
+        // protected methods
+        /// <summary>
+        /// Serializes the wrapped value.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        protected void SerializeWrappedObject(SerializationContext context)
+        {
+            var serializer = BsonSerializer.LookupSerializer(_nominalType);
+            var childContext = context.CreateChild(_nominalType);
+            serializer.Serialize(childContext, _wrapped);
+        }
+
+        // nested classes
+        internal class Serializer : BsonBaseSerializer<BaseWrapper>
+        {
+            public override void Serialize(SerializationContext context, BaseWrapper value)
+            {
+                value.SerializeWrappedObject(context);
+            }
         }
     }
 }

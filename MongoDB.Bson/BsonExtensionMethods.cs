@@ -125,6 +125,11 @@ namespace MongoDB.Bson
                 throw new ArgumentNullException("nominalType");
             }
 
+            if (obj == null)
+            {
+                return null;
+            }
+
             if (serializer == null)
             {
                 var bsonDocument = obj as BsonDocument;

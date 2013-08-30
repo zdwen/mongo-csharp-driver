@@ -65,11 +65,12 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
 
                 using (var documentReader = BsonReader.Create(document))
                 {
+                    var documentContext = DeserializationContext.CreateRoot(documentReader, typeof(BsonDocument));
                     documentReader.ReadStartDocument();
                     documentReader.ReadName("min");
-                    var min = context.DeserializeWithChildContext(_coordinatesSerializer);
+                    var min = documentContext.DeserializeWithChildContext(_coordinatesSerializer);
                     documentReader.ReadName("max");
-                    var max = context.DeserializeWithChildContext(_coordinatesSerializer);
+                    var max = documentContext.DeserializeWithChildContext(_coordinatesSerializer);
                     documentReader.ReadEndDocument();
 
                     return new GeoJsonBoundingBox<TCoordinates>(min, max);
@@ -96,11 +97,12 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 var document = new BsonDocument();
                 using (var documentWriter = BsonWriter.Create(document))
                 {
+                    var documentContext = SerializationContext.CreateRoot(documentWriter, typeof(BsonDocument));
                     documentWriter.WriteStartDocument();
                     documentWriter.WriteName("min");
-                    context.SerializeWithChildContext(_coordinatesSerializer, value.Min);
+                    documentContext.SerializeWithChildContext(_coordinatesSerializer, value.Min);
                     documentWriter.WriteName("max");
-                    context.SerializeWithChildContext(_coordinatesSerializer, value.Max);
+                    documentContext.SerializeWithChildContext(_coordinatesSerializer, value.Max);
                     documentWriter.WriteEndDocument();
                 }
 

@@ -78,6 +78,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             else
             {
                 bsonWriter.WriteStartArray();
+                context.SerializeWithChildContext(_linearRingCoordinatesSerializer, value.Exterior);
                 foreach (var hole in value.Holes)
                 {
                     context.SerializeWithChildContext(_linearRingCoordinatesSerializer, hole);

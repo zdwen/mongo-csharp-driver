@@ -26,6 +26,7 @@ namespace MongoDB.Bson.Serialization
         // private fields
         private readonly Type _nominalType;
         private readonly SerializationContext _parent;
+        private readonly bool _serializeAsNominalType;
         private readonly bool _serializeIdFirst;
         private readonly BsonWriter _writer;
 
@@ -34,11 +35,13 @@ namespace MongoDB.Bson.Serialization
             SerializationContext parent,
             BsonWriter writer,
             Type nominalType,
+            bool serializeAsNominalType,
             bool serializeIdFirst)
         {
             _parent = parent;
             _writer = writer;
             _nominalType = nominalType;
+            _serializeAsNominalType = serializeAsNominalType;
             _serializeIdFirst = serializeIdFirst;
         }
 
@@ -63,6 +66,17 @@ namespace MongoDB.Bson.Serialization
         public SerializationContext Parent
         {
             get { return _parent; }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether to serialize the value as if it were an instance of the nominal type.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the value should be serialized as if it were an instance of the nominal type; otherwise, <c>false</c>.
+        /// </value>
+        public bool SerializeAsNominalType
+        {
+            get { return _serializeAsNominalType; }
         }
 
         /// <summary>
@@ -211,6 +225,7 @@ namespace MongoDB.Bson.Serialization
             // private fields
             private Type _nominalType;
             private SerializationContext _parent;
+            private bool _serializeAsNominalType;
             private bool _serializeIdFirst;
             private BsonWriter _writer;
 
@@ -255,6 +270,18 @@ namespace MongoDB.Bson.Serialization
             }
 
             /// <summary>
+            /// Gets or sets a value indicating whether to serialize the value as if it were an instance of the nominal type.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if the value should be serialized as if it were an instance of the nominal type; otherwise, <c>false</c>.
+            /// </value>
+            public bool SerializeAsNominalType
+            {
+                get { return _serializeAsNominalType; }
+                set { _serializeAsNominalType = value; }
+            }
+
+            /// <summary>
             /// Gets or sets a value indicating whether to serialize the id first.
             /// </summary>
             /// <value>
@@ -284,7 +311,7 @@ namespace MongoDB.Bson.Serialization
             /// <returns>A SerializationContext.</returns>
             public SerializationContext Build()
             {
-                return new SerializationContext(_parent, _writer, _nominalType, _serializeIdFirst);
+                return new SerializationContext(_parent, _writer, _nominalType, _serializeAsNominalType, _serializeIdFirst);
             }
         }
     }

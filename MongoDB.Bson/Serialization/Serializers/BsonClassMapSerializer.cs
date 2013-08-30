@@ -28,7 +28,7 @@ namespace MongoDB.Bson.Serialization
     /// <summary>
     /// Represents a serializer for a class map.
     /// </summary>
-    public class BsonClassMapSerializer<TClass> : BsonBaseSerializer<TClass>, IBsonIdProvider, IBsonDocumentSerializer, IBsonPolymorphicSerializer where TClass : class
+    public class BsonClassMapSerializer<TClass> : BsonBaseSerializer<TClass>, IBsonIdProvider, IBsonDocumentSerializer, IBsonPolymorphicSerializer
     {
         // private fields
         private BsonClassMap<TClass> _classMap;
@@ -43,12 +43,6 @@ namespace MongoDB.Bson.Serialization
             if (classMap == null)
             {
                 throw new ArgumentNullException("classMap");
-            }
-
-            if (classMap.ClassType.IsValueType)
-            {
-                var message = string.Format("Value class {0} cannot be deserialized.", classMap.ClassType.FullName);
-                throw new BsonSerializationException(message);
             }
 
             _classMap = classMap;
@@ -76,6 +70,12 @@ namespace MongoDB.Bson.Serialization
         {
             var bsonReader = context.Reader;
 
+            if (_classMap.ClassType.IsValueType)
+            {
+                var message = string.Format("Value class {0} cannot be deserialized.", _classMap.ClassType.FullName);
+                throw new BsonSerializationException(message);
+            }
+
             if (_classMap.IsAnonymous)
             {
                 throw new InvalidOperationException("An anonymous class cannot be deserialized.");
@@ -84,7 +84,7 @@ namespace MongoDB.Bson.Serialization
             if (bsonReader.GetCurrentBsonType() == Bson.BsonType.Null)
             {
                 bsonReader.ReadNull();
-                return null;
+                return default(TClass);
             }
             else
             {
@@ -117,7 +117,7 @@ namespace MongoDB.Bson.Serialization
             if (bsonType == Bson.BsonType.Null)
             {
                 bsonReader.ReadNull();
-                return null;
+                return default(TClass);
             }
             else
             {
@@ -130,7 +130,7 @@ namespace MongoDB.Bson.Serialization
                 }
 
                 Dictionary<string, object> values = null;
-                TClass document = null;
+                var document = default(TClass);
                 ISupportInitialize supportsInitialization = null;
                 if (_classMap.HasCreatorMaps)
                 {

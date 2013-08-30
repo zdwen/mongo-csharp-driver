@@ -45,13 +45,13 @@ namespace MongoDB.Driver.Internal
         }
 
         // internal methods
-        internal void AddDocument(Stream stream, object document)
+        internal void AddDocument(Stream stream, Type nominalType, object document)
         {
             _lastDocumentStartPosition = (int)stream.Position;
             using (var bsonWriter = new BsonBinaryWriter(stream, WriterSettings))
             {
                 bsonWriter.CheckElementNames = _checkElementNames;
-                BsonSerializer.Serialize(bsonWriter, document);
+                BsonSerializer.Serialize(bsonWriter, nominalType, document, b => b.SerializeIdFirst = true);
             }
             BackpatchMessageLength(stream);
         }

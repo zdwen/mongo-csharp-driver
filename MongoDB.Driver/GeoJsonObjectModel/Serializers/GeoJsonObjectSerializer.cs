@@ -182,6 +182,9 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// <param name="obj">The GeoJson object.</param>
             protected virtual void SerializeFields(SerializationContext context, GeoJsonObject<TCoordinates> obj)
             {
+                SerializeDiscriminator(context, obj.Type);
+                SerializeCoordinateReferenceSystem(context, obj.CoordinateReferenceSystem);
+                SerializeBoundingBox(context, obj.BoundingBox);
             }
 
             // private methods
@@ -259,7 +262,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                         case "Point": return typeof(GeoJsonPoint<TCoordinates>);
                         case "Polygon": return typeof(GeoJsonPolygon<TCoordinates>);
                         default:
-                            var message = string.Format("The type field of the GeoJosnGeometry is not valid: '{0}'.", discriminator);
+                            var message = string.Format("The type field of the GeoJsonGeometry is not valid: '{0}'.", discriminator);
                             throw new FormatException(message);
                     }
                 }
@@ -310,9 +313,6 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 var bsonWriter = context.Writer;
 
                 bsonWriter.WriteStartDocument();
-                SerializeDiscriminator(context, obj.Type);
-                SerializeCoordinateReferenceSystem(context, obj.CoordinateReferenceSystem);
-                SerializeBoundingBox(context, obj.BoundingBox);
                 SerializeFields(context, obj);
                 SerializeExtraMembers(context, obj.ExtraMembers);
                 bsonWriter.WriteEndDocument();

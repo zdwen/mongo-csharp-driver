@@ -376,6 +376,7 @@
     <Compile Include="Serialization\Serializers\ReadOnlyCollectionSerializer.cs" />
     <Compile Include="Serialization\Serializers\ReadOnlyCollectionSubclassSerializer.cs" />
     <Compile Include="Serialization\Serializers\SByteSerializer.cs" />
+    <Compile Include="Serialization\Serializers\SerializeAsNominalTypeSerializer.cs" />
     <Compile Include="Serialization\Serializers\SingleSerializer.cs" />
     <Compile Include="Serialization\Serializers\StackSerializer.cs" />
     <Compile Include="Serialization\Serializers\StringSerializer.cs" />

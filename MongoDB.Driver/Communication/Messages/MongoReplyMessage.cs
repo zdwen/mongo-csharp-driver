@@ -81,6 +81,8 @@ namespace MongoDB.Driver.Internal
         // internal methods
         internal void ReadFrom(Stream stream)
         {
+            var allowDuplicateElementNames = typeof(TDocument) == typeof(BsonDocument);
+
             var messageStartPosition = stream.Position;
 
             var streamReader = new BsonStreamReader(stream, _readerSettings.Encoding);
@@ -99,7 +101,7 @@ namespace MongoDB.Driver.Internal
                 BsonDocument document;
                 using (BsonReader bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
-                    var context = DeserializationContext.CreateRoot<BsonDocument>(bsonReader);
+                    var context = DeserializationContext.CreateRoot<BsonDocument>(bsonReader, b => b.AllowDuplicateElementNames = true);
                     document = BsonDocumentSerializer.Instance.Deserialize(context);
                 }
                 var err = document.GetValue("$err", "Unknown error.");
@@ -112,7 +114,7 @@ namespace MongoDB.Driver.Internal
             {
                 using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
-                    var context = DeserializationContext.CreateRoot<TDocument>(bsonReader);
+                    var context = DeserializationContext.CreateRoot<TDocument>(bsonReader, b => b.AllowDuplicateElementNames = allowDuplicateElementNames);
                     var document = _serializer.Deserialize(context);
                     _documents.Add(document);
                 }

@@ -14,6 +14,7 @@
 */
 
 using System;
+using MongoDB.Bson.Serialization.Options;
 
 namespace MongoDB.Bson.Serialization.Serializers
 {
@@ -24,6 +25,9 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
     public class ImpliedImplementationInterfaceSerializer<TInterface, TImplementation> :
         BsonBaseSerializer<TInterface>,
+        IBsonArraySerializer,
+        IBsonDictionarySerializer,
+        IBsonDocumentSerializer,
         IBsonSerializerWithConfigurableChildSerializer
             where TImplementation : class, TInterface
     {
@@ -56,6 +60,54 @@ namespace MongoDB.Bson.Serialization.Serializers
 
         // public properties
         /// <summary>
+        /// Gets the dictionary representation.
+        /// </summary>
+        /// <value>
+        /// The dictionary representation.
+        /// </value>
+        /// <exception cref="System.NotSupportedException"></exception>
+        public DictionaryRepresentation DictionaryRepresentation
+        {
+            get
+            {
+                var dictionarySerializer = _implementationSerializer as IBsonDictionarySerializer;
+                if (dictionarySerializer != null)
+                {
+                    return dictionarySerializer.DictionaryRepresentation;
+                }
+
+                var message = string.Format(
+                    "{0} does not have a DictionaryRepresentation.",
+                    BsonUtils.GetFriendlyTypeName(_implementationSerializer.GetType()));
+                throw new NotSupportedException(message);
+            }
+        }
+
+        /// <summary>
+        /// Gets the key serializer.
+        /// </summary>
+        /// <value>
+        /// The key serializer.
+        /// </value>
+        /// <exception cref="System.NotSupportedException"></exception>
+        public IBsonSerializer KeySerializer
+        {
+            get
+            {
+                var dictionarySerializer = _implementationSerializer as IBsonDictionarySerializer;
+                if (dictionarySerializer != null)
+                {
+                    return dictionarySerializer.KeySerializer;
+                }
+
+                var message = string.Format(
+                    "{0} does not have a KeySerializer.",
+                    BsonUtils.GetFriendlyTypeName(_implementationSerializer.GetType()));
+                throw new NotSupportedException(message);
+            }
+        }
+
+        /// <summary>
         /// Gets the implementation serializer.
         /// </summary>
         /// <value>
@@ -64,6 +116,30 @@ namespace MongoDB.Bson.Serialization.Serializers
         public IBsonSerializer<TImplementation> ImplementationSerializer
         {
             get { return _implementationSerializer; }
+        }
+
+        /// <summary>
+        /// Gets the value serializer.
+        /// </summary>
+        /// <value>
+        /// The value serializer.
+        /// </value>
+        /// <exception cref="System.NotSupportedException"></exception>
+        public IBsonSerializer ValueSerializer
+        {
+            get
+            {
+                var dictionarySerializer = _implementationSerializer as IBsonDictionarySerializer;
+                if (dictionarySerializer != null)
+                {
+                    return dictionarySerializer.ValueSerializer;
+                }
+
+                var message = string.Format(
+                    "{0} does not have a ValueSerializer.",
+                    BsonUtils.GetFriendlyTypeName(_implementationSerializer.GetType()));
+                throw new NotSupportedException(message);
+            }
         }
 
         // public methods
@@ -88,6 +164,41 @@ namespace MongoDB.Bson.Serialization.Serializers
             {
                 return _implementationSerializer.Deserialize(context);
             }
+        }
+
+        /// <summary>
+        /// Gets the serialization info for individual items of the array.
+        /// </summary>
+        /// <returns>
+        /// The serialization info for the items.
+        /// </returns>
+        public BsonSerializationInfo GetItemSerializationInfo()
+        {
+            var arraySerializer = _implementationSerializer as IBsonArraySerializer;
+            if (arraySerializer != null)
+            {
+                return arraySerializer.GetItemSerializationInfo();
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the serialization info for a member.
+        /// </summary>
+        /// <param name="memberName">The member name.</param>
+        /// <returns>
+        /// The serialization info for the member.
+        /// </returns>
+        public BsonSerializationInfo GetMemberSerializationInfo(string memberName)
+        {
+            var documentSerializer = _implementationSerializer as IBsonDocumentSerializer;
+            if (documentSerializer != null)
+            {
+                return documentSerializer.GetMemberSerializationInfo(memberName);
+            }
+
+            return null;
         }
 
         /// <summary>

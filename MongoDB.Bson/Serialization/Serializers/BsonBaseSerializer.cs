@@ -77,6 +77,17 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="value">The object.</param>
         public virtual void Serialize(SerializationContext context, object value)
         {
+            if (value != null)
+            {
+                var actualType = value.GetType();
+                if (actualType != _valueType && !context.SerializeAsNominalType)
+                {
+                    var serializer = BsonSerializer.LookupSerializer(actualType);
+                    serializer.Serialize(context, value);
+                    return;
+                }
+            }
+
             var message = string.Format(
                 "A serializer of type '{0}' does not support the Serialize method.", 
                 BsonUtils.GetFriendlyTypeName(this.GetType()));
@@ -148,6 +159,17 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="value">The object.</param>
         public virtual void Serialize(SerializationContext context, TValue value)
         {
+            if (value != null)
+            {
+                var actualType = value.GetType();
+                if (actualType != typeof(TValue) && !context.SerializeAsNominalType)
+                {
+                    var serializer = BsonSerializer.LookupSerializer(actualType);
+                    serializer.Serialize(context, value);
+                    return;
+                }
+            }
+
             var message = string.Format(
                 "A serializer of type '{0}' does not support the Serialize method.", 
                 BsonUtils.GetFriendlyTypeName(this.GetType()));

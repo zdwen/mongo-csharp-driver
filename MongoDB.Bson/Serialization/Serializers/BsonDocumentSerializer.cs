@@ -133,6 +133,14 @@ namespace MongoDB.Bson.Serialization.Serializers
                 throw new ArgumentNullException("value");
             }
 
+            var actualType = value.GetType();
+            if (actualType != typeof(BsonDocument) && !context.SerializeAsNominalType)
+            {
+                var serializer = BsonSerializer.LookupSerializer(actualType);
+                serializer.Serialize(context, value);
+                return;
+            }
+
             bsonWriter.WriteStartDocument();
 
             BsonElement idElement = null;

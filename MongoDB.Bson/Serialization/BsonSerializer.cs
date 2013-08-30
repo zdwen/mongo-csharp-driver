@@ -766,10 +766,14 @@ namespace MongoDB.Bson.Serialization
         /// <typeparam name="TNominalType">The nominal type of the object.</typeparam>
         /// <param name="bsonWriter">The BsonWriter.</param>
         /// <param name="value">The object.</param>
-        public static void Serialize<TNominalType>(BsonWriter bsonWriter, TNominalType value)
+        /// <param name="configurator">The serialization context configurator.</param>
+        public static void Serialize<TNominalType>(
+            BsonWriter bsonWriter,
+            TNominalType value,
+            Action<SerializationContext.Builder> configurator = null)
         {
             var serializer = LookupSerializer<TNominalType>();
-            var context = SerializationContext.CreateRoot<TNominalType>(bsonWriter);
+            var context = SerializationContext.CreateRoot<TNominalType>(bsonWriter, configurator);
             serializer.Serialize(context, value);
         }
 
@@ -779,10 +783,15 @@ namespace MongoDB.Bson.Serialization
         /// <param name="bsonWriter">The BsonWriter.</param>
         /// <param name="nominalType">The nominal type of the object.</param>
         /// <param name="value">The object.</param>
-        public static void Serialize(BsonWriter bsonWriter, Type nominalType, object value)
+        /// <param name="configurator">The serialization context configurator.</param>
+        public static void Serialize(
+            BsonWriter bsonWriter,
+            Type nominalType,
+            object value,
+            Action<SerializationContext.Builder> configurator = null)
         {
             var serializer = LookupSerializer(nominalType);
-            var context = SerializationContext.CreateRoot(bsonWriter, nominalType);
+            var context = SerializationContext.CreateRoot(bsonWriter, nominalType, configurator);
             serializer.Serialize(context, value);
         }
 

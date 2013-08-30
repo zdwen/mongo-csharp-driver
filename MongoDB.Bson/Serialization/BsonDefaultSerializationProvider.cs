@@ -124,12 +124,6 @@ namespace MongoDB.Bson.Serialization
                 return (IBsonSerializer)Activator.CreateInstance(serializerType);
             }
 
-            // use BsonDocumentSerializer for all subclasses of BsonDocument also
-            if (typeof(BsonDocument).IsAssignableFrom(type))
-            {
-                return BsonDocumentSerializer.Instance;
-            }
-
             if (type.IsGenericType)
             {
                 var genericTypeDefinition = type.GetGenericTypeDefinition();
