@@ -18,12 +18,14 @@ using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Serializers;
 using NUnit.Framework;
 
 namespace MongoDB.BsonUnitTests.Jira.CSharp121
 {
     public class C
     {
+        [BsonSerializer(typeof(GuidSerializer))]
         [BsonRepresentation(BsonType.String)]
         public Guid PhotoId { get; set; }
     }

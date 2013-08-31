@@ -89,9 +89,14 @@ namespace MongoDB.Bson.Serialization.Conventions
 
             public void Apply(BsonMemberMap memberMap)
             {
-                foreach (IBsonMemberMapAttribute attribute in memberMap.MemberInfo.GetCustomAttributes(typeof(IBsonMemberMapAttribute), false))
+                var attributes = memberMap.MemberInfo.GetCustomAttributes(typeof(IBsonMemberMapAttribute), false).Cast<IBsonMemberMapAttribute>();
+                var groupings = attributes.GroupBy(a => (a is BsonSerializerAttribute) ? 1 : 2);
+                foreach (var grouping in groupings.OrderBy(g => g.Key))
                 {
-                    attribute.Apply(memberMap);
+                    foreach (var attribute in grouping)
+                    {
+                        attribute.Apply(memberMap);
+                    }
                 }
             }
 
