@@ -567,8 +567,8 @@ namespace MongoDB.Bson.IO
                     var array = deserializationContext.DeserializeWithChildContext(BsonArraySerializer.Instance);
                     bsonReader.ReadEndDocument();
 
-                    var serializationContext = SerializationContext.CreateRoot<BsonDocument>(this);
-                    serializationContext.SerializeWithChildContext(BsonArraySerializer.Instance, array);
+                    var serializationContext = SerializationContext.CreateRoot<BsonArray>(this);
+                    BsonArraySerializer.Instance.Serialize(serializationContext, array);
                 }
             }
         }
