@@ -21,6 +21,14 @@ namespace MongoDB.Bson.Serialization
     public interface IBsonSerializerWithRepresentation
     {
         /// <summary>
+        /// Gets the representation.
+        /// </summary>
+        /// <value>
+        /// The representation.
+        /// </value>
+        BsonType Representation { get; }
+
+        /// <summary>
         /// Returns a serializer that has been reconfigured with the specified representation.
         /// </summary>
         /// <param name="representation">The representation.</param>

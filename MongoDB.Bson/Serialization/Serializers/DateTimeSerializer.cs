@@ -62,6 +62,19 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="representation">The representation.</param>
         public DateTimeSerializer(bool dateOnly, BsonType representation)
         {
+            switch (representation)
+            {
+                case BsonType.DateTime:
+                case BsonType.Document:
+                case BsonType.Int64:
+                case BsonType.String:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for a DateTimeSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             _kind = DateTimeKind.Utc;
             _dateOnly = dateOnly;
             _representation = representation;
@@ -92,6 +105,19 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="representation">The representation.</param>
         public DateTimeSerializer(DateTimeKind kind, BsonType representation)
         {
+            switch (representation)
+            {
+                case BsonType.DateTime:
+                case BsonType.Document:
+                case BsonType.Int64:
+                case BsonType.String:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for a DateTimeSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             _kind = kind;
             _representation = representation;
         }

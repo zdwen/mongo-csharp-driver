@@ -55,6 +55,19 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="units">The units.</param>
         public TimeSpanSerializer(BsonType representation, TimeSpanUnits units)
         {
+            switch (representation)
+            {
+                case BsonType.Double:
+                case BsonType.Int32:
+                case BsonType.Int64:
+                case BsonType.String:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for a TimeSpanSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             _representation = representation;
             _units = units;
         }

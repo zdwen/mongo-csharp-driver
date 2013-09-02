@@ -60,6 +60,17 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="valueSerializer">The value serializer.</param>
         public KeyValuePairSerializer(BsonType representation, IBsonSerializer<TKey> keySerializer, IBsonSerializer<TValue> valueSerializer)
         {
+            switch (representation)
+            {
+                case BsonType.Array:
+                case BsonType.Document:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for a KeyValuePairSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             _representation = representation;
             _keySerializer = keySerializer;
             _valueSerializer = valueSerializer;

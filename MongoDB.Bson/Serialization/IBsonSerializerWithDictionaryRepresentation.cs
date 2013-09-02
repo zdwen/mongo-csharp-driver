@@ -23,6 +23,14 @@ namespace MongoDB.Bson.Serialization
     public interface IBsonSerializerWithDictionaryRepresentation
     {
         /// <summary>
+        /// Gets the dictionary representation.
+        /// </summary>
+        /// <value>
+        /// The dictionary representation.
+        /// </value>
+        DictionaryRepresentation DictionaryRepresentation { get; }
+
+        /// <summary>
         /// Returns a serializer that has been reconfigured with the specified dictionary representation.
         /// </summary>
         /// <param name="dictionaryRepresentation">The dictionary representation.</param>

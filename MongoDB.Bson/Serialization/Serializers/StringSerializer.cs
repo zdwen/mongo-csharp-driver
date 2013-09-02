@@ -44,6 +44,18 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="representation">The representation.</param>
         public StringSerializer(BsonType representation)
         {
+            switch (representation)
+            {
+                case BsonType.ObjectId:
+                case BsonType.String:
+                case BsonType.Symbol:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for a StringSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             _representation = representation;
         }
 

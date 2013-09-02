@@ -45,6 +45,19 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="representation">The representation.</param>
         public EnumSerializer(BsonType representation)
         {
+            switch (representation)
+            {
+                case 0:
+                case BsonType.Int32:
+                case BsonType.Int64:
+                case BsonType.String:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for an EnumSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             // don't know of a way to enforce this at compile time
             if (!typeof(TEnum).IsEnum)
             {

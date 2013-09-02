@@ -44,6 +44,18 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="representation">The representation.</param>
         public CharSerializer(BsonType representation)
         {
+            switch (representation)
+            {
+                case BsonType.Int32:
+                case BsonType.Int64:
+                case BsonType.String:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for a CharSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             _representation = representation;
         }
 
@@ -75,6 +87,9 @@ namespace MongoDB.Bson.Serialization.Serializers
                 case BsonType.Int32:
                     return (char)bsonReader.ReadInt32();
 
+                case BsonType.Int64:
+                    return (char)bsonReader.ReadInt64();
+
                 case BsonType.String:
                     return (char)bsonReader.ReadString()[0];
 
@@ -97,6 +112,10 @@ namespace MongoDB.Bson.Serialization.Serializers
             {
                 case BsonType.Int32:
                     bsonWriter.WriteInt32((int)value);
+                    break;
+
+                case BsonType.Int64:
+                    bsonWriter.WriteInt64((int)value);
                     break;
 
                 case BsonType.String:

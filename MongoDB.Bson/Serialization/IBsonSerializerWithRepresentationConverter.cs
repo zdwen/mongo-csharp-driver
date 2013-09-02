@@ -23,6 +23,14 @@ namespace MongoDB.Bson.Serialization
     public interface IBsonSerializerWithRepresentationConverter
     {
         /// <summary>
+        /// Gets the converter.
+        /// </summary>
+        /// <value>
+        /// The converter.
+        /// </value>
+        RepresentationConverter Converter { get; }
+
+        /// <summary>
         /// Returns a serializer that has been reconfigured with the specified item serializer.
         /// </summary>
         /// <param name="converter">The converter.</param>

@@ -146,7 +146,7 @@ namespace MongoDB.Driver
         }
 
         // nested classes
-        internal class Serializer : SerializeAsNominalTypeSerializer<CommandDocument, BsonDocument>
+        new internal class Serializer : SerializeAsNominalTypeSerializer<CommandDocument, BsonDocument>
         {
         }
     }

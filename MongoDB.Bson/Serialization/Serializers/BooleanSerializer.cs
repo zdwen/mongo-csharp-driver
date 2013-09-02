@@ -45,6 +45,20 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="representation">The representation.</param>
         public BooleanSerializer(BsonType representation)
         {
+            switch (representation)
+            {
+                case BsonType.Boolean:
+                case BsonType.Double:
+                case BsonType.Int32:
+                case BsonType.Int64:
+                case BsonType.String:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for a BooleanSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             _representation = representation;
         }
 

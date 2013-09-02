@@ -56,6 +56,20 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="converter">The converter.</param>
         public DecimalSerializer(BsonType representation, RepresentationConverter converter)
         {
+            switch (representation)
+            {
+                case BsonType.Array:
+                case BsonType.Double:
+                case BsonType.Int32:
+                case BsonType.Int64:
+                case BsonType.String:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for a DecimalSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             _representation = representation;
             _converter = converter;
         }

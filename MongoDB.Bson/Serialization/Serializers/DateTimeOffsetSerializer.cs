@@ -45,6 +45,18 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="representation">The representation.</param>
         public DateTimeOffsetSerializer(BsonType representation)
         {
+            switch (representation)
+            {
+                case BsonType.Array:
+                case BsonType.Document:
+                case BsonType.String:
+                    break;
+
+                default:
+                    var message = string.Format("{0} is not a valid representation for a DateTimeOffsetSerializer.", representation);
+                    throw new ArgumentException(message);
+            }
+
             _representation = representation;
         }
 
