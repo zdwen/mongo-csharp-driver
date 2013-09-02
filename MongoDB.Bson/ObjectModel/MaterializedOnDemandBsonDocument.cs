@@ -40,7 +40,7 @@ namespace MongoDB.Bson
         /// <summary>
         /// Initializes a new instance of the <see cref="MaterializedOnDemandBsonDocument"/> class.
         /// </summary>
-        public MaterializedOnDemandBsonDocument()
+        protected MaterializedOnDemandBsonDocument()
         {
         }
 
