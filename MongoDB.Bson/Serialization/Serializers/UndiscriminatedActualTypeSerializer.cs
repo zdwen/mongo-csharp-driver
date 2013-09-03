@@ -27,7 +27,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for interfaces and base classes that delegates to the actual type interface without writing a discriminator.
     /// </summary>
-    public class UndiscriminatedActualTypeSerializer : BsonBaseSerializer
+    public class UndiscriminatedActualTypeSerializer : IBsonSerializer
     {
         // private static fields
         private static readonly IBsonSerializer __instance = new UndiscriminatedActualTypeSerializer();
@@ -37,7 +37,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// Initializes a new instance of the <see cref="UndiscriminatedActualTypeSerializer"/> class.
         /// </summary>
         public UndiscriminatedActualTypeSerializer()
-            : base(typeof(object))
         {
         }
 
@@ -53,13 +52,38 @@ namespace MongoDB.Bson.Serialization.Serializers
             get { return __instance; }
         }
 
+        // public properties
+        /// <summary>
+        /// Gets the type of the value.
+        /// </summary>
+        /// <value>
+        /// The type of the value.
+        /// </value>
+        public Type ValueType
+        {
+            get { return typeof(object); }
+        }
+
         // public methods
+        /// <summary>
+        /// Deserializes a value.
+        /// </summary>
+        /// <param name="context">The deserialization context.</param>
+        /// <returns>
+        /// The value.
+        /// </returns>
+        /// <exception cref="System.NotSupportedException">UndiscriminatedActualTypeSerializer does not support the Deserialize method.</exception>
+        public object Deserialize(DeserializationContext context)
+        {
+            throw new NotSupportedException("UndiscriminatedActualTypeSerializer does not support the Deserialize method.");
+        }
+
         /// <summary>
         /// Serializes a value.
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The document.</param>
-        public override void Serialize(SerializationContext context, object value)
+        public void Serialize(SerializationContext context, object value)
         {
             var bsonWriter = context.Writer;
 
