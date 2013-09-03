@@ -23,25 +23,25 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// Represents a serializer for a class that implements IEnumerable.
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
-    public class IEnumerableImplementerSerializer<TValue> :
-        IEnumerableSerializerBase<TValue>,
+    public class EnumerableInterfaceImplementerSerializer<TValue> :
+        EnumerableInterfaceImplementerSerializerBase<TValue>,
         IBsonSerializerWithConfigurableChildSerializer,
         IBsonSerializerWithItemSerializer
             where TValue : class, IList, new()
     {
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="IEnumerableImplementerSerializer{TValue}"/> class.
+        /// Initializes a new instance of the <see cref="EnumerableInterfaceImplementerSerializer{TValue}"/> class.
         /// </summary>
-        public IEnumerableImplementerSerializer()
+        public EnumerableInterfaceImplementerSerializer()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IEnumerableImplementerSerializer{TValue}"/> class.
+        /// Initializes a new instance of the <see cref="EnumerableInterfaceImplementerSerializer{TValue}"/> class.
         /// </summary>
         /// <param name="itemSerializer">The item serializer.</param>
-        public IEnumerableImplementerSerializer(IBsonSerializer itemSerializer)
+        public EnumerableInterfaceImplementerSerializer(IBsonSerializer itemSerializer)
             : base(itemSerializer)
         {
         }
@@ -52,7 +52,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="itemSerializer">The item serializer.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IEnumerableImplementerSerializer<TValue> WithItemSerializer(IBsonSerializer itemSerializer)
+        public EnumerableInterfaceImplementerSerializer<TValue> WithItemSerializer(IBsonSerializer itemSerializer)
         {
             if (itemSerializer == ItemSerializer)
             {
@@ -60,7 +60,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IEnumerableImplementerSerializer<TValue>(itemSerializer);
+                return new EnumerableInterfaceImplementerSerializer<TValue>(itemSerializer);
             }
         }
 
@@ -96,25 +96,25 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <typeparam name="TItem">The type of the item.</typeparam>
-    public class IEnumerableImplementerSerializer<TValue, TItem> : 
-        IEnumerableSerializerBase<TValue, TItem>,
+    public class EnumerableInterfaceImplementerSerializer<TValue, TItem> : 
+        EnumerableInterfaceImplementerSerializerBase<TValue, TItem>,
         IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithItemSerializer<IEnumerableImplementerSerializer<TValue, TItem>, TValue, TItem>
+        IBsonSerializerWithItemSerializer<EnumerableInterfaceImplementerSerializer<TValue, TItem>, TValue, TItem>
             where TValue : class, IEnumerable<TItem>
     {
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="IEnumerableImplementerSerializer{TValue, TItem}"/> class.
+        /// Initializes a new instance of the <see cref="EnumerableInterfaceImplementerSerializer{TValue, TItem}"/> class.
         /// </summary>
-        public IEnumerableImplementerSerializer()
+        public EnumerableInterfaceImplementerSerializer()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IEnumerableImplementerSerializer{TValue, TItem}"/> class.
+        /// Initializes a new instance of the <see cref="EnumerableInterfaceImplementerSerializer{TValue, TItem}"/> class.
         /// </summary>
         /// <param name="itemSerializer">The item serializer.</param>
-        public IEnumerableImplementerSerializer(IBsonSerializer<TItem> itemSerializer)
+        public EnumerableInterfaceImplementerSerializer(IBsonSerializer<TItem> itemSerializer)
             : base(itemSerializer)
         {
         }
@@ -125,7 +125,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="itemSerializer">The item serializer.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IEnumerableImplementerSerializer<TValue, TItem> WithItemSerializer(IBsonSerializer<TItem> itemSerializer)
+        public EnumerableInterfaceImplementerSerializer<TValue, TItem> WithItemSerializer(IBsonSerializer<TItem> itemSerializer)
         {
             if (itemSerializer == ItemSerializer)
             {
@@ -133,7 +133,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IEnumerableImplementerSerializer<TValue, TItem>(itemSerializer);
+                return new EnumerableInterfaceImplementerSerializer<TValue, TItem>(itemSerializer);
             }
         }
 

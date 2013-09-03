@@ -23,7 +23,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// Represents a serializer for a class that implements IDictionary.
     /// </summary>
     /// <typeparam name="TDictionary">The type of the dictionary.</typeparam>
-    public class IDictionaryImplementerSerializer<TDictionary> :
+    public class DictionaryInterfaceImplementerSerializer<TDictionary> :
         DictionarySerializerBase<TDictionary>,
         IBsonSerializerWithConfigurableChildSerializer,
         IBsonSerializerWithDictionaryRepresentation,
@@ -31,28 +31,28 @@ namespace MongoDB.Bson.Serialization.Serializers
             where TDictionary : class, IDictionary, new()
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="IDictionaryImplementerSerializer{TDictionary}"/> class.
+        /// Initializes a new instance of the <see cref="DictionaryInterfaceImplementerSerializer{TDictionary}"/> class.
         /// </summary>
-        public IDictionaryImplementerSerializer()
+        public DictionaryInterfaceImplementerSerializer()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IDictionaryImplementerSerializer{TDictionary}"/> class.
+        /// Initializes a new instance of the <see cref="DictionaryInterfaceImplementerSerializer{TDictionary}"/> class.
         /// </summary>
         /// <param name="dictionaryRepresentation">The dictionary representation.</param>
-        public IDictionaryImplementerSerializer(DictionaryRepresentation dictionaryRepresentation)
+        public DictionaryInterfaceImplementerSerializer(DictionaryRepresentation dictionaryRepresentation)
             : base(dictionaryRepresentation)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IDictionaryImplementerSerializer{TDictionary}"/> class.
+        /// Initializes a new instance of the <see cref="DictionaryInterfaceImplementerSerializer{TDictionary}"/> class.
         /// </summary>
         /// <param name="dictionaryRepresentation">The dictionary representation.</param>
         /// <param name="keySerializer">The key serializer.</param>
         /// <param name="valueSerializer">The value serializer.</param>
-        public IDictionaryImplementerSerializer(DictionaryRepresentation dictionaryRepresentation, IBsonSerializer keySerializer, IBsonSerializer valueSerializer)
+        public DictionaryInterfaceImplementerSerializer(DictionaryRepresentation dictionaryRepresentation, IBsonSerializer keySerializer, IBsonSerializer valueSerializer)
             : base(dictionaryRepresentation, keySerializer, valueSerializer)
         {
         }
@@ -63,7 +63,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="dictionaryRepresentation">The dictionary representation.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IDictionaryImplementerSerializer<TDictionary> WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation)
+        public DictionaryInterfaceImplementerSerializer<TDictionary> WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation)
         {
             if (dictionaryRepresentation == DictionaryRepresentation)
             {
@@ -71,7 +71,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IDictionaryImplementerSerializer<TDictionary>(dictionaryRepresentation, KeySerializer, ValueSerializer);
+                return new DictionaryInterfaceImplementerSerializer<TDictionary>(dictionaryRepresentation, KeySerializer, ValueSerializer);
             }
         }
 
@@ -82,7 +82,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="keySerializer">The key serializer.</param>
         /// <param name="valueSerializer">The value serializer.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IDictionaryImplementerSerializer<TDictionary> WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation, IBsonSerializer keySerializer, IBsonSerializer valueSerializer)
+        public DictionaryInterfaceImplementerSerializer<TDictionary> WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation, IBsonSerializer keySerializer, IBsonSerializer valueSerializer)
         {
             if (dictionaryRepresentation == DictionaryRepresentation && keySerializer == KeySerializer && valueSerializer == ValueSerializer)
             {
@@ -90,7 +90,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IDictionaryImplementerSerializer<TDictionary>(dictionaryRepresentation, keySerializer, valueSerializer);
+                return new DictionaryInterfaceImplementerSerializer<TDictionary>(dictionaryRepresentation, keySerializer, valueSerializer);
             }
         }
 
@@ -99,7 +99,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="keySerializer">The key serializer.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IDictionaryImplementerSerializer<TDictionary> WithKeySerializer(IBsonSerializer keySerializer)
+        public DictionaryInterfaceImplementerSerializer<TDictionary> WithKeySerializer(IBsonSerializer keySerializer)
         {
             if (keySerializer == KeySerializer)
             {
@@ -107,7 +107,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IDictionaryImplementerSerializer<TDictionary>(DictionaryRepresentation, keySerializer, ValueSerializer);
+                return new DictionaryInterfaceImplementerSerializer<TDictionary>(DictionaryRepresentation, keySerializer, ValueSerializer);
             }
         }
 
@@ -116,7 +116,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="valueSerializer">The value serializer.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IDictionaryImplementerSerializer<TDictionary> WithValueSerializer(IBsonSerializer valueSerializer)
+        public DictionaryInterfaceImplementerSerializer<TDictionary> WithValueSerializer(IBsonSerializer valueSerializer)
         {
             if (valueSerializer == ValueSerializer)
             {
@@ -124,7 +124,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IDictionaryImplementerSerializer<TDictionary>(DictionaryRepresentation, KeySerializer, valueSerializer);
+                return new DictionaryInterfaceImplementerSerializer<TDictionary>(DictionaryRepresentation, KeySerializer, valueSerializer);
             }
         }
 
@@ -171,36 +171,36 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="TDictionary">The type of the dictionary.</typeparam>
     /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <typeparam name="TValue">The type of the value.</typeparam>
-    public class IDictionaryImplementerSerializer<TDictionary, TKey, TValue> :
+    public class DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue> :
         DictionarySerializerBase<TDictionary, TKey, TValue>,
         IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithDictionaryRepresentation<IDictionaryImplementerSerializer<TDictionary, TKey, TValue>>,
-        IBsonSerializerWithKeyValueSerializers<IDictionaryImplementerSerializer<TDictionary, TKey, TValue>, TDictionary, TKey, TValue>
+        IBsonSerializerWithDictionaryRepresentation<DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>>,
+        IBsonSerializerWithKeyValueSerializers<DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>, TDictionary, TKey, TValue>
             where TDictionary : class, IDictionary<TKey, TValue>, new()
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="IDictionaryImplementerSerializer{TDictionary, TKey, TValue}"/> class.
+        /// Initializes a new instance of the <see cref="DictionaryInterfaceImplementerSerializer{TDictionary, TKey, TValue}"/> class.
         /// </summary>
-        public IDictionaryImplementerSerializer()
+        public DictionaryInterfaceImplementerSerializer()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IDictionaryImplementerSerializer{TDictionary, TKey, TValue}"/> class.
+        /// Initializes a new instance of the <see cref="DictionaryInterfaceImplementerSerializer{TDictionary, TKey, TValue}"/> class.
         /// </summary>
         /// <param name="dictionaryRepresentation">The dictionary representation.</param>
-        public IDictionaryImplementerSerializer(DictionaryRepresentation dictionaryRepresentation)
+        public DictionaryInterfaceImplementerSerializer(DictionaryRepresentation dictionaryRepresentation)
             : base(dictionaryRepresentation)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IDictionaryImplementerSerializer{TDictionary, TKey, TValue}"/> class.
+        /// Initializes a new instance of the <see cref="DictionaryInterfaceImplementerSerializer{TDictionary, TKey, TValue}"/> class.
         /// </summary>
         /// <param name="dictionaryRepresentation">The dictionary representation.</param>
         /// <param name="keySerializer">The key serializer.</param>
         /// <param name="valueSerializer">The value serializer.</param>
-        public IDictionaryImplementerSerializer(DictionaryRepresentation dictionaryRepresentation, IBsonSerializer<TKey> keySerializer, IBsonSerializer<TValue> valueSerializer)
+        public DictionaryInterfaceImplementerSerializer(DictionaryRepresentation dictionaryRepresentation, IBsonSerializer<TKey> keySerializer, IBsonSerializer<TValue> valueSerializer)
             : base(dictionaryRepresentation, keySerializer, valueSerializer)
         {
         }
@@ -211,7 +211,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="dictionaryRepresentation">The dictionary representation.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IDictionaryImplementerSerializer<TDictionary, TKey, TValue> WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation)
+        public DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue> WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation)
         {
             if (dictionaryRepresentation == DictionaryRepresentation)
             {
@@ -219,7 +219,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IDictionaryImplementerSerializer<TDictionary, TKey, TValue>(dictionaryRepresentation, KeySerializer, ValueSerializer);
+                return new DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>(dictionaryRepresentation, KeySerializer, ValueSerializer);
             }
         }
 
@@ -230,7 +230,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="keySerializer">The key serializer.</param>
         /// <param name="valueSerializer">The value serializer.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IDictionaryImplementerSerializer<TDictionary, TKey, TValue> WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation, IBsonSerializer<TKey> keySerializer, IBsonSerializer<TValue> valueSerializer)
+        public DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue> WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation, IBsonSerializer<TKey> keySerializer, IBsonSerializer<TValue> valueSerializer)
         {
             if (dictionaryRepresentation == DictionaryRepresentation && keySerializer == KeySerializer && valueSerializer == ValueSerializer)
             {
@@ -238,7 +238,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IDictionaryImplementerSerializer<TDictionary, TKey, TValue>(dictionaryRepresentation, keySerializer, valueSerializer);
+                return new DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>(dictionaryRepresentation, keySerializer, valueSerializer);
             }
         }
 
@@ -247,7 +247,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="keySerializer">The key serializer.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IDictionaryImplementerSerializer<TDictionary, TKey, TValue> WithKeySerializer(IBsonSerializer<TKey> keySerializer)
+        public DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue> WithKeySerializer(IBsonSerializer<TKey> keySerializer)
         {
             if (keySerializer == KeySerializer)
             {
@@ -255,7 +255,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IDictionaryImplementerSerializer<TDictionary, TKey, TValue>(DictionaryRepresentation, keySerializer, ValueSerializer);
+                return new DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>(DictionaryRepresentation, keySerializer, ValueSerializer);
             }
         }
 
@@ -264,7 +264,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="valueSerializer">The value serializer.</param>
         /// <returns>The reconfigured serializer.</returns>
-        public IDictionaryImplementerSerializer<TDictionary, TKey, TValue> WithValueSerializer(IBsonSerializer<TValue> valueSerializer)
+        public DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue> WithValueSerializer(IBsonSerializer<TValue> valueSerializer)
         {
             if (valueSerializer == ValueSerializer)
             {
@@ -272,7 +272,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                return new IDictionaryImplementerSerializer<TDictionary, TKey, TValue>(DictionaryRepresentation, KeySerializer, valueSerializer);
+                return new DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>(DictionaryRepresentation, KeySerializer, valueSerializer);
             }
         }
 

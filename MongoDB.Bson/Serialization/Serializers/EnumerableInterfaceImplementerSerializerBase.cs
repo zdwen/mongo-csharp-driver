@@ -21,21 +21,21 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for enumerable values.
     /// </summary>
-    public abstract class IEnumerableSerializerBase<TValue> : EnumerableSerializerBase<TValue>, IBsonArraySerializer where TValue : class, IEnumerable
+    public abstract class EnumerableInterfaceImplementerSerializerBase<TValue> : EnumerableSerializerBase<TValue>, IBsonArraySerializer where TValue : class, IEnumerable
     {
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="IEnumerableSerializerBase{TValue}"/> class.
+        /// Initializes a new instance of the <see cref="EnumerableInterfaceImplementerSerializerBase{TValue}"/> class.
         /// </summary>
-        protected IEnumerableSerializerBase()
+        protected EnumerableInterfaceImplementerSerializerBase()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IEnumerableSerializerBase{TValue}"/> class.
+        /// Initializes a new instance of the <see cref="EnumerableInterfaceImplementerSerializerBase{TValue}"/> class.
         /// </summary>
         /// <param name="itemSerializer">The item serializer.</param>
-        protected IEnumerableSerializerBase(IBsonSerializer itemSerializer)
+        protected EnumerableInterfaceImplementerSerializerBase(IBsonSerializer itemSerializer)
             : base(itemSerializer)
         {
         }
@@ -77,21 +77,21 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <typeparam name="TItem">The type of the items.</typeparam>
-    public abstract class IEnumerableSerializerBase<TValue, TItem> : EnumerableSerializerBase<TValue, TItem>, IBsonArraySerializer where TValue : class, IEnumerable<TItem>
+    public abstract class EnumerableInterfaceImplementerSerializerBase<TValue, TItem> : EnumerableSerializerBase<TValue, TItem>, IBsonArraySerializer where TValue : class, IEnumerable<TItem>
     {
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="IEnumerableSerializerBase{TValue, TItem}"/> class.
+        /// Initializes a new instance of the <see cref="EnumerableInterfaceImplementerSerializerBase{TValue, TItem}"/> class.
         /// </summary>
-        public IEnumerableSerializerBase()
+        public EnumerableInterfaceImplementerSerializerBase()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IEnumerableSerializerBase{TValue, TItem}"/> class.
+        /// Initializes a new instance of the <see cref="EnumerableInterfaceImplementerSerializerBase{TValue, TItem}"/> class.
         /// </summary>
         /// <param name="itemSerializer">The item serializer.</param>
-        public IEnumerableSerializerBase(IBsonSerializer<TItem> itemSerializer)
+        public EnumerableInterfaceImplementerSerializerBase(IBsonSerializer<TItem> itemSerializer)
             : base(itemSerializer)
         {
         }

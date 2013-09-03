@@ -23,7 +23,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// </summary>
     /// <typeparam name="TItem">The type of the item.</typeparam>
     public class ReadOnlyCollectionSerializer<TItem> :
-        IEnumerableSerializerBase<ReadOnlyCollection<TItem>, TItem>,
+        EnumerableInterfaceImplementerSerializerBase<ReadOnlyCollection<TItem>, TItem>,
         IBsonSerializerWithItemSerializer<ReadOnlyCollectionSerializer<TItem>, ReadOnlyCollection<TItem>, TItem>
     {
         // constructors
