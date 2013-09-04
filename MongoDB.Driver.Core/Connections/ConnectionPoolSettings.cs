@@ -44,7 +44,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="connectionMaxIdleTime">The maximum amount of time a connection is allowed to not be used.</param>
         /// <param name="connectionMaxLifeTime">The maximum amount of time a connection is allowed to be used.</param>
         /// <param name="maxSize">The maximum size of the connection pool.</param>
-        /// <param name="minSize">The minumum size of the connection pool.</param>
+        /// <param name="minSize">The minimum size of the connection pool.</param>
         /// <param name="sizeMaintenanceFrequency">The frequency to ensure the min and max size of the pool.</param>
         /// <param name="maxWaitQueueSize">Size of the max wait queue.</param>
         public ConnectionPoolSettings(TimeSpan connectionMaxIdleTime, TimeSpan connectionMaxLifeTime, int maxSize, int minSize, TimeSpan sizeMaintenanceFrequency, int maxWaitQueueSize)
@@ -209,6 +209,15 @@ namespace MongoDB.Driver.Core.Connections
             }
 
             /// <summary>
+            /// Sets the maximum size of the wait queue.
+            /// </summary>
+            /// <param name="size">The size.</param>
+            public void SetMaxWaitQueueSize(int size)
+            {
+                _waitQueueSize = size;
+            }
+
+            /// <summary>
             /// Sets the maximum size of the connection pool.
             /// </summary>
             /// <param name="size">The size.</param>
@@ -223,15 +232,6 @@ namespace MongoDB.Driver.Core.Connections
             public void SetSizeMaintenanceFrequency(TimeSpan frequency)
             {
                 _sizeMaintenanceFrequency = frequency;
-            }
-
-            /// <summary>
-            /// Sets the maximum size of the wait queue.
-            /// </summary>
-            /// <param name="size">The size.</param>
-            public void SetWaitQueueSize(int size)
-            {
-                _waitQueueSize = size;
             }
         }
     }

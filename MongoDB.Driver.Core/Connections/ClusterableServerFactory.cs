@@ -29,7 +29,6 @@ namespace MongoDB.Driver.Core.Connections
         private readonly ClusterableServerSettings _settings;
         private readonly IConnectionFactory _connectionFactory;
         private readonly IChannelProviderFactory _channelProviderFactory;
-        private readonly IEventPublisher _events;
 
         // constructors
         /// <summary>
@@ -38,18 +37,15 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="settings">The settings.</param>
         /// <param name="channelProviderFactory">The channel provider factory.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        /// <param name="events">The events.</param>
-        public ClusterableServerFactory(ClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IEventPublisher events)
+        public ClusterableServerFactory(ClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("connectionPoolFactory", channelProviderFactory);
             Ensure.IsNotNull("connectionFactory", connectionFactory);
-            Ensure.IsNotNull("events", events);
 
             _settings = settings;
             _channelProviderFactory = channelProviderFactory;
             _connectionFactory = connectionFactory;
-            _events = events;
         }
 
         // public methods
@@ -63,7 +59,7 @@ namespace MongoDB.Driver.Core.Connections
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
             var channelProvider = _channelProviderFactory.Create(dnsEndPoint);
-            return new ClusterableServer(_settings, dnsEndPoint, channelProvider, _connectionFactory, _events);
+            return new ClusterableServer(_settings, dnsEndPoint, channelProvider, _connectionFactory);
         }
     }
 }

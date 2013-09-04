@@ -43,7 +43,6 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IConnectionFactory _connectionFactory;
         private readonly IChannelProvider _channelProvider;
         private readonly Timer _descriptionUpdateTimer;
-        private readonly IEventPublisher _events;
         private readonly PingTimeAggregator _pingTimeAggregator;
         private readonly ClusterableServerSettings _settings;
         private readonly StateHelper _state;
@@ -59,18 +58,15 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="channelProvider">The channel provider.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        /// <param name="events">The events.</param>
-        public ClusterableServer(ClusterableServerSettings settings, DnsEndPoint dnsEndPoint, IChannelProvider channelProvider, IConnectionFactory connectionFactory, IEventPublisher events)
+        public ClusterableServer(ClusterableServerSettings settings, DnsEndPoint dnsEndPoint, IChannelProvider channelProvider, IConnectionFactory connectionFactory)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
             Ensure.IsNotNull("connectionProvider", channelProvider);
             Ensure.IsNotNull("connectionFactory", connectionFactory);
-            Ensure.IsNotNull("events", events);
 
             _settings = settings;
             _dnsEndPoint = dnsEndPoint;
-            _events = events;
             _pingTimeAggregator = new PingTimeAggregator(5);
             _toStringDescription = string.Format("server#{0}-{1}", IdGenerator<IServer>.GetNextId(), _dnsEndPoint);
             _state = new StateHelper(State.Unitialized);
@@ -341,7 +337,6 @@ namespace MongoDB.Driver.Core.Connections
             bool areEqual = AreDescriptionsEqual(oldDescription, description);
             if (!areEqual)
             {
-                _events.Publish(new ServerDescriptionChangedEvent(this));
                 __trace.TraceInformation("{0}: description updated: {1}.", _toStringDescription, description);
                 var args = new ChangedEventArgs<ServerDescription>(oldDescription, description);
                 if (DescriptionChanged != null)

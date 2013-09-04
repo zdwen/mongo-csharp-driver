@@ -13,17 +13,21 @@
 * limitations under the License.
 */
 
-namespace MongoDB.Driver.Core.Connections
+using System;
+
+namespace MongoDB.Driver.Core.Configuration
 {
     /// <summary>
-    /// Creates <see cref="ICluster"/>s.
+    /// Handles resolution of dependencies.
     /// </summary>
-    public interface IClusterFactory
+    public interface IDbDependencyResolver
     {
         /// <summary>
-        /// Creates a cluster.
+        /// Resolves a dependency for the specified type.
         /// </summary>
-        /// <returns>An <see cref="ICluster" />.</returns>
-        ICluster Create();
+        /// <param name="type">The type to resolve.</param>
+        /// <param name="container">The container.</param>
+        /// <returns>The resolved dependency or <c>null</c> if one could not be resolved.</returns>
+        object Resolve(Type type, IDbConfigurationContainer container);
     }
 }

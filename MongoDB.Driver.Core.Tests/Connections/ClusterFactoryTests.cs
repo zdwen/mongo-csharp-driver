@@ -16,10 +16,10 @@ namespace MongoDB.Driver.Core.Connections
         {
             var serverFactory = Substitute.For<IClusterableServerFactory>();
 
-            var subject = new ClusterFactory(serverFactory);
             var settings = ClusterSettings.Create(x => x.AddHost("localhost"));
+            var subject = new ClusterFactory(settings, serverFactory);
 
-            var result = subject.Create(settings);
+            var result = subject.Create();
 
             Assert.IsInstanceOf<SingleServerCluster>(result);
         }
@@ -29,14 +29,14 @@ namespace MongoDB.Driver.Core.Connections
         {
             var serverFactory = Substitute.For<IClusterableServerFactory>();
 
-            var subject = new ClusterFactory(serverFactory);
             var settings = ClusterSettings.Create(x =>
             {
                x.AddHost("localhost");
                x.AddHost("otherhost");
             });
+            var subject = new ClusterFactory(settings, serverFactory);
 
-            var result = subject.Create(settings);
+            var result = subject.Create();
 
             Assert.IsInstanceOf<MultiServerCluster>(result);
         }

@@ -23,6 +23,7 @@ using System.Xml;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core
 {
@@ -134,7 +135,7 @@ namespace MongoDB.Driver.Core
 
             var name = Response.Contains("setName") ? Response["setName"].AsString : null;
             DnsEndPoint primary;
-            if (!Response.Contains("primary") || !TryParseDnsEndPoint(Response["primary"].AsString, addressFamily, out primary))
+            if (!Response.Contains("primary") || !DnsEndPointParser.TryParse(Response["primary"].AsString, addressFamily, out primary))
             {
                 primary = null;
             }
@@ -173,32 +174,13 @@ namespace MongoDB.Driver.Core
             foreach (var hostName in Response[elementName].AsBsonArray)
             {
                 DnsEndPoint dnsEndPoint;
-                if (TryParseDnsEndPoint(hostName.AsString, addressFamily, out dnsEndPoint))
+                if (DnsEndPointParser.TryParse(hostName.AsString, addressFamily, out dnsEndPoint))
                 {
                     dnsEndPoints.Add(dnsEndPoint);
                 }
             }
 
             return dnsEndPoints;
-        }
-
-        private bool TryParseDnsEndPoint(string value, AddressFamily addressFamily, out DnsEndPoint dnsEndPoint)
-        {
-            // don't throw ArgumentNullException if value is null
-            dnsEndPoint = null;
-            if (value != null)
-            {
-                var match = Regex.Match(value, @"^(?<host>(\[[^]]+\]|[^:\[\]]+))(:(?<port>\d+))?$");
-                if (match.Success)
-                {
-                    string host = match.Groups["host"].Value;
-                    string portString = match.Groups["port"].Value;
-                    int port = (portString == "") ? 27017 : XmlConvert.ToInt32(portString);
-                    dnsEndPoint = new DnsEndPoint(host, port, addressFamily);
-                }
-            }
-
-            return dnsEndPoint != null;
         }
     }
 }

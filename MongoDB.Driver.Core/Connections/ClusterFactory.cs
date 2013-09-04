@@ -25,37 +25,38 @@ namespace MongoDB.Driver.Core.Connections
     {
         // private fields
         private readonly IClusterableServerFactory _serverFactory;
+        private readonly ClusterSettings _settings;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ClusterFactory" /> class.
         /// </summary>
+        /// <param name="settings">The settings.</param>
         /// <param name="serverFactory">The server factory.</param>
-        public ClusterFactory(IClusterableServerFactory serverFactory)
+        public ClusterFactory(ClusterSettings settings, IClusterableServerFactory serverFactory)
         {
+            Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("serverFactory", serverFactory);
 
+            _settings = settings;
             _serverFactory = serverFactory;
         }
 
         /// <summary>
         /// Creates a cluster with the specified settings.
         /// </summary>
-        /// <param name="settings">The settings.</param>
         /// <returns>An <see cref="ICluster" />.</returns>
-        public ICluster Create(ClusterSettings settings)
+        public ICluster Create()
         {
-            Ensure.IsNotNull("settings", settings);
-
-            switch(settings.ConnectionMode)
+            switch(_settings.ConnectionMode)
             {
                 case ClusterConnectionMode.Single:
-                    return new SingleServerCluster(settings, _serverFactory);
+                    return new SingleServerCluster(_settings, _serverFactory);
                 case ClusterConnectionMode.Multiple:
-                    return new MultiServerCluster(settings, _serverFactory);
+                    return new MultiServerCluster(_settings, _serverFactory);
             }
 
-            throw new NotSupportedException(string.Format("An unsupported ClusterConnectionMode of {0} was provided.", settings.ConnectionMode));
+            throw new NotSupportedException(string.Format("An unsupported ClusterConnectionMode of {0} was provided.", _settings.ConnectionMode));
         }
     }
 }

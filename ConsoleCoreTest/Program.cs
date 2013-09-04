@@ -1,23 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using MongoDB.Bson;
-using MongoDB.Bson.IO;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core;
-using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Diagnostics;
-using MongoDB.Driver.Core.Security;
-using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Operations;
-using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Protocol.Messages;
+using MongoDB.Driver.Core.Sessions;
 
 namespace MongoDB.DriverUnitTests.Jira
 {
@@ -29,72 +21,38 @@ namespace MongoDB.DriverUnitTests.Jira
 
         public static void Main()
         {
-            var events = new EventPublisher();
-
-            // Performance Counters
-
-            // must happen while running as an administrator...
-            PerformanceCounterEventListeners.Install();
-            
-            var perfCounters = new PerformanceCounterEventListeners("My Application");
-            events.Subscribe(perfCounters);
-
+            var configuration = new DbConfiguration();
 
             // 1) Create a Stream Factory
-            IStreamFactory streamFactory = new NetworkStreamFactory(
-                NetworkStreamSettings.Defaults,
-                new DnsCache());
-
             // SSL
-            //streamFactory = new SslStreamFactory(SslSettings.Defaults, streamFactory);
-
+            //configuration.UseSsl();
             // Socks
-            //streamFactory = new Socks5StreamProxy(new DnsEndPoint("localhost", 1080), streamFactory);
+            //configuration.UseSocksProxy(new DnsEndPoint("localhost", 1080));
 
             // 2) Create a Connection Factory
-            IConnectionFactory connectionFactory = new StreamConnectionFactory(
-                StreamConnectionSettings.Defaults,
-                streamFactory,
-                events);
-
-            // 3) Create a Channel Provider Factory
-            IChannelProviderFactory channelProviderFactory = new ConnectionPoolChannelProviderFactory(
-                new ConnectionPoolFactory(
-                    ConnectionPoolSettings.Create(s =>
-                    {
-                        s.SetConnectionMaxLifeTime(TimeSpan.FromSeconds(10));
-                        s.SetMinSize(2);
-                    }),
-                    connectionFactory,
-                    events),
-                events);
-
-            // A pipelined channel provider
-            //channelProviderFactory = new PipelinedChannelProviderFactory(connectionFactory, 1);
-
-            // 4) Create a Clusterable Server Factory
-            var clusterableServerFactory = new ClusterableServerFactory(
-                ClusterableServerSettings.Defaults,
-                channelProviderFactory,
-                connectionFactory,
-                events);
-
-            // 5) Create a Cluster
-            var settings = ClusterSettings.Defaults;
-            // Replica Set
-            //var settings = ClusterSettings.Create(x =>
+            // Authentication
+            //configuration.UseAuthentication(b =>
             //{
-            //    x.AddHost("localhost", 30000);
-            //    x.AddHost("localhost", 30001);
-            //    x.AddHost("localhost", 30002);
+            //    b.AddCredential(MongoCredential.CreateMongoCRCredential("users", "user", "password"));
             //});
 
-            var clusterFactory = new ClusterFactory(clusterableServerFactory);
-            var cluster = clusterFactory.Create(settings);
+            // 3) Channel Provider Factory
 
-            cluster.Initialize();
+            // A pipelined channel provider
+            //configuration.UsePipelinedChannels();
 
-            using (var session = new ClusterSession(cluster))
+            // 4) Cluster
+            //configuration.UseReplicaSet("name",
+            //    new DnsEndPoint("work-laptop", 30000),
+            //    new DnsEndPoint("work-laptop", 30001),
+            //    new DnsEndPoint("work-laptop", 30002));
+
+            // 5) Events
+            //configuration.IncludePerformanceCounters("MyApplication", true);
+
+            var sessionFactory = configuration.BuildSessionFactory();
+
+            using (var session = sessionFactory.BeginSession())
             {
                 Console.WriteLine("Clearing Data");
                 ClearData(session);
@@ -103,15 +61,20 @@ namespace MongoDB.DriverUnitTests.Jira
             }
 
             Console.WriteLine("Running aggregation as a cursor.");
-            RunAggregation(new ClusterSession(cluster));
+            using (var session = sessionFactory.BeginSession())
+            {
+                RunAggregation(session);
+            }
 
             Console.WriteLine("Running Tests (errors will show up as + (query error) or * (insert/update error))");
             for (int i = 0; i < 7; i++)
             {
-                ThreadPool.QueueUserWorkItem(_ => DoWork(new ClusterSession(cluster)));
+                ThreadPool.QueueUserWorkItem(_ => DoWork(sessionFactory));
             }
 
-            DoWork(new ClusterSession(cluster)); // blocking
+            DoWork(sessionFactory); // blocking
+
+            sessionFactory.Dispose();
         }
 
         private static void RunAggregation(ISession session)
@@ -149,65 +112,68 @@ namespace MongoDB.DriverUnitTests.Jira
             }
         }
 
-        private static void DoWork(ISession session)
+        private static void DoWork(ISessionFactory sessionFactory)
         {
-            var rand = new Random();
-            while (true)
+            using (var session = sessionFactory.BeginSession())
             {
-                var i = rand.Next(0, 10000);
-                BsonDocument doc;
-                IEnumerator<BsonDocument> result = null;
-                try
+                var rand = new Random();
+                while (true)
                 {
-                    result = Query(session, new BsonDocument("i", i));
-                    if (result.MoveNext())
+                    var i = rand.Next(0, 10000);
+                    BsonDocument doc;
+                    IEnumerator<BsonDocument> result = null;
+                    try
                     {
-                        doc = result.Current;
+                        result = Query(session, new BsonDocument("i", i));
+                        if (result.MoveNext())
+                        {
+                            doc = result.Current;
+                        }
+                        else
+                        {
+                            doc = null;
+                        }
+
+                        //Console.Write(".");
+                    }
+                    catch (Exception)
+                    {
+                        Console.Write("+");
+                        continue;
+                    }
+                    finally
+                    {
+                        if (result != null)
+                        {
+                            result.Dispose();
+                        }
+                    }
+
+                    if (doc == null)
+                    {
+                        try
+                        {
+                            Insert(session, new BsonDocument().Add("i", i));
+                            //Console.Write(".");
+                        }
+                        catch (Exception)
+                        {
+                            Console.Write("*");
+                        }
                     }
                     else
                     {
-                        doc = null;
-                    }
-
-                    //Console.Write(".");
-                }
-                catch (Exception)
-                {
-                    Console.Write("+");
-                    continue;
-                }
-                finally
-                {
-                    if (result != null)
-                    {
-                        result.Dispose();
-                    }
-                }
-
-                if (doc == null)
-                {
-                    try
-                    {
-                        Insert(session, new BsonDocument().Add("i", i));
-                        //Console.Write(".");
-                    }
-                    catch (Exception)
-                    {
-                        Console.Write("*");
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        var query = new BsonDocument("_id", doc["_id"]);
-                        var update = new BsonDocument("$set", new BsonDocument("i", i + 1));
-                        Update(session, query, update);
-                        //Console.Write(".");
-                    }
-                    catch (Exception)
-                    {
-                        Console.Write("*");
+                        try
+                        {
+                            var query = new BsonDocument("_id", doc["_id"]);
+                            var update = new BsonDocument("$set", new BsonDocument("i", i + 1));
+                            Update(session, query, update);
+                            //Console.Write(".");
+                        }
+                        catch (Exception)
+                        {
+                            Console.Write("*");
+                        }
                     }
                 }
             }

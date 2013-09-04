@@ -168,7 +168,7 @@ namespace MongoDB.Driver.Core.Connections
 
         private ClusterableServer CreateSubject()
         {
-            return new ClusterableServer(_serverSettings, _dnsEndPoint, _channelProvider, _connectionFactory, new EventPublisher());
+            return new ClusterableServer(_serverSettings, _dnsEndPoint, _channelProvider, _connectionFactory);
         }
 
         private void SetupLookupDescriptionResults()

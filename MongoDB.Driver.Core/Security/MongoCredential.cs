@@ -171,7 +171,7 @@ namespace MongoDB.Driver.Core.Security
         internal static MongoCredential FromComponents(string mechanism, string source, string username, string password)
         {
             var evidence = password == null ? (MongoIdentityEvidence)new ExternalEvidence() : new PasswordEvidence(password);
-            return FromComponents(mechanism, source, username, evidence);
+            return FromComponents(mechanism ?? "MONGODB-CR", source ?? "admin", username, evidence);
         }
 
         // private methods

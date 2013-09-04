@@ -13,35 +13,33 @@
 * limitations under the License.
 */
 
-using MongoDB.Driver.Core.Connections;
+using System;
 
-namespace MongoDB.Driver.Core.Events
+namespace MongoDB.Driver.Core
 {
     /// <summary>
-    /// Occurs when a server's description has been changed.
+    /// An exception representing a configuration error.
     /// </summary>
-    public class ServerDescriptionChangedEvent
+    [Serializable]
+    public class MongoConfigurationException : MongoDriverException
     {
-        // private fields
-        private readonly IServer _server;
-
-        // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ServerDescriptionChangedEvent" /> class.
+        /// Initializes a new instance of the <see cref="MongoConfigurationException" /> class.
         /// </summary>
-        /// <param name="server">The server.</param>
-        public ServerDescriptionChangedEvent(IServer server)
-        {
-            _server = server;
+        /// <param name="message">The message.</param>
+        public MongoConfigurationException(string message) 
+            : base(message) 
+        { 
         }
 
-        // public properties
         /// <summary>
-        /// Gets the server.
+        /// Initializes a new instance of the <see cref="MongoConfigurationException" /> class.
         /// </summary>
-        public IServer Server
+        /// <param name="message">The message.</param>
+        /// <param name="inner">The inner.</param>
+        public MongoConfigurationException(string message, Exception inner) 
+            : base(message, inner) 
         {
-            get { return _server; }
         }
     }
 }

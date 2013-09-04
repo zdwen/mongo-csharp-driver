@@ -13,17 +13,20 @@
 * limitations under the License.
 */
 
-namespace MongoDB.Driver.Core.Connections
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MongoDB.Driver.Core.Events
 {
-    /// <summary>
-    /// Creates <see cref="ICluster"/>s.
-    /// </summary>
-    public interface IClusterFactory
+    internal class NoOpEventPublisher : IEventPublisher
     {
-        /// <summary>
-        /// Creates a cluster.
-        /// </summary>
-        /// <returns>An <see cref="ICluster" />.</returns>
-        ICluster Create();
+        // public methods
+        public void Publish<TEvent>(TEvent @event)
+        {
+            // Do Nothing
+        }
     }
 }
