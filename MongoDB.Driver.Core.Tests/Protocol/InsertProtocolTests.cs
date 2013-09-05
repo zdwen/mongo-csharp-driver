@@ -4,6 +4,7 @@ using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Operations;
 using MongoDB.Driver.Core.Protocol;
@@ -67,6 +68,7 @@ namespace MongoDB.Driver.Core.Protocol
         {
             return new InsertProtocol<BsonDocument>(
                 checkInsertDocuments: true,
+                serializer: BsonDocumentSerializer.Instance,
                 collection: new CollectionNamespace("admin", "YAY"),
                 documents: CreateDocumentBatch(numBatches),
                 flags: flags,

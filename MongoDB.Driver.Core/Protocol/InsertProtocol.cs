@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Protocol.Messages;
@@ -37,6 +38,7 @@ namespace MongoDB.Driver.Core.Protocol
         private readonly IEnumerable<TDocument> _documents;
         private readonly InsertFlags _flags;
         private readonly int _maxMessageSize;
+        private readonly IBsonSerializer<TDocument> _serializer;
 
         // constructors
         /// <summary>
@@ -44,6 +46,7 @@ namespace MongoDB.Driver.Core.Protocol
         /// </summary>
         /// <param name="checkInsertDocuments">if set to <c>true</c> [check insert documents].</param>
         /// <param name="collection">The collection.</param>
+        /// <param name="serializer">The serializer.</param>
         /// <param name="documents">The documents.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="maxMessageSize">Size of the max message.</param>
@@ -52,6 +55,7 @@ namespace MongoDB.Driver.Core.Protocol
         /// <param name="writerSettings">The writer settings.</param>
         public InsertProtocol(bool checkInsertDocuments,
             CollectionNamespace collection,
+            IBsonSerializer<TDocument> serializer,
             IEnumerable<TDocument> documents,
             InsertFlags flags,
             int maxMessageSize,
@@ -60,12 +64,14 @@ namespace MongoDB.Driver.Core.Protocol
             BsonBinaryWriterSettings writerSettings)
             : base(collection, readerSettings, writeConcern, writerSettings)
         {
+            Ensure.IsNotNull("serializer", serializer);
             Ensure.IsNotNull("documents", documents);
 
             _checkInsertDocuments = checkInsertDocuments;
             _documents = documents;
             _flags = flags;
             _maxMessageSize = maxMessageSize;
+            _serializer = serializer;
         }
 
         // public methods
@@ -147,7 +153,8 @@ namespace MongoDB.Driver.Core.Protocol
                         Collection,
                         _flags,
                         _checkInsertDocuments,
-                        WriterSettings);
+                        WriterSettings,
+                        _serializer);
 
                     var packet = new BufferedRequestPacket();
                     try

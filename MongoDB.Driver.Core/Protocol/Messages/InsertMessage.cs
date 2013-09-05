@@ -28,6 +28,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         private readonly bool _checkInsertDocuments;
         private readonly InsertFlags _flags;
         private readonly CollectionNamespace _collectionNamespace;
+        private readonly IBsonSerializer<TDocument> _serializer;
         private readonly BsonBinaryWriterSettings _writerSettings;
         private int _lastDocumentStartPosition;
         private int _documentCount;
@@ -40,13 +41,20 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         /// <param name="flags">The flags.</param>
         /// <param name="checkInsertDocuments">Set to true if the inserted document(s) should be checked for invalid element names.</param>
         /// <param name="writerSettings">The writer settings.</param>
-        public InsertMessage(CollectionNamespace collectionNamespace, InsertFlags flags, bool checkInsertDocuments, BsonBinaryWriterSettings writerSettings)
+        /// <param name="serializer">The serializer.</param>
+        public InsertMessage(
+            CollectionNamespace collectionNamespace,
+            InsertFlags flags,
+            bool checkInsertDocuments,
+            BsonBinaryWriterSettings writerSettings,
+            IBsonSerializer<TDocument> serializer)
             : base(OpCode.Insert)
         {
             _collectionNamespace = collectionNamespace;
             _flags = flags;
             _checkInsertDocuments = checkInsertDocuments;
             _writerSettings = writerSettings;
+            _serializer = serializer;
         }
 
         // public properties
@@ -84,7 +92,8 @@ namespace MongoDB.Driver.Core.Protocol.Messages
             using (var bsonWriter = new BsonBinaryWriter(stream, _writerSettings))
             {
                 bsonWriter.CheckElementNames = _checkInsertDocuments;
-                BsonSerializer.Serialize(bsonWriter, document);
+                var context = BsonSerializationContext.CreateRoot<TDocument>(bsonWriter);
+                _serializer.Serialize(context, document);
             }
             BackpatchMessageLength(stream);
         }

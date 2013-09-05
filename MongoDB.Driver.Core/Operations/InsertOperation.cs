@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Protocol;
 using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Support;
@@ -32,6 +33,7 @@ namespace MongoDB.Driver.Core.Operations
         private IEnumerable<TDocument> _documents;
         private InsertFlags _flags;
         private int _maxMessageSize;
+        private IBsonSerializer<TDocument> _serializer;
 
         // constructors
         /// <summary>
@@ -79,6 +81,18 @@ namespace MongoDB.Driver.Core.Operations
             set { _maxMessageSize = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the serializer.
+        /// </summary>
+        /// <value>
+        /// The serializer.
+        /// </value>
+        public IBsonSerializer<TDocument> Serializer
+        {
+            get { return _serializer; }
+            set { _serializer = value; }
+        }
+
         // public methods
         /// <summary>
         /// Executes the insert.
@@ -97,6 +111,7 @@ namespace MongoDB.Driver.Core.Operations
 
                 var protocol = new InsertProtocol<TDocument>(
                     checkInsertDocuments: _checkInsertDocuments,
+                    serializer: _serializer,
                     collection: Collection,
                     documents: _documents,
                     flags: _flags,
@@ -122,6 +137,19 @@ namespace MongoDB.Driver.Core.Operations
                         throw;
                     }
                 }
+            }
+        }
+
+        // protected methods
+        /// <summary>
+        /// Ensures that required properties have been set or provides intelligent defaults.
+        /// </summary>
+        protected override void EnsureRequiredProperties()
+        {
+            base.EnsureRequiredProperties();
+            if (_serializer == null)
+            {
+                _serializer = BsonSerializer.LookupSerializer<TDocument>();
             }
         }
     }
