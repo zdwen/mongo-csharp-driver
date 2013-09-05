@@ -27,7 +27,6 @@ namespace MongoDB.Bson.Serialization.Serializers
     public class QueueSerializer :
         EnumerableSerializerBase<Queue>,
         IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithItemSerializer,
         IBsonArraySerializer
     {
         // constructors
@@ -115,11 +114,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         {
             return WithItemSerializer(childSerializer);
         }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer itemSerializer)
-        {
-            return WithItemSerializer(itemSerializer);
-        }
     }
 
     /// <summary>
@@ -129,7 +123,6 @@ namespace MongoDB.Bson.Serialization.Serializers
     public class QueueSerializer<TItem> :
         EnumerableSerializerBase<Queue<TItem>, TItem>,
         IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithItemSerializer<QueueSerializer<TItem>, Queue<TItem>, TItem>,
         IBsonArraySerializer
     {
         // constructors
@@ -216,16 +209,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithItemSerializer((IBsonSerializer<TItem>)childSerializer);
-        }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.ItemSerializer
-        {
-            get { return ItemSerializer; }
-        }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer itemSerializer)
-        {
-            return WithItemSerializer((IBsonSerializer<TItem>)itemSerializer);
         }
     }
 }

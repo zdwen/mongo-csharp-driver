@@ -23,8 +23,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// </summary>
     /// <typeparam name="TItem">The type of the item.</typeparam>
     public class ReadOnlyCollectionSerializer<TItem> :
-        EnumerableInterfaceImplementerSerializerBase<ReadOnlyCollection<TItem>, TItem>,
-        IBsonSerializerWithItemSerializer<ReadOnlyCollectionSerializer<TItem>, ReadOnlyCollection<TItem>, TItem>
+        EnumerableInterfaceImplementerSerializerBase<ReadOnlyCollection<TItem>, TItem>
     {
         // constructors
         /// <summary>
@@ -79,17 +78,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         protected override ReadOnlyCollection<TItem> FinalizeResult(object accumulator)
         {
             return ((List<TItem>)accumulator).AsReadOnly();
-        }
-
-        // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithItemSerializer.ItemSerializer
-        {
-            get { return ItemSerializer; }
-        }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer itemSerializer)
-        {
-            return WithItemSerializer((IBsonSerializer<TItem>)itemSerializer);
         }
     }
 }

@@ -203,10 +203,8 @@
     <Compile Include="Serialization\IBsonPolymorphicSerializer.cs" />
     <Compile Include="Serialization\IBsonSerializerWithConfigurableChildSerializer.cs" />
     <Compile Include="Serialization\IBsonSerializerWithDictionaryRepresentation.cs" />
-    <Compile Include="Serialization\IBsonSerializerWithItemSerializer.cs" />
     <Compile Include="Serialization\IBsonSerializerWithRepresentation.cs" />
     <Compile Include="Serialization\IBsonSerializerWithRepresentationConverter.cs" />
-    <Compile Include="Serialization\IBsonSerializerWithKeyValueSerializers.cs" />
     <Compile Include="Serialization\ICreatorSelector.cs" />
     <Compile Include="Serialization\IdGenerators\AscendingGuidGenerator.cs" />
     <Compile Include="Serialization\IdGenerators\BsonBinaryDataGuidGenerator.cs" />

@@ -28,7 +28,6 @@ namespace MongoDB.Bson.Serialization.Serializers
     public class StackSerializer :
         EnumerableSerializerBase<Stack>,
         IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithItemSerializer,
         IBsonArraySerializer
     {
         // constructors
@@ -116,11 +115,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         {
             return WithItemSerializer(childSerializer);
         }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer itemSerializer)
-        {
-            return WithItemSerializer(itemSerializer);
-        }
     }
 
     /// <summary>
@@ -130,7 +124,6 @@ namespace MongoDB.Bson.Serialization.Serializers
     public class StackSerializer<TItem> :
         EnumerableSerializerBase<Stack<TItem>, TItem>,
         IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithItemSerializer<StackSerializer<TItem>, Stack<TItem>, TItem>,
         IBsonArraySerializer
     {
         // constructors
@@ -217,16 +210,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithItemSerializer((IBsonSerializer<TItem>)childSerializer);
-        }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.ItemSerializer
-        {
-            get { return ItemSerializer; }
-        }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer itemSerializer)
-        {
-            return WithItemSerializer((IBsonSerializer<TItem>)itemSerializer);
         }
     }
 }

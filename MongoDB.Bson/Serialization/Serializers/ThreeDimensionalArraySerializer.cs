@@ -28,8 +28,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="TItem">The type of the elements.</typeparam>
     public class ThreeDimensionalArraySerializer<TItem> :
         BsonBaseSerializer<TItem[,,]>,
-        IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithItemSerializer<ThreeDimensionalArraySerializer<TItem> , TItem[,,], TItem>
+        IBsonSerializerWithConfigurableChildSerializer
     {
         // private fields
         private readonly IBsonSerializer<TItem> _itemSerializer;
@@ -205,16 +204,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithItemSerializer((IBsonSerializer<TItem>)childSerializer);
-        }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.ItemSerializer
-        {
-            get { return _itemSerializer; }
-        }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer serializer)
-        {
-            return WithItemSerializer((IBsonSerializer<TItem>)serializer);
         }
     }
 }

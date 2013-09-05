@@ -26,8 +26,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     public class DictionaryInterfaceImplementerSerializer<TDictionary> :
         DictionarySerializerBase<TDictionary>,
         IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithDictionaryRepresentation,
-        IBsonSerializerWithKeyValueSerializers
+        IBsonSerializerWithDictionaryRepresentation
             where TDictionary : class, IDictionary, new()
     {
         /// <summary>
@@ -153,16 +152,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         {
             return WithDictionaryRepresentation(dictionaryRepresentation);
         }
-
-        IBsonSerializer IBsonSerializerWithKeyValueSerializers.WithKeySerializer(IBsonSerializer keySerializer)
-        {
-            return WithKeySerializer(keySerializer);
-        }
-
-        IBsonSerializer IBsonSerializerWithKeyValueSerializers.WithValueSerializer(IBsonSerializer valueSerializer)
-        {
-            return WithValueSerializer(valueSerializer);
-        }
     }
 
     /// <summary>
@@ -174,8 +163,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     public class DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue> :
         DictionarySerializerBase<TDictionary, TKey, TValue>,
         IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithDictionaryRepresentation<DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>>,
-        IBsonSerializerWithKeyValueSerializers<DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>, TDictionary, TKey, TValue>
+        IBsonSerializerWithDictionaryRepresentation<DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>>
             where TDictionary : class, IDictionary<TKey, TValue>, new()
     {
         /// <summary>
@@ -297,29 +285,9 @@ namespace MongoDB.Bson.Serialization.Serializers
             return WithValueSerializer((IBsonSerializer<TValue>)childSerializer);
         }
 
-        IBsonSerializer IBsonSerializerWithKeyValueSerializers.KeySerializer
-        {
-            get { return KeySerializer; }
-        }
-
-        IBsonSerializer IBsonSerializerWithKeyValueSerializers.ValueSerializer
-        {
-            get { return ValueSerializer; }
-        }
-
         IBsonSerializer IBsonSerializerWithDictionaryRepresentation.WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation)
         {
             return WithDictionaryRepresentation(dictionaryRepresentation);
-        }
-
-        IBsonSerializer IBsonSerializerWithKeyValueSerializers.WithKeySerializer(IBsonSerializer keySerializer)
-        {
-            return WithKeySerializer((IBsonSerializer<TKey>)keySerializer);
-        }
-
-        IBsonSerializer IBsonSerializerWithKeyValueSerializers.WithValueSerializer(IBsonSerializer valueSerializer)
-        {
-            return WithValueSerializer((IBsonSerializer<TValue>)valueSerializer);
         }
     }
 }

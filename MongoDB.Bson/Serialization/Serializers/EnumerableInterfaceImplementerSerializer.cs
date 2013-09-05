@@ -25,8 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="TValue">The type of the value.</typeparam>
     public class EnumerableInterfaceImplementerSerializer<TValue> :
         EnumerableInterfaceImplementerSerializerBase<TValue>,
-        IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithItemSerializer
+        IBsonSerializerWithConfigurableChildSerializer
             where TValue : class, IList, new()
     {
         // constructors
@@ -84,11 +83,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         {
             return WithItemSerializer(childSerializer);
         }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer itemSerializer)
-        {
-            return WithItemSerializer(itemSerializer);
-        }
     }
 
     /// <summary>
@@ -98,8 +92,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="TItem">The type of the item.</typeparam>
     public class EnumerableInterfaceImplementerSerializer<TValue, TItem> : 
         EnumerableInterfaceImplementerSerializerBase<TValue, TItem>,
-        IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithItemSerializer<EnumerableInterfaceImplementerSerializer<TValue, TItem>, TValue, TItem>
+        IBsonSerializerWithConfigurableChildSerializer
             where TValue : class, IEnumerable<TItem>
     {
         // constructors
@@ -191,16 +184,6 @@ namespace MongoDB.Bson.Serialization.Serializers
         IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithItemSerializer((IBsonSerializer<TItem>)childSerializer);
-        }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.ItemSerializer
-        {
-            get { return ItemSerializer; }
-        }
-
-        IBsonSerializer IBsonSerializerWithItemSerializer.WithItemSerializer(IBsonSerializer itemSerializer)
-        {
-            return WithItemSerializer((IBsonSerializer<TItem>)itemSerializer);
         }
     }
 }
