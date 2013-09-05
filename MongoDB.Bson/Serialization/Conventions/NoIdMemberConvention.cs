@@ -34,16 +34,5 @@ namespace MongoDB.Bson.Serialization.Conventions
         {
             classMap.SetIdMember(null);
         }
-
-        /// <summary>
-        /// Finds the Id member of a class.
-        /// </summary>
-        /// <param name="type">The class.</param>
-        /// <returns>The name of the Id member.</returns>
-        [Obsolete("Use Apply instead.")]
-        public string FindIdMember(Type type)
-        {
-            return null;
-        }
     }
 }

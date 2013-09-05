@@ -84,16 +84,6 @@ namespace MongoDB.Bson.Serialization.Conventions
             _bindingFlags = bindingFlags | BindingFlags.DeclaredOnly;
         }
 
-        // public properties
-        /// <summary>
-        /// Gets the name of the convention.
-        /// </summary>
-        [Obsolete("There is no alternative.")]
-        public new string Name
-        {
-            get { return _names.First(); }
-        }
-
         // public methods
         /// <summary>
         /// Applies a modification to the class map.
@@ -129,18 +119,6 @@ namespace MongoDB.Bson.Serialization.Conventions
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Finds the extra elements member of a class.
-        /// </summary>
-        /// <param name="type">The class.</param>
-        /// <returns>The extra elements member.</returns>
-        [Obsolete("Use Apply instead.")]
-        public string FindExtraElementsMember(Type type)
-        {
-            var memberInfo = type.GetMember(_names.First()).SingleOrDefault(x => x.MemberType == MemberTypes.Field || x.MemberType == MemberTypes.Property);
-            return (memberInfo != null) ? _names.First() : null;
         }
     }
 }

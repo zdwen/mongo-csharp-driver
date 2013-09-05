@@ -84,16 +84,6 @@ namespace MongoDB.Bson.Serialization.Conventions
             _bindingFlags = bindingFlags | BindingFlags.DeclaredOnly;
         }
 
-        // public properties
-        /// <summary>
-        /// Gets the set of possible Id member names.
-        /// </summary>
-        [Obsolete("There is no alternative.")]
-        public string[] Names
-        {
-            get { return _names.ToArray(); }
-        }
-
         // public methods
         /// <summary>
         /// Applies a modification to the class map.
@@ -111,25 +101,6 @@ namespace MongoDB.Bson.Serialization.Conventions
                     return;
                 }
             }
-        }
-
-        /// <summary>
-        /// Finds the Id member of a class.
-        /// </summary>
-        /// <param name="type">The class.</param>
-        /// <returns>The name of the Id member.</returns>
-        [Obsolete("Use Apply instead.")]
-        public string FindIdMember(Type type)
-        {
-            foreach (string name in _names)
-            {
-                var memberInfo = type.GetMember(name).SingleOrDefault(x => x.MemberType == MemberTypes.Field || x.MemberType == MemberTypes.Property);
-                if (memberInfo != null)
-                {
-                    return name;
-                }
-            }
-            return null;
         }
     }
 }

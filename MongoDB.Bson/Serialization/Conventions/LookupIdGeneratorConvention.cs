@@ -43,16 +43,5 @@ namespace MongoDB.Bson.Serialization.Conventions
                 }
             }
         }
-
-        /// <summary>
-        /// Gets the Id generator for an Id member.
-        /// </summary>
-        /// <param name="memberInfo">The member.</param>
-        /// <returns>An Id generator.</returns>
-        [Obsolete("Use PostProcess instead.")]
-        public IIdGenerator GetIdGenerator(MemberInfo memberInfo)
-        {
-            return BsonSerializer.LookupIdGenerator(BsonClassMap.GetMemberInfoType(memberInfo));
-        }
     }
 }

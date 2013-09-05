@@ -35,18 +35,6 @@ namespace MongoDB.Bson.Serialization.Conventions
             memberMap.SetElementName(name);
         }
 
-        /// <summary>
-        /// Gets the element name for a member.
-        /// </summary>
-        /// <param name="member">The member.</param>
-        /// <returns>The element name.</returns>
-        [Obsolete("Use Apply instead.")]
-        public string GetElementName(MemberInfo member)
-        {
-            string name = member.Name;
-            return GetElementName(name);
-        }
-
         // private methods
         private string GetElementName(string memberName)
         {
