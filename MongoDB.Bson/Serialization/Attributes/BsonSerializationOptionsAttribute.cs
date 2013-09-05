@@ -55,9 +55,9 @@ namespace MongoDB.Bson.Serialization.Attributes
             var childSerializerConfigurable = serializer as IChildSerializerConfigurable;
             if (childSerializerConfigurable != null)
             {
-                var childSerializer = childSerializerConfigurable.ConfigurableChildSerializer;
+                var childSerializer = childSerializerConfigurable.ChildSerializer;
                 var reconfiguredChildSerializer = Apply(childSerializer);
-                return childSerializerConfigurable.WithReconfiguredChildSerializer(reconfiguredChildSerializer);
+                return childSerializerConfigurable.WithChildSerializer(reconfiguredChildSerializer);
             }
 
             var message = string.Format(

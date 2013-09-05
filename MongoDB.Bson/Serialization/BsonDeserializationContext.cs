@@ -288,7 +288,7 @@ namespace MongoDB.Bson.Serialization
             /// Builds the BsonDeserializationContext instance.
             /// </summary>
             /// <returns>A BsonDeserializationContext.</returns>
-            public BsonDeserializationContext Build()
+            internal BsonDeserializationContext Build()
             {
                 return new BsonDeserializationContext(_parent, _reader, _nominalType, _allowDuplicateElementNames);
             }

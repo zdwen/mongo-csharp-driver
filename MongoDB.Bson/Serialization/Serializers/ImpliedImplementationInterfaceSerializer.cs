@@ -249,12 +249,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ChildSerializer
         {
             get { return _implementationSerializer; }
         }
 
-        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithChildSerializer(IBsonSerializer childSerializer)
         {
             return WithImplementationSerializer((IBsonSerializer<TImplementation>)childSerializer);
         }

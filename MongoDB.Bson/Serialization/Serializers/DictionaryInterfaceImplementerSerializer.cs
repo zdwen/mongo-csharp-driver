@@ -138,12 +138,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ChildSerializer
         {
             get { return ValueSerializer; }
         }
 
-        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithChildSerializer(IBsonSerializer childSerializer)
         {
             return WithValueSerializer(childSerializer);
         }
@@ -275,12 +275,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ChildSerializer
         {
             get { return ValueSerializer; }
         }
 
-        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithChildSerializer(IBsonSerializer childSerializer)
         {
             return WithValueSerializer((IBsonSerializer<TValue>)childSerializer);
         }

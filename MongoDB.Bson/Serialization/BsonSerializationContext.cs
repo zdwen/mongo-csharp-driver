@@ -309,7 +309,7 @@ namespace MongoDB.Bson.Serialization
             /// Builds the BsonSerializationContext instance.
             /// </summary>
             /// <returns>A BsonSerializationContext.</returns>
-            public BsonSerializationContext Build()
+            internal BsonSerializationContext Build()
             {
                 return new BsonSerializationContext(_parent, _writer, _nominalType, _serializeAsNominalType, _serializeIdFirst);
             }

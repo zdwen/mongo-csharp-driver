@@ -25,18 +25,18 @@ namespace MongoDB.Bson.Serialization
     public interface IChildSerializerConfigurable
     {
         /// <summary>
-        /// Gets the configurable child serializer.
+        /// Gets the child serializer.
         /// </summary>
         /// <value>
-        /// The configurable child serializer.
+        /// The child serializer.
         /// </value>
-        IBsonSerializer ConfigurableChildSerializer { get; }
+        IBsonSerializer ChildSerializer { get; }
 
         /// <summary>
         /// Returns a serializer that has been reconfigured with the specified child serializer.
         /// </summary>
         /// <param name="childSerializer">The child serializer.</param>
         /// <returns>The reconfigured serializer.</returns>
-        IBsonSerializer WithReconfiguredChildSerializer(IBsonSerializer childSerializer);
+        IBsonSerializer WithChildSerializer(IBsonSerializer childSerializer);
     }
 }
