@@ -50,7 +50,7 @@ namespace MongoDB.Driver.Core.Operations.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override AggregateCommandResult<TDocument> Deserialize(DeserializationContext context)
+        public override AggregateCommandResult<TDocument> Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
             var response = new BsonDocument();
@@ -84,7 +84,7 @@ namespace MongoDB.Driver.Core.Operations.Serializers
         }
 
         // private methods
-        private CursorResponse DeserializeCursorResponse(DeserializationContext context)
+        private CursorResponse DeserializeCursorResponse(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
             var response = new BsonDocument();
@@ -115,7 +115,7 @@ namespace MongoDB.Driver.Core.Operations.Serializers
             return new CursorResponse { Response = response, CursorId = cursorId, FirstBatch = firstBatch };
         }
 
-        private IEnumerable<TDocument> DeserializeFirstBatch(DeserializationContext context)
+        private IEnumerable<TDocument> DeserializeFirstBatch(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
             var firstBatch = new List<TDocument>();

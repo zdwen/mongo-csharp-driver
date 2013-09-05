@@ -36,7 +36,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
-        public override GeoJsonPolygonCoordinates<TCoordinates> Deserialize(DeserializationContext context)
+        public override GeoJsonPolygonCoordinates<TCoordinates> Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -67,7 +67,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
-        public override void Serialize(SerializationContext context, GeoJsonPolygonCoordinates<TCoordinates> value)
+        public override void Serialize(BsonSerializationContext context, GeoJsonPolygonCoordinates<TCoordinates> value)
         {
             var bsonWriter = context.Writer;
 

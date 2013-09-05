@@ -807,7 +807,7 @@ namespace MongoDB.Driver.GridFS
         }
 
         // public methods
-        public override MongoGridFSFileInfo Deserialize(DeserializationContext context)
+        public override MongoGridFSFileInfo Deserialize(BsonDeserializationContext context)
         {
             var fileInfo = context.DeserializeWithChildContext(BsonDocumentSerializer.Instance);
             return new MongoGridFSFileInfo(

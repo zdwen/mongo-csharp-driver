@@ -45,7 +45,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public virtual TValue Deserialize(DeserializationContext context)
+        public virtual TValue Deserialize(BsonDeserializationContext context)
         {
             var message = string.Format(
                 "A serializer of type '{0}' does not support the Deserialize method.",
@@ -58,7 +58,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public virtual void Serialize(SerializationContext context, TValue value)
+        public virtual void Serialize(BsonSerializationContext context, TValue value)
         {
             if (value != null)
             {
@@ -109,7 +109,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <returns>A TValue.</returns>
         /// <exception cref="System.FormatException">
         /// </exception>
-        protected TValue DeserializeDiscriminatedWrapper(DeserializationContext context, IDiscriminatorConvention discriminatorConvention)
+        protected TValue DeserializeDiscriminatedWrapper(BsonDeserializationContext context, IDiscriminatorConvention discriminatorConvention)
         {
             var bsonReader = context.Reader;
             var nominalType = context.NominalType;
@@ -152,7 +152,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="value">The value.</param>
-        protected void SerializeActualType(SerializationContext context, object value)
+        protected void SerializeActualType(BsonSerializationContext context, object value)
         {
             if (value == null)
             {
@@ -172,7 +172,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// <param name="context">The context.</param>
         /// <param name="value">The value.</param>
         /// <param name="discriminatorConvention">The discriminator convention.</param>
-        protected void SerializeDiscriminatedWrapper(SerializationContext context, TValue value, IDiscriminatorConvention discriminatorConvention)
+        protected void SerializeDiscriminatedWrapper(BsonSerializationContext context, TValue value, IDiscriminatorConvention discriminatorConvention)
         {
             var bsonWriter = context.Writer;
             var nominalType = context.NominalType;
@@ -189,12 +189,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        object IBsonSerializer.Deserialize(DeserializationContext context)
+        object IBsonSerializer.Deserialize(BsonDeserializationContext context)
         {
             return Deserialize(context);
         }
 
-        void IBsonSerializer.Serialize(SerializationContext context, object value)
+        void IBsonSerializer.Serialize(BsonSerializationContext context, object value)
         {
             var typedValue = CastValue(value);
             Serialize(context, typedValue);

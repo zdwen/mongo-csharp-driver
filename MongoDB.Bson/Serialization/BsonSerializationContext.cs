@@ -21,18 +21,18 @@ namespace MongoDB.Bson.Serialization
     /// <summary>
     /// Represents all the contextual information needed by a serializer to serialize a value.
     /// </summary>
-    public class SerializationContext
+    public class BsonSerializationContext
     {
         // private fields
         private readonly Type _nominalType;
-        private readonly SerializationContext _parent;
+        private readonly BsonSerializationContext _parent;
         private readonly bool _serializeAsNominalType;
         private readonly bool _serializeIdFirst;
         private readonly BsonWriter _writer;
 
         // constructors
-        private SerializationContext(
-            SerializationContext parent,
+        private BsonSerializationContext(
+            BsonSerializationContext parent,
             BsonWriter writer,
             Type nominalType,
             bool serializeAsNominalType,
@@ -63,7 +63,7 @@ namespace MongoDB.Bson.Serialization
         /// <value>
         /// The parent context. The parent of the root context is null.
         /// </value>
-        public SerializationContext Parent
+        public BsonSerializationContext Parent
         {
             get { return _parent; }
         }
@@ -111,7 +111,7 @@ namespace MongoDB.Bson.Serialization
         /// <returns>
         /// A root context.
         /// </returns>
-        public static SerializationContext CreateRoot<TNominalType>(
+        public static BsonSerializationContext CreateRoot<TNominalType>(
             BsonWriter writer,
             Action<Builder> configurator = null)
         {
@@ -132,7 +132,7 @@ namespace MongoDB.Bson.Serialization
         /// <returns>
         /// A root context.
         /// </returns>
-        public static SerializationContext CreateRoot(
+        public static BsonSerializationContext CreateRoot(
             BsonWriter writer,
             Type nominalType,
             Action<Builder> configurator = null)
@@ -154,7 +154,7 @@ namespace MongoDB.Bson.Serialization
         /// <returns>
         /// A child context.
         /// </returns>
-        public SerializationContext CreateChild<TNominalType>(
+        public BsonSerializationContext CreateChild<TNominalType>(
             Action<Builder> configurator = null)
         {
             var builder = new Builder(this, _writer, typeof(TNominalType));
@@ -173,7 +173,7 @@ namespace MongoDB.Bson.Serialization
         /// <returns>
         /// A child context.
         /// </returns>
-        public SerializationContext CreateChild(
+        public BsonSerializationContext CreateChild(
             Type nominalType,
             Action<Builder> configurator = null)
         {
@@ -218,19 +218,19 @@ namespace MongoDB.Bson.Serialization
 
         // nested classes
         /// <summary>
-        /// Represents a builder for a SerializationContext.
+        /// Represents a builder for a BsonSerializationContext.
         /// </summary>
         public class Builder
         {
             // private fields
             private Type _nominalType;
-            private SerializationContext _parent;
+            private BsonSerializationContext _parent;
             private bool _serializeAsNominalType;
             private bool _serializeIdFirst;
             private BsonWriter _writer;
 
             // constructors
-            internal Builder(SerializationContext parent, BsonWriter writer, Type nominalType)
+            internal Builder(BsonSerializationContext parent, BsonWriter writer, Type nominalType)
             {
                 if (writer == null)
                 {
@@ -264,7 +264,7 @@ namespace MongoDB.Bson.Serialization
             /// <value>
             /// The parent.
             /// </value>
-            public SerializationContext Parent
+            public BsonSerializationContext Parent
             {
                 get { return _parent; }
             }
@@ -306,12 +306,12 @@ namespace MongoDB.Bson.Serialization
 
             // public methods
             /// <summary>
-            /// Builds the SerializationContext instance.
+            /// Builds the BsonSerializationContext instance.
             /// </summary>
-            /// <returns>A SerializationContext.</returns>
-            public SerializationContext Build()
+            /// <returns>A BsonSerializationContext.</returns>
+            public BsonSerializationContext Build()
             {
-                return new SerializationContext(_parent, _writer, _nominalType, _serializeAsNominalType, _serializeIdFirst);
+                return new BsonSerializationContext(_parent, _writer, _nominalType, _serializeAsNominalType, _serializeIdFirst);
             }
         }
     }

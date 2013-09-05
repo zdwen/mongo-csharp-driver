@@ -34,7 +34,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
-        public override GeoJsonGeometryCollection<TCoordinates> Deserialize(DeserializationContext context)
+        public override GeoJsonGeometryCollection<TCoordinates> Deserialize(BsonDeserializationContext context)
         {
             var helper = new Helper();
             return (GeoJsonGeometryCollection<TCoordinates>)helper.Deserialize(context);
@@ -45,7 +45,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
-        public override void Serialize(SerializationContext context, GeoJsonGeometryCollection<TCoordinates> value)
+        public override void Serialize(BsonSerializationContext context, GeoJsonGeometryCollection<TCoordinates> value)
         {
             var helper = new Helper();
             helper.Serialize(context, value);
@@ -82,7 +82,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// </summary>
             /// <param name="context">The context.</param>
             /// <param name="name">The name.</param>
-            protected override void DeserializeField(DeserializationContext context, string name)
+            protected override void DeserializeField(BsonDeserializationContext context, string name)
             {
                 switch (name)
                 {
@@ -96,7 +96,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// </summary>
             /// <param name="context">The context.</param>
             /// <param name="obj">The GeoJson object.</param>
-            protected override void SerializeFields(SerializationContext context, GeoJsonObject<TCoordinates> obj)
+            protected override void SerializeFields(BsonSerializationContext context, GeoJsonObject<TCoordinates> obj)
             {
                 base.SerializeFields(context, obj);
                 var geometryCollection = (GeoJsonGeometryCollection<TCoordinates>)obj;
@@ -104,7 +104,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             }
 
             // private methods
-            private List<GeoJsonGeometry<TCoordinates>> DeserializeGeometries(DeserializationContext context)
+            private List<GeoJsonGeometry<TCoordinates>> DeserializeGeometries(BsonDeserializationContext context)
             {
                 var bsonReader = context.Reader;
 
@@ -120,7 +120,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 return geometries;
             }
 
-            private void SerializeGeometries(SerializationContext context, IEnumerable<GeoJsonGeometry<TCoordinates>> geometries)
+            private void SerializeGeometries(BsonSerializationContext context, IEnumerable<GeoJsonGeometry<TCoordinates>> geometries)
             {
                 var bsonWriter = context.Writer;
 

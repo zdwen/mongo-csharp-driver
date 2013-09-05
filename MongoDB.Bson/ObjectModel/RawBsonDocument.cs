@@ -103,7 +103,7 @@ namespace MongoDB.Bson
                 using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
                 using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
-                    var context = DeserializationContext.CreateRoot<RawBsonDocument>(bsonReader); 
+                    var context = BsonDeserializationContext.CreateRoot<RawBsonDocument>(bsonReader); 
 
                     bsonReader.ReadStartDocument();
                     while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
@@ -151,7 +151,7 @@ namespace MongoDB.Bson
                 using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
                 using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
-                    var context = DeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
+                    var context = BsonDeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
 
                     bsonReader.ReadStartDocument();
                     while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
@@ -186,7 +186,7 @@ namespace MongoDB.Bson
                 using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
                 using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
                 {
-                    var context = DeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
+                    var context = BsonDeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
 
                     bsonReader.ReadStartDocument();
                     while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
@@ -477,7 +477,7 @@ namespace MongoDB.Bson
             using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
-                var context = DeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
+                var context = BsonDeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
 
                 bsonReader.ReadStartDocument();
                 while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
@@ -533,7 +533,7 @@ namespace MongoDB.Bson
             using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
-                var context = DeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
+                var context = BsonDeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
                 
                 bsonReader.ReadStartDocument();
                 var i = 0;
@@ -588,7 +588,7 @@ namespace MongoDB.Bson
             using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
-                var context = DeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
+                var context = BsonDeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
 
                 bsonReader.ReadStartDocument();
                 while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
@@ -619,7 +619,7 @@ namespace MongoDB.Bson
             using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
-                var context = DeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
+                var context = BsonDeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
                 
                 bsonReader.ReadStartDocument();
                 var i = 0;
@@ -808,7 +808,7 @@ namespace MongoDB.Bson
             using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
-                var context = DeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
+                var context = BsonDeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
                 
                 bsonReader.ReadStartDocument();
                 while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
@@ -843,7 +843,7 @@ namespace MongoDB.Bson
             using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
-                var context = DeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
+                var context = BsonDeserializationContext.CreateRoot<RawBsonDocument>(bsonReader);
                 
                 bsonReader.ReadStartDocument();
                 while (bsonReader.ReadBsonType() != BsonType.EndOfDocument)
@@ -923,7 +923,7 @@ namespace MongoDB.Bson
             return nestedDocument;
         }
 
-        private BsonValue DeserializeBsonValue(DeserializationContext context)
+        private BsonValue DeserializeBsonValue(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
             switch (bsonReader.GetCurrentBsonType())

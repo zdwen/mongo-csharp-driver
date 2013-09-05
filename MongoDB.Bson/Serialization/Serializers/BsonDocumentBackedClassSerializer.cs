@@ -45,7 +45,7 @@ namespace MongoDB.Bson.Serialization
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override TClass Deserialize(DeserializationContext context)
+        public override TClass Deserialize(BsonDeserializationContext context)
         {
             var backingDocument = BsonDocumentSerializer.Instance.Deserialize(context);
             return CreateInstance(backingDocument);
@@ -75,7 +75,7 @@ namespace MongoDB.Bson.Serialization
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, TClass value)
+        public override void Serialize(BsonSerializationContext context, TClass value)
         {
             var bsonWriter = context.Writer;
 

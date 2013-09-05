@@ -104,7 +104,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override TDictionary Deserialize(DeserializationContext context)
+        public override TDictionary Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -179,7 +179,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, TDictionary value)
+        public override void Serialize(BsonSerializationContext context, TDictionary value)
         {
             var bsonWriter = context.Writer;
 
@@ -253,7 +253,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             var keyDocument = new BsonDocument("k", keyString);
             using (var keyReader = BsonReader.Create(keyDocument))
             {
-                var context = DeserializationContext.CreateRoot<BsonDocument>(keyReader);
+                var context = BsonDeserializationContext.CreateRoot<BsonDocument>(keyReader);
                 keyReader.ReadStartDocument();
                 keyReader.ReadName("k");
                 var key = context.DeserializeWithChildContext(_keySerializer);
@@ -287,7 +287,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             var keyDocument = new BsonDocument();
             using (var keyWriter = BsonWriter.Create(keyDocument))
             {
-                var context = SerializationContext.CreateRoot<BsonDocument>(keyWriter);
+                var context = BsonSerializationContext.CreateRoot<BsonDocument>(keyWriter);
                 keyWriter.WriteStartDocument();
                 keyWriter.WriteName("k");
                 context.SerializeWithChildContext(_keySerializer, key);
@@ -382,7 +382,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override TDictionary Deserialize(DeserializationContext context)
+        public override TDictionary Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -457,7 +457,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, TDictionary value)
+        public override void Serialize(BsonSerializationContext context, TDictionary value)
         {
             var bsonWriter = context.Writer;
 
@@ -534,7 +534,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             var keyDocument = new BsonDocument("k", keyString);
             using (var keyReader = BsonReader.Create(keyDocument))
             {
-                var context = DeserializationContext.CreateRoot<BsonDocument>(keyReader);
+                var context = BsonDeserializationContext.CreateRoot<BsonDocument>(keyReader);
                 keyReader.ReadStartDocument();
                 keyReader.ReadName("k");
                 var key = context.DeserializeWithChildContext(_keySerializer);
@@ -568,7 +568,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             var keyDocument = new BsonDocument();
             using (var keyWriter = BsonWriter.Create(keyDocument))
             {
-                var context = SerializationContext.CreateRoot<BsonDocument>(keyWriter);
+                var context = BsonSerializationContext.CreateRoot<BsonDocument>(keyWriter);
                 keyWriter.WriteStartDocument();
                 keyWriter.WriteName("k");
                 context.SerializeWithChildContext(_keySerializer, key);

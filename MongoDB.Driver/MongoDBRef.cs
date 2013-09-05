@@ -198,7 +198,7 @@ namespace MongoDB.Driver
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
-        public override MongoDBRef Deserialize(DeserializationContext context)
+        public override MongoDBRef Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -281,7 +281,7 @@ namespace MongoDB.Driver
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
-        public override void Serialize(SerializationContext context, MongoDBRef value)
+        public override void Serialize(BsonSerializationContext context, MongoDBRef value)
         {
             var bsonWriter = context.Writer;
 

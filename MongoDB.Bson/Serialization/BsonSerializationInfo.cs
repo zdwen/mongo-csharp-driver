@@ -78,7 +78,7 @@ namespace MongoDB.Bson.Serialization
             var tempDocument = new BsonDocument("value", value);
             using (var reader = BsonReader.Create(tempDocument))
             {
-                var context = DeserializationContext.CreateRoot<BsonDocument>(reader);
+                var context = BsonDeserializationContext.CreateRoot<BsonDocument>(reader);
                 reader.ReadStartDocument();
                 reader.ReadName("value");
                 var deserializedValue = context.DeserializeWithChildContext(_serializer);
@@ -97,7 +97,7 @@ namespace MongoDB.Bson.Serialization
             var tempDocument = new BsonDocument();
             using (var bsonWriter = BsonWriter.Create(tempDocument))
             {
-                var context = SerializationContext.CreateRoot<BsonDocument>(bsonWriter);
+                var context = BsonSerializationContext.CreateRoot<BsonDocument>(bsonWriter);
                 bsonWriter.WriteStartDocument();
                 bsonWriter.WriteName("value");
                 context.SerializeWithChildContext(_serializer, value);
@@ -116,7 +116,7 @@ namespace MongoDB.Bson.Serialization
             var tempDocument = new BsonDocument();
             using (var bsonWriter = BsonWriter.Create(tempDocument))
             {
-                var context = SerializationContext.CreateRoot<BsonDocument>(bsonWriter);
+                var context = BsonSerializationContext.CreateRoot<BsonDocument>(bsonWriter);
                 bsonWriter.WriteStartDocument();
                 bsonWriter.WriteName("values");
                 bsonWriter.WriteStartArray();

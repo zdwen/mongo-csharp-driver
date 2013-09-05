@@ -49,7 +49,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, BsonDocumentWrapper value)
+        public override void Serialize(BsonSerializationContext context, BsonDocumentWrapper value)
         {
             var bsonWriter = context.Writer;
 

@@ -33,7 +33,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
-        public override GeoJsonObject<TCoordinates> Deserialize(DeserializationContext context)
+        public override GeoJsonObject<TCoordinates> Deserialize(BsonDeserializationContext context)
         {
             var helper = new Helper();
             return helper.Deserialize(context);
@@ -44,7 +44,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
-        public override void Serialize(SerializationContext context, GeoJsonObject<TCoordinates> value)
+        public override void Serialize(BsonSerializationContext context, GeoJsonObject<TCoordinates> value)
         {
             var helper = new Helper();
             helper.Serialize(context, value);
@@ -97,7 +97,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// </summary>
             /// <param name="context">The deserialization context.</param>
             /// <returns>The value.</returns>
-            public GeoJsonObject<TCoordinates> Deserialize(DeserializationContext context)
+            public GeoJsonObject<TCoordinates> Deserialize(BsonDeserializationContext context)
             {
                 var bsonReader = context.Reader;
 
@@ -126,7 +126,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// </summary>
             /// <param name="context">The serialization context.</param>
             /// <param name="value">The value.</param>
-            public void Serialize(SerializationContext context, GeoJsonObject<TCoordinates> value)
+            public void Serialize(BsonSerializationContext context, GeoJsonObject<TCoordinates> value)
             {
                 var bsonWriter = context.Writer;
 
@@ -164,7 +164,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// </summary>
             /// <param name="context">The context.</param>
             /// <param name="name">The name.</param>
-            protected virtual void DeserializeField(DeserializationContext context, string name)
+            protected virtual void DeserializeField(BsonDeserializationContext context, string name)
             {
                 switch (name)
                 {
@@ -180,7 +180,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// </summary>
             /// <param name="context">The context.</param>
             /// <param name="obj">The GeoJson object.</param>
-            protected virtual void SerializeFields(SerializationContext context, GeoJsonObject<TCoordinates> obj)
+            protected virtual void SerializeFields(BsonSerializationContext context, GeoJsonObject<TCoordinates> obj)
             {
                 SerializeDiscriminator(context, obj.Type);
                 SerializeCoordinateReferenceSystem(context, obj.CoordinateReferenceSystem);
@@ -188,17 +188,17 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             }
 
             // private methods
-            private GeoJsonBoundingBox<TCoordinates> DeserializeBoundingBox(DeserializationContext context)
+            private GeoJsonBoundingBox<TCoordinates> DeserializeBoundingBox(BsonDeserializationContext context)
             {
                 return context.DeserializeWithChildContext(_boundingBoxSerializer);
             }
 
-            private GeoJsonCoordinateReferenceSystem DeserializeCoordinateReferenceSystem(DeserializationContext context)
+            private GeoJsonCoordinateReferenceSystem DeserializeCoordinateReferenceSystem(BsonDeserializationContext context)
             {
                 return context.DeserializeWithChildContext(_coordinateReferenceSystemSerializer);
             }
 
-            private void DeserializeDiscriminator(DeserializationContext context, string expectedDiscriminator)
+            private void DeserializeDiscriminator(BsonDeserializationContext context, string expectedDiscriminator)
             {
                 var discriminator = context.Reader.ReadString();
                 if (discriminator != expectedDiscriminator)
@@ -208,7 +208,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 }
             }
 
-            private void DeserializeExtraMember(DeserializationContext context, string name)
+            private void DeserializeExtraMember(BsonDeserializationContext context, string name)
             {
                 var value = context.DeserializeWithChildContext(BsonValueSerializer.Instance);
                 if (_args.ExtraMembers == null)
@@ -218,7 +218,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 _args.ExtraMembers[name] = value;
             }
 
-            private GeoJsonObject<TCoordinates> DeserializeObject(DeserializationContext context)
+            private GeoJsonObject<TCoordinates> DeserializeObject(BsonDeserializationContext context)
             {
                 var bsonReader = context.Reader;
 
@@ -272,7 +272,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 }
             }
 
-            private void SerializeBoundingBox(SerializationContext context, GeoJsonBoundingBox<TCoordinates> boundingBox)
+            private void SerializeBoundingBox(BsonSerializationContext context, GeoJsonBoundingBox<TCoordinates> boundingBox)
             {
                 if (boundingBox != null)
                 {
@@ -281,7 +281,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 }
             }
 
-            private void SerializeCoordinateReferenceSystem(SerializationContext context, GeoJsonCoordinateReferenceSystem coordinateReferenceSystem)
+            private void SerializeCoordinateReferenceSystem(BsonSerializationContext context, GeoJsonCoordinateReferenceSystem coordinateReferenceSystem)
             {
                 if (coordinateReferenceSystem != null)
                 {
@@ -290,12 +290,12 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 }
             }
 
-            private void SerializeDiscriminator(SerializationContext context, GeoJsonObjectType type)
+            private void SerializeDiscriminator(BsonSerializationContext context, GeoJsonObjectType type)
             {
                 context.Writer.WriteString("type", type.ToString());
             }
 
-            private void SerializeExtraMembers(SerializationContext context, BsonDocument extraMembers)
+            private void SerializeExtraMembers(BsonSerializationContext context, BsonDocument extraMembers)
             {
                 if (extraMembers != null)
                 {
@@ -308,7 +308,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 }
             }
 
-            private void SerializeObject(SerializationContext context, GeoJsonObject<TCoordinates> obj)
+            private void SerializeObject(BsonSerializationContext context, GeoJsonObject<TCoordinates> obj)
             {
                 var bsonWriter = context.Writer;
 

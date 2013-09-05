@@ -116,7 +116,7 @@ namespace MongoDB.Bson.Serialization
         public static TNominalType Deserialize<TNominalType>(BsonReader bsonReader)
         {
             var serializer = LookupSerializer<TNominalType>();
-            var context = DeserializationContext.CreateRoot<TNominalType>(bsonReader);
+            var context = BsonDeserializationContext.CreateRoot<TNominalType>(bsonReader);
             return serializer.Deserialize(context);
         }
 
@@ -213,7 +213,7 @@ namespace MongoDB.Bson.Serialization
         public static object Deserialize(BsonReader bsonReader, Type nominalType)
         {
             var serializer = LookupSerializer(nominalType);
-            var context = DeserializationContext.CreateRoot(bsonReader, nominalType);
+            var context = BsonDeserializationContext.CreateRoot(bsonReader, nominalType);
             return serializer.Deserialize(context);
         }
 
@@ -770,10 +770,10 @@ namespace MongoDB.Bson.Serialization
         public static void Serialize<TNominalType>(
             BsonWriter bsonWriter,
             TNominalType value,
-            Action<SerializationContext.Builder> configurator = null)
+            Action<BsonSerializationContext.Builder> configurator = null)
         {
             var serializer = LookupSerializer<TNominalType>();
-            var context = SerializationContext.CreateRoot<TNominalType>(bsonWriter, configurator);
+            var context = BsonSerializationContext.CreateRoot<TNominalType>(bsonWriter, configurator);
             serializer.Serialize(context, value);
         }
 
@@ -788,10 +788,10 @@ namespace MongoDB.Bson.Serialization
             BsonWriter bsonWriter,
             Type nominalType,
             object value,
-            Action<SerializationContext.Builder> configurator = null)
+            Action<BsonSerializationContext.Builder> configurator = null)
         {
             var serializer = LookupSerializer(nominalType);
-            var context = SerializationContext.CreateRoot(bsonWriter, nominalType, configurator);
+            var context = BsonSerializationContext.CreateRoot(bsonWriter, nominalType, configurator);
             serializer.Serialize(context, value);
         }
 

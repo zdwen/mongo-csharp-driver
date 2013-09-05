@@ -35,7 +35,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
-        public override GeoJsonFeature<TCoordinates> Deserialize(DeserializationContext context)
+        public override GeoJsonFeature<TCoordinates> Deserialize(BsonDeserializationContext context)
         {
             var helper = new Helper();
             return (GeoJsonFeature<TCoordinates>)helper.Deserialize(context);
@@ -46,7 +46,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
-        public override void Serialize(SerializationContext context, GeoJsonFeature<TCoordinates> value)
+        public override void Serialize(BsonSerializationContext context, GeoJsonFeature<TCoordinates> value)
         {
             var helper = new Helper();
             helper.Serialize(context, value);
@@ -88,7 +88,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// </summary>
             /// <param name="context">The context.</param>
             /// <param name="name">The name.</param>
-            protected override void DeserializeField(DeserializationContext context, string name)
+            protected override void DeserializeField(BsonDeserializationContext context, string name)
             {
                 switch (name)
                 {
@@ -104,7 +104,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             /// </summary>
             /// <param name="context">The context.</param>
             /// <param name="obj">The GeoJson object.</param>
-            protected override void SerializeFields(SerializationContext context, GeoJsonObject<TCoordinates> obj)
+            protected override void SerializeFields(BsonSerializationContext context, GeoJsonObject<TCoordinates> obj)
             {
                 base.SerializeFields(context, obj);
                 var feature = (GeoJsonFeature<TCoordinates>)obj;
@@ -114,28 +114,28 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
             }
 
             // private methods
-            private GeoJsonGeometry<TCoordinates> DeserializeGeometry(DeserializationContext context)
+            private GeoJsonGeometry<TCoordinates> DeserializeGeometry(BsonDeserializationContext context)
             {
                 return context.DeserializeWithChildContext(_geometrySerializer);
             }
 
-            private BsonValue DeserializeId(DeserializationContext context)
+            private BsonValue DeserializeId(BsonDeserializationContext context)
             {
                 return context.DeserializeWithChildContext(BsonValueSerializer.Instance);
             }
 
-            private BsonDocument DeserializeProperties(DeserializationContext context)
+            private BsonDocument DeserializeProperties(BsonDeserializationContext context)
             {
                 return context.DeserializeWithChildContext(BsonDocumentSerializer.Instance);
             }
 
-            private void SerializeGeometry(SerializationContext context, GeoJsonGeometry<TCoordinates> geometry)
+            private void SerializeGeometry(BsonSerializationContext context, GeoJsonGeometry<TCoordinates> geometry)
             {
                 context.Writer.WriteName("geometry");
                 context.SerializeWithChildContext(_geometrySerializer, geometry);
             }
 
-            private void SerializeId(SerializationContext context, BsonValue id)
+            private void SerializeId(BsonSerializationContext context, BsonValue id)
             {
                 if (id != null)
                 {
@@ -144,7 +144,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 }
             }
 
-            private void SerializeProperties(SerializationContext context, BsonDocument properties)
+            private void SerializeProperties(BsonSerializationContext context, BsonDocument properties)
             {
                 if (properties != null)
                 {

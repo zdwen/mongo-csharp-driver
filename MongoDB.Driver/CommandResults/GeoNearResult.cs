@@ -432,12 +432,12 @@ namespace MongoDB.Driver
             private readonly IBsonSerializer<GeoNearResult<TDocument>> _serializer = new CommandResultSerializer<GeoNearResult<TDocument>>();
 
             // public methods
-            public override GeoNearResult<TDocument> Deserialize(DeserializationContext context)
+            public override GeoNearResult<TDocument> Deserialize(BsonDeserializationContext context)
             {
                 return _serializer.Deserialize(context);
             }
 
-            public override void Serialize(SerializationContext context, GeoNearResult<TDocument> value)
+            public override void Serialize(BsonSerializationContext context, GeoNearResult<TDocument> value)
             {
                 _serializer.Serialize(context, value);
             }

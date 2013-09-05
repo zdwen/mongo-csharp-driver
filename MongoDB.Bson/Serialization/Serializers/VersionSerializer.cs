@@ -76,7 +76,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override Version Deserialize(DeserializationContext context)
+        public override Version Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
             string message;
@@ -143,7 +143,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, Version value)
+        public override void Serialize(BsonSerializationContext context, Version value)
         {
             var bsonWriter = context.Writer;
 

@@ -174,7 +174,7 @@ namespace MongoDB.Bson
             using (var stream = new ByteBufferStream(_slice, ownsByteBuffer: false))
             using (var bsonReader = new BsonBinaryReader(stream, _readerSettings))
             {
-                var context = DeserializationContext.CreateRoot<LazyBsonArray>(bsonReader);
+                var context = BsonDeserializationContext.CreateRoot<LazyBsonArray>(bsonReader);
 
                 bsonReader.ReadStartDocument();
                 BsonType bsonType;

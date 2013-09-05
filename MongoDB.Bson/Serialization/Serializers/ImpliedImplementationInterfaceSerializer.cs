@@ -151,7 +151,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// A document.
         /// </returns>
         /// <exception cref="System.FormatException"></exception>
-        public override TInterface Deserialize(DeserializationContext context)
+        public override TInterface Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -206,7 +206,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The document.</param>
-        public override void Serialize(SerializationContext context, TInterface value)
+        public override void Serialize(BsonSerializationContext context, TInterface value)
         {
             var bsonWriter = context.Writer;
 

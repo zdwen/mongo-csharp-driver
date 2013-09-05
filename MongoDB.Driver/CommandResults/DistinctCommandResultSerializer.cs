@@ -55,7 +55,7 @@ namespace MongoDB.Driver
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
-        public override DistinctCommandResult<TValue> Deserialize(DeserializationContext context)
+        public override DistinctCommandResult<TValue> Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
             var response = new BsonDocument();
@@ -81,7 +81,7 @@ namespace MongoDB.Driver
         }
 
         // private methods
-        private IEnumerable<TValue> ReadValues(DeserializationContext context)
+        private IEnumerable<TValue> ReadValues(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
             var values = new List<TValue>();

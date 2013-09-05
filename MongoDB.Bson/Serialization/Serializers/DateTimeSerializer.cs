@@ -181,7 +181,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override DateTime Deserialize(DeserializationContext context)
+        public override DateTime Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
             DateTime value;
@@ -253,7 +253,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, DateTime value)
+        public override void Serialize(BsonSerializationContext context, DateTime value)
         {
             var bsonWriter = context.Writer;
 

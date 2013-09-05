@@ -42,12 +42,12 @@ namespace MongoDB.DriverUnitTests.Jira.CSharp378
 
         public class MyIdSerializer : BsonBaseSerializer<string>
         {
-            public override string Deserialize(DeserializationContext context)
+            public override string Deserialize(BsonDeserializationContext context)
             {
                 return context.Reader.ReadObjectId().ToString();
             }
 
-            public override void Serialize(SerializationContext context, string value)
+            public override void Serialize(BsonSerializationContext context, string value)
             {
                 context.Writer.WriteObjectId(ObjectId.Parse(value));
             }

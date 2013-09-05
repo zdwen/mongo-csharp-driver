@@ -38,7 +38,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
         /// <exception cref="System.FormatException">Bounding box array does not have an even number of values.</exception>
-        public override GeoJsonBoundingBox<TCoordinates> Deserialize(DeserializationContext context)
+        public override GeoJsonBoundingBox<TCoordinates> Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -65,7 +65,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
 
                 using (var documentReader = BsonReader.Create(document))
                 {
-                    var documentContext = DeserializationContext.CreateRoot(documentReader, typeof(BsonDocument));
+                    var documentContext = BsonDeserializationContext.CreateRoot(documentReader, typeof(BsonDocument));
                     documentReader.ReadStartDocument();
                     documentReader.ReadName("min");
                     var min = documentContext.DeserializeWithChildContext(_coordinatesSerializer);
@@ -83,7 +83,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
-        public override void Serialize(SerializationContext context, GeoJsonBoundingBox<TCoordinates> value)
+        public override void Serialize(BsonSerializationContext context, GeoJsonBoundingBox<TCoordinates> value)
         {
             var bsonWriter = context.Writer;
 
@@ -97,7 +97,7 @@ namespace MongoDB.Driver.GeoJsonObjectModel.Serializers
                 var document = new BsonDocument();
                 using (var documentWriter = BsonWriter.Create(document))
                 {
-                    var documentContext = SerializationContext.CreateRoot(documentWriter, typeof(BsonDocument));
+                    var documentContext = BsonSerializationContext.CreateRoot(documentWriter, typeof(BsonDocument));
                     documentWriter.WriteStartDocument();
                     documentWriter.WriteName("min");
                     documentContext.SerializeWithChildContext(_coordinatesSerializer, value.Min);

@@ -197,7 +197,7 @@
     <Compile Include="Serialization\Conventions\StandardDiscriminatorConvention.cs" />
     <Compile Include="Serialization\Conventions\StringObjectIdIdGeneratorConvention.cs" />
     <Compile Include="Serialization\CreatorMapDelegateCompiler.cs" />
-    <Compile Include="Serialization\DeserializationContext.cs" />
+    <Compile Include="Serialization\BsonDeserializationContext.cs" />
     <Compile Include="Serialization\ExpressionVisitor.cs" />
     <Compile Include="Serialization\IBsonDictionarySerializer.cs" />
     <Compile Include="Serialization\IBsonPolymorphicSerializer.cs" />
@@ -216,7 +216,7 @@
     <Compile Include="Serialization\IdGenerators\StringObjectIdGenerator.cs" />
     <Compile Include="Serialization\IdGenerators\ZeroIdChecker.cs" />
     <Compile Include="Serialization\MostArgumentsCreatorSelector.cs" />
-    <Compile Include="Serialization\SerializationContext.cs" />
+    <Compile Include="Serialization\BsonSerializationContext.cs" />
     <Compile Include="Serialization\Serializers\AbstractClassSerializer.cs" />
     <Compile Include="Serialization\Serializers\BitArraySerializer.cs" />
     <Compile Include="Serialization\Serializers\BooleanSerializer.cs" />

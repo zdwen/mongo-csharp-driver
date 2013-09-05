@@ -58,7 +58,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override object Deserialize(DeserializationContext context)
+        public override object Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -115,7 +115,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, object value)
+        public override void Serialize(BsonSerializationContext context, object value)
         {
             var bsonWriter = context.Writer;
 
@@ -194,7 +194,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // private methods
-        private object DeserializeDiscriminatedValue(DeserializationContext context)
+        private object DeserializeDiscriminatedValue(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -227,7 +227,7 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
         }
 
-        private void SerializeDiscriminatedValue(SerializationContext context, object value, Type actualType)
+        private void SerializeDiscriminatedValue(BsonSerializationContext context, object value, Type actualType)
         {
             var serializer = BsonSerializer.LookupSerializer(actualType);
 

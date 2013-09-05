@@ -38,14 +38,14 @@ namespace MongoDB.Bson.Serialization
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
-        object Deserialize(DeserializationContext context);
+        object Deserialize(BsonDeserializationContext context);
 
         /// <summary>
         /// Serializes a value.
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
-        void Serialize(SerializationContext context, object value);
+        void Serialize(BsonSerializationContext context, object value);
     }
 
     /// <summary>
@@ -59,13 +59,13 @@ namespace MongoDB.Bson.Serialization
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>The value.</returns>
-        new TValue Deserialize(DeserializationContext context);
+        new TValue Deserialize(BsonDeserializationContext context);
 
         /// <summary>
         /// Serializes a value.
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The value.</param>
-        void Serialize(SerializationContext context, TValue value);
+        void Serialize(BsonSerializationContext context, TValue value);
     }
 }

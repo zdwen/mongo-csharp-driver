@@ -38,7 +38,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override Uri Deserialize(DeserializationContext context)
+        public override Uri Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -63,7 +63,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, Uri value)
+        public override void Serialize(BsonSerializationContext context, Uri value)
         {
             var bsonWriter = context.Writer;
 

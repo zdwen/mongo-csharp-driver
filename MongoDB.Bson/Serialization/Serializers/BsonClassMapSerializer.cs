@@ -66,7 +66,7 @@ namespace MongoDB.Bson.Serialization
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override TClass Deserialize(DeserializationContext context)
+        public override TClass Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -109,7 +109,7 @@ namespace MongoDB.Bson.Serialization
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public TClass DeserializeClass(DeserializationContext context)
+        public TClass DeserializeClass(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
 
@@ -345,7 +345,7 @@ namespace MongoDB.Bson.Serialization
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, TClass value)
+        public override void Serialize(BsonSerializationContext context, TClass value)
         {
             var bsonWriter = context.Writer;
 
@@ -442,7 +442,7 @@ namespace MongoDB.Bson.Serialization
         }
 
         private void DeserializeExtraElement(
-            DeserializationContext context,
+            BsonDeserializationContext context,
             object obj,
             string elementName,
             BsonMemberMap extraElementsMemberMap)
@@ -480,7 +480,7 @@ namespace MongoDB.Bson.Serialization
             }
         }
 
-        private object DeserializeMemberValue(DeserializationContext context, BsonMemberMap memberMap)
+        private object DeserializeMemberValue(BsonDeserializationContext context, BsonMemberMap memberMap)
         {
             var bsonReader = context.Reader;
 
@@ -548,7 +548,7 @@ namespace MongoDB.Bson.Serialization
             return false;
         }
 
-        private void SerializeClass(SerializationContext context, TClass document)
+        private void SerializeClass(BsonSerializationContext context, TClass document)
         {
             var bsonWriter = context.Writer;
 
@@ -583,7 +583,7 @@ namespace MongoDB.Bson.Serialization
             bsonWriter.WriteEndDocument();
         }
 
-        private void SerializeExtraElements(SerializationContext context, object obj, BsonMemberMap extraElementsMemberMap)
+        private void SerializeExtraElements(BsonSerializationContext context, object obj, BsonMemberMap extraElementsMemberMap)
         {
             var bsonWriter = context.Writer;
 
@@ -620,7 +620,7 @@ namespace MongoDB.Bson.Serialization
             }
         }
 
-        private void SerializeDiscriminator(SerializationContext context, object obj)
+        private void SerializeDiscriminator(BsonSerializationContext context, object obj)
         {
             var discriminatorConvention = _classMap.GetDiscriminatorConvention();
             if (discriminatorConvention != null)
@@ -635,7 +635,7 @@ namespace MongoDB.Bson.Serialization
             }
         }
 
-        private void SerializeMember(SerializationContext context, object obj, BsonMemberMap memberMap)
+        private void SerializeMember(BsonSerializationContext context, object obj, BsonMemberMap memberMap)
         {
             if (memberMap != _classMap.ExtraElementsMemberMap)
             {
@@ -647,7 +647,7 @@ namespace MongoDB.Bson.Serialization
             }
         }
 
-        private void SerializeNormalMember(SerializationContext context, object obj, BsonMemberMap memberMap)
+        private void SerializeNormalMember(BsonSerializationContext context, object obj, BsonMemberMap memberMap)
         {
             var bsonWriter = context.Writer;
 
@@ -676,7 +676,7 @@ namespace MongoDB.Bson.Serialization
             }
         }
 
-        private bool ShouldSerializeDiscriminator(SerializationContext context)
+        private bool ShouldSerializeDiscriminator(BsonSerializationContext context)
         {
             return (context.NominalType != _classMap.ClassType || _classMap.DiscriminatorIsRequired || _classMap.HasRootClass) && !_classMap.IsAnonymous;
         }

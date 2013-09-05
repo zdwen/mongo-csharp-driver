@@ -80,7 +80,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The deserialization context.</param>
         /// <returns>An object.</returns>
-        public override sbyte Deserialize(DeserializationContext context)
+        public override sbyte Deserialize(BsonDeserializationContext context)
         {
             var bsonReader = context.Reader;
             sbyte value;
@@ -138,7 +138,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The object.</param>
-        public override void Serialize(SerializationContext context, sbyte value)
+        public override void Serialize(BsonSerializationContext context, sbyte value)
         {
             var bsonWriter = context.Writer;
 

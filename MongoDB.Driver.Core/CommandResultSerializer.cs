@@ -42,7 +42,7 @@ namespace MongoDB.Driver.Core
         /// <returns>
         /// An object.
         /// </returns>
-        public override TCommandResult Deserialize(DeserializationContext context)
+        public override TCommandResult Deserialize(BsonDeserializationContext context)
         {
             var response = BsonDocumentSerializer.Instance.Deserialize(context.CreateChild(typeof(BsonDocument)));
             return (TCommandResult)Activator.CreateInstance(typeof(TCommandResult), response);

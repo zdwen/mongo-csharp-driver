@@ -194,7 +194,7 @@ namespace MongoDB.Driver.Core.Protocol.Messages
         {
             using (var bsonReader = new BsonBinaryReader(_stream, readerSettings))
             {
-                var context = DeserializationContext.CreateRoot<TDocument>(bsonReader);
+                var context = BsonDeserializationContext.CreateRoot<TDocument>(bsonReader);
                 for (int i = 0; i < _numberReturned; i++)
                 {
                     yield return serializer.Deserialize(context);

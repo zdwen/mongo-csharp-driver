@@ -73,7 +73,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// The value.
         /// </returns>
         /// <exception cref="System.NotSupportedException">UndiscriminatedActualTypeSerializer does not support the Deserialize method.</exception>
-        public object Deserialize(DeserializationContext context)
+        public object Deserialize(BsonDeserializationContext context)
         {
             throw new NotSupportedException("UndiscriminatedActualTypeSerializer does not support the Deserialize method.");
         }
@@ -83,7 +83,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The document.</param>
-        public void Serialize(SerializationContext context, object value)
+        public void Serialize(BsonSerializationContext context, object value)
         {
             var bsonWriter = context.Writer;
 
@@ -126,7 +126,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         /// </summary>
         /// <param name="context">The serialization context.</param>
         /// <param name="value">The document.</param>
-        public override void Serialize(SerializationContext context, TDocument value)
+        public override void Serialize(BsonSerializationContext context, TDocument value)
         {
             var bsonWriter = context.Writer;
 

@@ -38,7 +38,7 @@ namespace MongoDB.Bson
             this TNominalType obj,
             IBsonSerializer<TNominalType> serializer = null,
             BsonBinaryWriterSettings writerSettings = null,
-            Action<SerializationContext.Builder> configurator = null
+            Action<BsonSerializationContext.Builder> configurator = null
             )
         {
             return ToBson(obj, typeof(TNominalType), writerSettings, serializer, configurator);
@@ -60,7 +60,7 @@ namespace MongoDB.Bson
             Type nominalType,
             BsonBinaryWriterSettings writerSettings = null,
             IBsonSerializer serializer = null,
-            Action<SerializationContext.Builder> configurator = null)
+            Action<BsonSerializationContext.Builder> configurator = null)
         {
             if (nominalType == null)
             {
@@ -81,7 +81,7 @@ namespace MongoDB.Bson
             {
                 using (var bsonWriter = BsonWriter.Create(memoryStream, writerSettings ?? BsonBinaryWriterSettings.Defaults))
                 {
-                    var context = SerializationContext.CreateRoot(bsonWriter, nominalType, configurator);
+                    var context = BsonSerializationContext.CreateRoot(bsonWriter, nominalType, configurator);
                     serializer.Serialize(context, obj);
                 }
                 return memoryStream.ToArray();
@@ -99,7 +99,7 @@ namespace MongoDB.Bson
         public static BsonDocument ToBsonDocument<TNominalType>(
             this TNominalType obj, 
             IBsonSerializer<TNominalType> serializer = null,
-            Action<SerializationContext.Builder> configurator = null)
+            Action<BsonSerializationContext.Builder> configurator = null)
         {
             return ToBsonDocument(obj, typeof(TNominalType), serializer, configurator);
         }
@@ -118,7 +118,7 @@ namespace MongoDB.Bson
             this object obj,
             Type nominalType,
             IBsonSerializer serializer = null,
-            Action<SerializationContext.Builder> configurator = null)
+            Action<BsonSerializationContext.Builder> configurator = null)
         {
             if (nominalType == null)
             {
@@ -156,7 +156,7 @@ namespace MongoDB.Bson
             var document = new BsonDocument();
             using (var bsonWriter = BsonWriter.Create(document))
             {
-                var context = SerializationContext.CreateRoot(bsonWriter, nominalType, configurator);
+                var context = BsonSerializationContext.CreateRoot(bsonWriter, nominalType, configurator);
                 serializer.Serialize(context, obj);
             }
             return document;
@@ -177,7 +177,7 @@ namespace MongoDB.Bson
             this TNominalType obj, 
             JsonWriterSettings writerSettings = null,
             IBsonSerializer<TNominalType> serializer = null, 
-            Action<SerializationContext.Builder> configurator = null)
+            Action<BsonSerializationContext.Builder> configurator = null)
         {
             return ToJson(obj, typeof(TNominalType), writerSettings, serializer, configurator);
         }
@@ -200,7 +200,7 @@ namespace MongoDB.Bson
             Type nominalType,
             JsonWriterSettings writerSettings = null,
             IBsonSerializer serializer = null,
-            Action<SerializationContext.Builder> configurator = null)
+            Action<BsonSerializationContext.Builder> configurator = null)
         {
             if (nominalType == null)
             {
@@ -221,7 +221,7 @@ namespace MongoDB.Bson
             {
                 using (var bsonWriter = BsonWriter.Create(stringWriter, writerSettings ?? JsonWriterSettings.Defaults))
                 {
-                    var context = SerializationContext.CreateRoot(bsonWriter, nominalType, configurator);
+                    var context = BsonSerializationContext.CreateRoot(bsonWriter, nominalType, configurator);
                     serializer.Serialize(context, obj);
                 }
                 return stringWriter.ToString();

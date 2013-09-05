@@ -1432,7 +1432,7 @@ namespace MongoDB.Driver
                         };
                         using (var bsonWriter = new BsonDocumentWriter(bsonDocument, bsonDocumentWriterSettings))
                         {
-                            var context = SerializationContext.CreateRoot<BsonDocument>(bsonWriter);
+                            var context = BsonSerializationContext.CreateRoot<BsonDocument>(bsonWriter);
                             bsonWriter.WriteStartDocument();
                             bsonWriter.WriteName("_id");
                             idSerializer.Serialize(context, id);
