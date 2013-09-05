@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Bytes.
     /// </summary>
-    public class ByteSerializer : BsonBaseSerializer<byte>, IBsonSerializerWithRepresentation<ByteSerializer>
+    public class ByteSerializer : BsonBaseSerializer<byte>, IRepresentationConfigurable<ByteSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -183,7 +183,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

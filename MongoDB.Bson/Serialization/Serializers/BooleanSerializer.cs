@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Booleans.
     /// </summary>
-    public class BooleanSerializer : BsonBaseSerializer<bool>, IBsonSerializerWithRepresentation<BooleanSerializer>
+    public class BooleanSerializer : BsonBaseSerializer<bool>, IRepresentationConfigurable<BooleanSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -167,7 +167,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

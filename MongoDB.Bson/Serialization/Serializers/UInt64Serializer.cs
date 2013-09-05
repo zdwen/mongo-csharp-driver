@@ -26,7 +26,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// Represents a serializer for UInt64s.
     /// </summary>
     [CLSCompliant(false)]
-    public class UInt64Serializer : BsonBaseSerializer<ulong>, IBsonSerializerWithRepresentation<UInt64Serializer>, IBsonSerializerWithRepresentationConverter<UInt64Serializer>
+    public class UInt64Serializer : BsonBaseSerializer<ulong>, IRepresentationConfigurable<UInt64Serializer>, IRepresentationConverterConfigurable<UInt64Serializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -196,12 +196,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        IBsonSerializer IRepresentationConverterConfigurable.WithConverter(RepresentationConverter converter)
         {
             return WithConverter(converter);
         }
 
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

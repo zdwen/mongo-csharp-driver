@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Int32.
     /// </summary>
-    public class Int32Serializer : BsonBaseSerializer<int>, IBsonSerializerWithRepresentation<Int32Serializer>, IBsonSerializerWithRepresentationConverter<Int32Serializer>
+    public class Int32Serializer : BsonBaseSerializer<int>, IRepresentationConfigurable<Int32Serializer>, IRepresentationConverterConfigurable<Int32Serializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -195,12 +195,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        IBsonSerializer IRepresentationConverterConfigurable.WithConverter(RepresentationConverter converter)
         {
             return WithConverter(converter);
         }
 
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

@@ -24,7 +24,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Chars.
     /// </summary>
-    public class CharSerializer : BsonBaseSerializer<char>, IBsonSerializerWithRepresentation<CharSerializer>
+    public class CharSerializer : BsonBaseSerializer<char>, IRepresentationConfigurable<CharSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -146,7 +146,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

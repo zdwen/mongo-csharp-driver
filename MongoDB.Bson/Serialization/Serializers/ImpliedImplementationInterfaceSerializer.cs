@@ -28,7 +28,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         IBsonArraySerializer,
         IBsonDictionarySerializer,
         IBsonDocumentSerializer,
-        IBsonSerializerWithConfigurableChildSerializer
+        IChildSerializerConfigurable
             where TImplementation : class, TInterface
     {
         // private fields
@@ -249,12 +249,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
         {
             get { return _implementationSerializer; }
         }
 
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithImplementationSerializer((IBsonSerializer<TImplementation>)childSerializer);
         }

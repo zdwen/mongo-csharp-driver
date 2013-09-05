@@ -24,7 +24,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for ObjectIds.
     /// </summary>
-    public class ObjectIdSerializer : BsonBaseSerializer<ObjectId>, IBsonSerializerWithRepresentation<ObjectIdSerializer>
+    public class ObjectIdSerializer : BsonBaseSerializer<ObjectId>, IRepresentationConfigurable<ObjectIdSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -138,7 +138,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

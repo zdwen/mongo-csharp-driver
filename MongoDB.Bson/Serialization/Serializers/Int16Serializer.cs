@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Int16s.
     /// </summary>
-    public class Int16Serializer : BsonBaseSerializer<short>, IBsonSerializerWithRepresentation<Int16Serializer>, IBsonSerializerWithRepresentationConverter<Int16Serializer>
+    public class Int16Serializer : BsonBaseSerializer<short>, IRepresentationConfigurable<Int16Serializer>, IRepresentationConverterConfigurable<Int16Serializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -195,12 +195,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        IBsonSerializer IRepresentationConverterConfigurable.WithConverter(RepresentationConverter converter)
         {
             return WithConverter(converter);
         }
 
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

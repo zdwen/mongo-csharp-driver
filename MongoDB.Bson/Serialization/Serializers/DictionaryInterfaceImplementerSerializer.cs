@@ -25,8 +25,8 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="TDictionary">The type of the dictionary.</typeparam>
     public class DictionaryInterfaceImplementerSerializer<TDictionary> :
         DictionarySerializerBase<TDictionary>,
-        IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithDictionaryRepresentation
+        IChildSerializerConfigurable,
+        IDictionaryRepresentationConfigurable
             where TDictionary : class, IDictionary, new()
     {
         /// <summary>
@@ -138,17 +138,17 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
         {
             get { return ValueSerializer; }
         }
 
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithValueSerializer(childSerializer);
         }
 
-        IBsonSerializer IBsonSerializerWithDictionaryRepresentation.WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation)
+        IBsonSerializer IDictionaryRepresentationConfigurable.WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation)
         {
             return WithDictionaryRepresentation(dictionaryRepresentation);
         }
@@ -162,8 +162,8 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="TValue">The type of the value.</typeparam>
     public class DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue> :
         DictionarySerializerBase<TDictionary, TKey, TValue>,
-        IBsonSerializerWithConfigurableChildSerializer,
-        IBsonSerializerWithDictionaryRepresentation<DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>>
+        IChildSerializerConfigurable,
+        IDictionaryRepresentationConfigurable<DictionaryInterfaceImplementerSerializer<TDictionary, TKey, TValue>>
             where TDictionary : class, IDictionary<TKey, TValue>, new()
     {
         /// <summary>
@@ -275,17 +275,17 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
         {
             get { return ValueSerializer; }
         }
 
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithValueSerializer((IBsonSerializer<TValue>)childSerializer);
         }
 
-        IBsonSerializer IBsonSerializerWithDictionaryRepresentation.WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation)
+        IBsonSerializer IDictionaryRepresentationConfigurable.WithDictionaryRepresentation(DictionaryRepresentation dictionaryRepresentation)
         {
             return WithDictionaryRepresentation(dictionaryRepresentation);
         }

@@ -52,12 +52,12 @@ namespace MongoDB.Bson.Serialization.Attributes
         protected virtual IBsonSerializer Apply(IBsonSerializer serializer)
         {
             // if none of the overrides applied the attribute to the serializer see if it can be applied to a child serializer
-            var serializerWithConfigurableChildSerializer = serializer as IBsonSerializerWithConfigurableChildSerializer;
-            if (serializerWithConfigurableChildSerializer != null)
+            var childSerializerConfigurable = serializer as IChildSerializerConfigurable;
+            if (childSerializerConfigurable != null)
             {
-                var childSerializer = serializerWithConfigurableChildSerializer.ConfigurableChildSerializer;
+                var childSerializer = childSerializerConfigurable.ConfigurableChildSerializer;
                 var reconfiguredChildSerializer = Apply(childSerializer);
-                return serializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(reconfiguredChildSerializer);
+                return childSerializerConfigurable.WithReconfiguredChildSerializer(reconfiguredChildSerializer);
             }
 
             var message = string.Format(

@@ -24,7 +24,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Guids.
     /// </summary>
-    public class GuidSerializer : BsonBaseSerializer<Guid>, IBsonSerializerWithRepresentation<GuidSerializer>
+    public class GuidSerializer : BsonBaseSerializer<Guid>, IRepresentationConfigurable<GuidSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -164,7 +164,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

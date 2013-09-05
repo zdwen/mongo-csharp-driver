@@ -26,7 +26,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for BitArrays.
     /// </summary>
-    public class BitArraySerializer : BsonBaseSerializer<BitArray>, IBsonSerializerWithRepresentation<BitArraySerializer>
+    public class BitArraySerializer : BsonBaseSerializer<BitArray>, IRepresentationConfigurable<BitArraySerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -213,7 +213,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

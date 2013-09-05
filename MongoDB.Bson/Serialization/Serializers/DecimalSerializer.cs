@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Decimals.
     /// </summary>
-    public class DecimalSerializer : BsonBaseSerializer<decimal>, IBsonSerializerWithRepresentation<DecimalSerializer>, IBsonSerializerWithRepresentationConverter<DecimalSerializer>
+    public class DecimalSerializer : BsonBaseSerializer<decimal>, IRepresentationConfigurable<DecimalSerializer>, IRepresentationConverterConfigurable<DecimalSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -215,12 +215,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        IBsonSerializer IRepresentationConverterConfigurable.WithConverter(RepresentationConverter converter)
         {
             return WithConverter(converter);
         }
 
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

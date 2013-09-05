@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for enums.
     /// </summary>
-    public class EnumSerializer<TEnum> : BsonBaseSerializer<TEnum>, IBsonSerializerWithRepresentation<EnumSerializer<TEnum>>
+    public class EnumSerializer<TEnum> : BsonBaseSerializer<TEnum>, IRepresentationConfigurable<EnumSerializer<TEnum>>
     {
         // private fields
         private readonly BsonType _representation;
@@ -160,7 +160,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

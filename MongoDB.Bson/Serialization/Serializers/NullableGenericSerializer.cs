@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="T">The underlying type.</typeparam>
     public class NullableSerializer<T> :
         BsonBaseSerializer<Nullable<T>>,
-        IBsonSerializerWithConfigurableChildSerializer
+        IChildSerializerConfigurable
             where T : struct
     {
         // private fields
@@ -110,12 +110,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
         {
             get { return _serializer; }
         }
 
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithSerializer((IBsonSerializer<T>)childSerializer);
         }

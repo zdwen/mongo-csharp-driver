@@ -24,7 +24,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Versions.
     /// </summary>
-    public class VersionSerializer : BsonBaseSerializer<Version>, IBsonSerializerWithRepresentation<VersionSerializer>
+    public class VersionSerializer : BsonBaseSerializer<Version>, IRepresentationConfigurable<VersionSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -199,7 +199,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

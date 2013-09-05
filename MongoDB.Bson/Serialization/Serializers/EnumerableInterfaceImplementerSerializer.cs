@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="TValue">The type of the value.</typeparam>
     public class EnumerableInterfaceImplementerSerializer<TValue> :
         EnumerableInterfaceImplementerSerializerBase<TValue>,
-        IBsonSerializerWithConfigurableChildSerializer
+        IChildSerializerConfigurable
             where TValue : class, IList, new()
     {
         // constructors
@@ -74,12 +74,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
         {
             get { return ItemSerializer; }
         }
 
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithItemSerializer(childSerializer);
         }
@@ -92,7 +92,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <typeparam name="TItem">The type of the item.</typeparam>
     public class EnumerableInterfaceImplementerSerializer<TValue, TItem> : 
         EnumerableInterfaceImplementerSerializerBase<TValue, TItem>,
-        IBsonSerializerWithConfigurableChildSerializer
+        IChildSerializerConfigurable
             where TValue : class, IEnumerable<TItem>
     {
         // constructors
@@ -176,12 +176,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
         {
             get { return ItemSerializer; }
         }
 
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithItemSerializer((IBsonSerializer<TItem>)childSerializer);
         }

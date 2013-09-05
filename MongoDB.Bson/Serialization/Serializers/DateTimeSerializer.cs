@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for DateTimes.
     /// </summary>
-    public class DateTimeSerializer : BsonBaseSerializer<DateTime>, IBsonSerializerWithRepresentation<DateTimeSerializer>
+    public class DateTimeSerializer : BsonBaseSerializer<DateTime>, IRepresentationConfigurable<DateTimeSerializer>
     {
         // private static fields
         private static DateTimeSerializer __dateOnlyInstance = new DateTimeSerializer(true);
@@ -420,7 +420,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

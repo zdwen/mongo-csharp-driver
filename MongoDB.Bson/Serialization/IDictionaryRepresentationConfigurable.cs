@@ -20,7 +20,7 @@ namespace MongoDB.Bson.Serialization
     /// <summary>
     /// Represents a serializer that has a DictionaryRepresentation property.
     /// </summary>
-    public interface IBsonSerializerWithDictionaryRepresentation
+    public interface IDictionaryRepresentationConfigurable
     {
         /// <summary>
         /// Gets the dictionary representation.
@@ -41,7 +41,7 @@ namespace MongoDB.Bson.Serialization
     /// <summary>
     /// Represents a serializer that has a DictionaryRepresentation property.
     /// </summary>
-    public interface IBsonSerializerWithDictionaryRepresentation<TSerializer> : IBsonSerializerWithDictionaryRepresentation where TSerializer : IBsonSerializer
+    public interface IDictionaryRepresentationConfigurable<TSerializer> : IDictionaryRepresentationConfigurable where TSerializer : IBsonSerializer
     {
         /// <summary>
         /// Returns a serializer that has been reconfigured with the specified dictionary representation.

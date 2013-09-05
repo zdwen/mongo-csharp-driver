@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Int64s.
     /// </summary>
-    public class Int64Serializer : BsonBaseSerializer<long>, IBsonSerializerWithRepresentation<Int64Serializer>, IBsonSerializerWithRepresentationConverter<Int64Serializer>
+    public class Int64Serializer : BsonBaseSerializer<long>, IRepresentationConfigurable<Int64Serializer>, IRepresentationConverterConfigurable<Int64Serializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -195,12 +195,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        IBsonSerializer IRepresentationConverterConfigurable.WithConverter(RepresentationConverter converter)
         {
             return WithConverter(converter);
         }
 
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

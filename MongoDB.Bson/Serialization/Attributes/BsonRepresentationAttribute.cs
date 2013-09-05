@@ -74,29 +74,29 @@ namespace MongoDB.Bson.Serialization.Attributes
         /// <returns>A reconfigured serializer.</returns>
         protected override IBsonSerializer Apply(IBsonSerializer serializer)
         {
-            var serializerWithRepresentation = serializer as IBsonSerializerWithRepresentation;
-            if (serializerWithRepresentation != null)
+            var representationConfigurable = serializer as IRepresentationConfigurable;
+            if (representationConfigurable != null)
             {
-                var reconfiguredSerializer = serializerWithRepresentation.WithRepresentation(_representation);
+                var reconfiguredSerializer = representationConfigurable.WithRepresentation(_representation);
 
-                var serializerWithConverter = reconfiguredSerializer as IBsonSerializerWithRepresentationConverter;
-                if (serializerWithConverter != null)
+                var converterConfigurable = reconfiguredSerializer as IRepresentationConverterConfigurable;
+                if (converterConfigurable != null)
                 {
                     var converter = new RepresentationConverter(_allowOverflow, _allowTruncation);
-                    reconfiguredSerializer = serializerWithConverter.WithConverter(converter);
+                    reconfiguredSerializer = converterConfigurable.WithConverter(converter);
                 }
 
                 return reconfiguredSerializer;
             }
 
             // for backward compatibility representations of Array and Document are mapped to DictionaryRepresentations if possible
-            var serializerWithDictionaryRepresentation = serializer as IBsonSerializerWithDictionaryRepresentation;
-            if (serializerWithDictionaryRepresentation != null)
+            var dictionaryRepresentationConfigurable = serializer as IDictionaryRepresentationConfigurable;
+            if (dictionaryRepresentationConfigurable != null)
             {
                 if (_representation == BsonType.Array || _representation == BsonType.Document)
                 {
                     var dictionaryRepresentation = (_representation == BsonType.Array) ? DictionaryRepresentation.ArrayOfArrays: DictionaryRepresentation.Document;
-                    return serializerWithDictionaryRepresentation.WithDictionaryRepresentation(dictionaryRepresentation);
+                    return dictionaryRepresentationConfigurable.WithDictionaryRepresentation(dictionaryRepresentation);
                 }
             }
 

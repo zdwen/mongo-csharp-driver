@@ -25,7 +25,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for DateTimeOffsets.
     /// </summary>
-    public class DateTimeOffsetSerializer : BsonBaseSerializer<DateTimeOffset>, IBsonSerializerWithRepresentation<DateTimeOffsetSerializer>
+    public class DateTimeOffsetSerializer : BsonBaseSerializer<DateTimeOffset>, IRepresentationConfigurable<DateTimeOffsetSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -167,7 +167,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

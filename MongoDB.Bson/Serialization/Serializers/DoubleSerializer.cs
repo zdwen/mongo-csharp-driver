@@ -26,7 +26,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Doubles.
     /// </summary>
-    public class DoubleSerializer : BsonBaseSerializer<double>, IBsonSerializerWithRepresentation<DoubleSerializer>, IBsonSerializerWithRepresentationConverter<DoubleSerializer>
+    public class DoubleSerializer : BsonBaseSerializer<double>, IRepresentationConfigurable<DoubleSerializer>, IRepresentationConverterConfigurable<DoubleSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -196,12 +196,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        IBsonSerializer IRepresentationConverterConfigurable.WithConverter(RepresentationConverter converter)
         {
             return WithConverter(converter);
         }
 
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

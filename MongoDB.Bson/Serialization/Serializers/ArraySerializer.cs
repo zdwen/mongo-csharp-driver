@@ -27,7 +27,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     public class ArraySerializer<TItem> :
         EnumerableSerializerBase<TItem[], TItem>,
         IBsonArraySerializer,
-        IBsonSerializerWithConfigurableChildSerializer
+        IChildSerializerConfigurable
     {
         // constructors
         /// <summary>
@@ -105,12 +105,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.ConfigurableChildSerializer
+        IBsonSerializer IChildSerializerConfigurable.ConfigurableChildSerializer
         {
             get { return ItemSerializer; }
         }
 
-        IBsonSerializer IBsonSerializerWithConfigurableChildSerializer.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
+        IBsonSerializer IChildSerializerConfigurable.WithReconfiguredChildSerializer(IBsonSerializer childSerializer)
         {
             return WithItemSerializer((IBsonSerializer<TItem>)childSerializer);
         }

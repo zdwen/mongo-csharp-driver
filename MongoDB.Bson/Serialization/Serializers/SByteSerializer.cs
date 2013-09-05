@@ -26,7 +26,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// Represents a serializer for SBytes.
     /// </summary>
     [CLSCompliant(false)]
-    public class SByteSerializer : BsonBaseSerializer<sbyte>, IBsonSerializerWithRepresentation<SByteSerializer>
+    public class SByteSerializer : BsonBaseSerializer<sbyte>, IRepresentationConfigurable<SByteSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -184,7 +184,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

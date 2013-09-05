@@ -13,40 +13,42 @@
 * limitations under the License.
 */
 
+using MongoDB.Bson.Serialization.Options;
+
 namespace MongoDB.Bson.Serialization
 {
     /// <summary>
-    /// Represents a serializer that has a Representation property.
+    /// Represents a serializer that has a representation converter.
     /// </summary>
-    public interface IBsonSerializerWithRepresentation
+    public interface IRepresentationConverterConfigurable
     {
         /// <summary>
-        /// Gets the representation.
+        /// Gets the converter.
         /// </summary>
         /// <value>
-        /// The representation.
+        /// The converter.
         /// </value>
-        BsonType Representation { get; }
+        RepresentationConverter Converter { get; }
 
         /// <summary>
-        /// Returns a serializer that has been reconfigured with the specified representation.
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
         /// </summary>
-        /// <param name="representation">The representation.</param>
+        /// <param name="converter">The converter.</param>
         /// <returns>The reconfigured serializer.</returns>
-        IBsonSerializer WithRepresentation(BsonType representation);
+        IBsonSerializer WithConverter(RepresentationConverter converter);
     }
 
     /// <summary>
-    /// Represents a serializer that has a Representation property.
+    /// Represents a serializer that has a representation converter.
     /// </summary>
     /// <typeparam name="TSerializer">The type of the serializer.</typeparam>
-    public interface IBsonSerializerWithRepresentation<TSerializer> : IBsonSerializerWithRepresentation where TSerializer : IBsonSerializer
+    public interface IRepresentationConverterConfigurable<TSerializer> : IRepresentationConverterConfigurable where TSerializer : IBsonSerializer
     {
         /// <summary>
-        /// Returns a serializer that has been reconfigured with the specified representation.
+        /// Returns a serializer that has been reconfigured with the specified item serializer.
         /// </summary>
-        /// <param name="representation">The representation.</param>
+        /// <param name="converter">The converter.</param>
         /// <returns>The reconfigured serializer.</returns>
-        new TSerializer WithRepresentation(BsonType representation);
+        new TSerializer WithConverter(RepresentationConverter converter);
     }
 }

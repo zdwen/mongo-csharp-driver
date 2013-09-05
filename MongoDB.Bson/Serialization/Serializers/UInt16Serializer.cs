@@ -26,7 +26,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// Represents a serializer for UInt16s.
     /// </summary>
     [CLSCompliant(false)]
-    public class UInt16Serializer : BsonBaseSerializer<ushort>, IBsonSerializerWithRepresentation<UInt16Serializer>, IBsonSerializerWithRepresentationConverter<UInt16Serializer>
+    public class UInt16Serializer : BsonBaseSerializer<ushort>, IRepresentationConfigurable<UInt16Serializer>, IRepresentationConverterConfigurable<UInt16Serializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -196,12 +196,12 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentationConverter.WithConverter(RepresentationConverter converter)
+        IBsonSerializer IRepresentationConverterConfigurable.WithConverter(RepresentationConverter converter)
         {
             return WithConverter(converter);
         }
 
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }

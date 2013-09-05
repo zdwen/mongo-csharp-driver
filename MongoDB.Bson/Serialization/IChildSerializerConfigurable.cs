@@ -22,7 +22,7 @@ namespace MongoDB.Bson.Serialization
     /// <summary>
     /// Represents a serializer that has a child serializer that configuration attributes can be forwarded to.
     /// </summary>
-    public interface IBsonSerializerWithConfigurableChildSerializer
+    public interface IChildSerializerConfigurable
     {
         /// <summary>
         /// Gets the configurable child serializer.

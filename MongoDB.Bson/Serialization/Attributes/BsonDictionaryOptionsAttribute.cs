@@ -62,10 +62,10 @@ namespace MongoDB.Bson.Serialization.Attributes
         /// <returns>A reconfigured serializer.</returns>
         protected override IBsonSerializer Apply(IBsonSerializer serializer)
         {
-            var serializerWithDictionaryRepresentation = serializer as IBsonSerializerWithDictionaryRepresentation;
-            if (serializerWithDictionaryRepresentation != null)
+            var dictionaryRepresentationConfigurable = serializer as IDictionaryRepresentationConfigurable;
+            if (dictionaryRepresentationConfigurable != null)
             {
-                return serializerWithDictionaryRepresentation.WithDictionaryRepresentation(_representation);
+                return dictionaryRepresentationConfigurable.WithDictionaryRepresentation(_representation);
             }
 
             return base.Apply(serializer);

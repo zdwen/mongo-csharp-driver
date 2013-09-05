@@ -24,7 +24,7 @@ namespace MongoDB.Bson.Serialization.Serializers
     /// <summary>
     /// Represents a serializer for Strings.
     /// </summary>
-    public class StringSerializer : BsonBaseSerializer<string>, IBsonSerializerWithRepresentation<StringSerializer>
+    public class StringSerializer : BsonBaseSerializer<string>, IRepresentationConfigurable<StringSerializer>
     {
         // private fields
         private readonly BsonType _representation;
@@ -168,7 +168,7 @@ namespace MongoDB.Bson.Serialization.Serializers
         }
 
         // explicit interface implementations
-        IBsonSerializer IBsonSerializerWithRepresentation.WithRepresentation(BsonType representation)
+        IBsonSerializer IRepresentationConfigurable.WithRepresentation(BsonType representation)
         {
             return WithRepresentation(representation);
         }
