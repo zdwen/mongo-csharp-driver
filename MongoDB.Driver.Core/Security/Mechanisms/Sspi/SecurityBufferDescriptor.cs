@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -25,9 +26,9 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
     /// <remarks>
     /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa379815(v=vs.85).aspx
     /// </remarks>
+    [SuppressMessage("Microsoft.Design", "CA1049:TypesThatOwnNativeResourcesShouldBeDisposable", Justification = "Implementing IDisposable on a struct leads to memory leaks.")]
     [StructLayout(LayoutKind.Sequential)]
-    [SecurityCritical]
-    internal struct SecurityBufferDescriptor : IDisposable
+    internal struct SecurityBufferDescriptor
     {
         // public fields
         public SecurityBufferType BufferType;
@@ -39,6 +40,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// Initializes a new instance of the <see cref="SecurityBufferDescriptor" /> struct.
         /// </summary>
         /// <param name="bufferSize">Size of the buffer.</param>
+        [SecuritySafeCritical]
         public SecurityBufferDescriptor(int bufferSize)
         {
             BufferType = SecurityBufferType.Version;
@@ -52,6 +54,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// Initializes a new instance of the <see cref="SecurityBufferDescriptor" /> struct.
         /// </summary>
         /// <param name="secBufferBytes">The sec buffer bytes.</param>
+        [SecuritySafeCritical]
         public SecurityBufferDescriptor(byte[] secBufferBytes)
         {
             BufferType = SecurityBufferType.Version;
@@ -66,6 +69,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// </summary>
         /// <param name="buffers">The buffers.</param>
         /// <exception cref="System.ArgumentException">cannot be null or 0 length;buffers</exception>
+        [SecuritySafeCritical]
         public SecurityBufferDescriptor(SecurityBuffer[] buffers)
         {
             if (buffers == null || buffers.Length == 0)
@@ -97,6 +101,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
+        [SecuritySafeCritical]
         public void Dispose()
         {
             if (BufferPtr != IntPtr.Zero)
@@ -129,6 +134,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// </summary>
         /// <returns></returns>
         /// <exception cref="System.InvalidOperationException">Object has already been disposed!!!</exception>
+        [SecuritySafeCritical]
         public byte[] ToByteArray()
         {
             byte[] bytes = null;

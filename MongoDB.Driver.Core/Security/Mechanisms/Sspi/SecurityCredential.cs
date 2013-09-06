@@ -21,8 +21,9 @@ using System.Security;
 namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
 {
     /// <summary>
-    /// A wrapper around the SspiHandle structure specificly used as a credential handle.
+    /// A wrapper around the SspiHandle structure specifically used as a credential handle.
     /// </summary>
+    [SecurityCritical]
     internal class SecurityCredential : SafeHandle
     {
         // internal fields
@@ -48,6 +49,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         ///   </PermissionSet>
         public override bool IsInvalid
         {
+            [SecurityCritical]
             get { return base.IsClosed || _sspiHandle.IsZero; }
         }
 
@@ -59,7 +61,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// <param name="username">The username.</param>
         /// <param name="evidence">The evidence.</param>
         /// <returns>A security credential.</returns>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         public static SecurityCredential Acquire(SspiPackage package, string username, MongoIdentityEvidence evidence)
         {
             long timestamp;
@@ -118,7 +120,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// <returns>
         /// true if the handle is released successfully; otherwise, in the event of a catastrophic failure, false. In this case, it generates a releaseHandleFailed MDA Managed Debugging Assistant.
         /// </returns>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         protected override bool ReleaseHandle()
         {
             return NativeMethods.FreeCredentialsHandle(ref _sspiHandle) == 0;

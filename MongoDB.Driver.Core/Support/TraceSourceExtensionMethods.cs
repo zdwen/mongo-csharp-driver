@@ -15,6 +15,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Security;
+using System.Security.Permissions;
 using MongoDB.Driver.Core.Diagnostics;
 
 namespace MongoDB.Driver.Core.Support
@@ -33,7 +35,12 @@ namespace MongoDB.Driver.Core.Support
         /// <returns></returns>
         public static IDisposable TraceActivity(this TraceSource traceSource, string message)
         {
-            return new TraceActivity(traceSource, message);
+            if (traceSource.Switch.Level.HasFlag(SourceLevels.ActivityTracing))
+            {
+                return new TraceActivity(traceSource, message);
+            }
+
+            return new NoOpDisposable();
         }
 
         /// <summary>
@@ -45,7 +52,12 @@ namespace MongoDB.Driver.Core.Support
         /// <returns></returns>
         public static IDisposable TraceActivity(this TraceSource traceSource, string format, params object[] args)
         {
-            return new TraceActivity(traceSource, format, args);
+            if (traceSource.Switch.Level.HasFlag(SourceLevels.ActivityTracing))
+            {
+                return new TraceActivity(traceSource, format, args);
+            }
+
+            return new NoOpDisposable();
         }
 
         /// <summary>
@@ -236,6 +248,13 @@ namespace MongoDB.Driver.Core.Support
         {
             Trace(traceSource, eventType, format, args);
             Trace(traceSource, eventType, ex.ToString());
+        }
+
+        // nested classes
+        private class NoOpDisposable : IDisposable
+        {
+            public void Dispose()
+            { }
         }
     }
 }

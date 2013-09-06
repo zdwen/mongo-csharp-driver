@@ -76,6 +76,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="Connections\Cluster.cs" />
     <Compile Include="Connections\ClusterableServerFactory.cs" />
     <Compile Include="Connections\ClusterFactory.cs" />

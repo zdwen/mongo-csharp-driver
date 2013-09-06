@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Security
     /// <summary>
     /// Credential to access a MongoDB database.
     /// </summary>
-    public class MongoCredential : IEquatable<MongoCredential>
+    public class MongoCredential
     {
         // private fields
         private readonly MongoIdentityEvidence _evidence;
@@ -92,29 +92,6 @@ namespace MongoDB.Driver.Core.Security
         public string Username
         {
             get { return _identity.Username; }
-        }
-
-        // public operators
-        /// <summary>
-        /// Compares two MongoCredentials.
-        /// </summary>
-        /// <param name="lhs">The first MongoCredential.</param>
-        /// <param name="rhs">The other MongoCredential.</param>
-        /// <returns>True if the two MongoCredentials are equal (or both null).</returns>
-        public static bool operator ==(MongoCredential lhs, MongoCredential rhs)
-        {
-            return object.Equals(lhs, rhs);
-        }
-
-        /// <summary>
-        /// Compares two MongoCredentials.
-        /// </summary>
-        /// <param name="lhs">The first MongoCredential.</param>
-        /// <param name="rhs">The other MongoCredential.</param>
-        /// <returns>True if the two MongoCredentials are not equal (or one is null and the other is not).</returns>
-        public static bool operator !=(MongoCredential lhs, MongoCredential rhs)
-        {
-            return !(lhs == rhs);
         }
 
         // public static methods
@@ -188,51 +165,6 @@ namespace MongoDB.Driver.Core.Security
                 databaseName,
                 username,
                 new PasswordEvidence(password));
-        }
-
-        // public methods
-        /// <summary>
-        /// Compares this MongoCredential to another MongoCredential.
-        /// </summary>
-        /// <param name="rhs">The other credential.</param>
-        /// <returns>True if the two credentials are equal.</returns>
-        public bool Equals(MongoCredential rhs)
-        {
-            if (object.ReferenceEquals(rhs, null) || GetType() != rhs.GetType()) { return false; }
-            return _identity == rhs._identity && _evidence == rhs._evidence && _mechanism == rhs._mechanism;
-        }
-
-        /// <summary>
-        /// Compares this MongoCredential to another MongoCredential.
-        /// </summary>
-        /// <param name="obj">The other credential.</param>
-        /// <returns>True if the two credentials are equal.</returns>
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as MongoCredential); // works even if obj is null or of a different type
-        }
-
-        /// <summary>
-        /// Gets the hashcode for the credential.
-        /// </summary>
-        /// <returns>The hashcode.</returns>
-        public override int GetHashCode()
-        {
-            // see Effective Java by Joshua Bloch
-            int hash = 17;
-            hash = 37 * hash + _identity.GetHashCode();
-            hash = 37 * hash + _evidence.GetHashCode();
-            hash = 37 * hash + _mechanism.GetHashCode();
-            return hash;
-        }
-
-        /// <summary>
-        /// Returns a string representation of the credential.
-        /// </summary>
-        /// <returns>A string representation of the credential.</returns>
-        public override string ToString()
-        {
-            return string.Format("{0}@{1}", _identity.Username, _identity.Source);
         }
 
         // internal static methods

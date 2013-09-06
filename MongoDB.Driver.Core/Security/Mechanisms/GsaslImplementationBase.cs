@@ -14,6 +14,7 @@
 */
 
 using System.Collections.Generic;
+using System.Security;
 using MongoDB.Driver.Core.Security.Mechanisms.Gsasl;
 
 namespace MongoDB.Driver.Core.Security.Mechanisms
@@ -55,6 +56,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
         /// <param name="conversation">The conversation.</param>
         /// <param name="input">The input.</param>
         /// <returns>An ISaslStep.</returns>
+        [SecuritySafeCritical]
         public ISaslStep Transition(SaslConversation conversation, byte[] input)
         {
             GsaslContext context;
@@ -100,9 +102,11 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
         {
             // private fields
             private readonly byte[] _bytesToSendToServer;
+            [SecurityCritical]
             private GsaslSession _session;
 
             // constructors
+            [SecuritySafeCritical]
             public GsaslAuthenticateStep(GsaslSession session, byte[] bytesToSendToServer)
             {
                 _session = session;
@@ -121,6 +125,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
             }
 
             // public methods
+            [SecuritySafeCritical]
             public ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer)
             {
                 try

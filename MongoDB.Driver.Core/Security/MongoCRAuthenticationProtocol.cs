@@ -14,6 +14,10 @@
 */
 
 using System;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Cryptography;
+using System.Text;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Support;
@@ -50,7 +54,7 @@ namespace MongoDB.Driver.Core.Security
             }
             var nonce = nonceResult.Response["nonce"].AsString;
 
-            var passwordDigest = ((PasswordEvidence)credential.Evidence).ComputeMongoCRPasswordDigest(credential.Username);
+            var passwordDigest = ComputePasswordDigest(credential.Username, (PasswordEvidence)credential.Evidence);
             var digest = MongoUtils.Hash(nonce + credential.Username + passwordDigest);
             var authenticateCommand = new BsonDocument
             {
@@ -79,6 +83,65 @@ namespace MongoDB.Driver.Core.Security
         {
             return credential.Mechanism.Equals("MONGODB-CR", StringComparison.InvariantCultureIgnoreCase) &&
                 credential.Evidence is PasswordEvidence;
+        }
+
+        // private methods
+        private string ComputePasswordDigest(string username, PasswordEvidence passwordEvidence)
+        {
+            using (var md5 = MD5.Create())
+            {
+                var encoding = new UTF8Encoding(false, true);
+                if (passwordEvidence.UsesSecureString)
+                {
+                    var prefixBytes = encoding.GetBytes(username + ":mongo:");
+                    md5.TransformBlock(prefixBytes, 0, prefixBytes.Length, null, 0);
+                    TransformFinalBlock(md5, passwordEvidence.SecurePassword);
+                    return BsonUtils.ToHexString(md5.Hash);
+                }
+                else
+                {
+                    var bytes = encoding.GetBytes(username + ":mongo:" + passwordEvidence.PlainTextPassword);
+                    return BsonUtils.ToHexString(md5.ComputeHash(bytes));
+                }
+            }
+        }
+
+        [SecuritySafeCritical]
+        private static void TransformFinalBlock(HashAlgorithm hash, SecureString secureString)
+        {
+            var bstr = Marshal.SecureStringToBSTR(secureString);
+            try
+            {
+                var passwordChars = new char[secureString.Length];
+                var passwordCharsHandle = GCHandle.Alloc(passwordChars, GCHandleType.Pinned);
+                try
+                {
+                    Marshal.Copy(bstr, passwordChars, 0, passwordChars.Length);
+
+                    var passwordBytes = new byte[secureString.Length * 3]; // worst case for UTF16 to UTF8 encoding
+                    var passwordBytesHandle = GCHandle.Alloc(passwordBytes, GCHandleType.Pinned);
+                    try
+                    {
+                        var encoding = new UTF8Encoding(false, true);
+                        var length = encoding.GetBytes(passwordChars, 0, passwordChars.Length, passwordBytes, 0);
+                        hash.TransformFinalBlock(passwordBytes, 0, length);
+                    }
+                    finally
+                    {
+                        Array.Clear(passwordBytes, 0, passwordBytes.Length);
+                        passwordBytesHandle.Free();
+                    }
+                }
+                finally
+                {
+                    Array.Clear(passwordChars, 0, passwordChars.Length);
+                    passwordCharsHandle.Free();
+                }
+            }
+            finally
+            {
+                Marshal.ZeroFreeBSTR(bstr);
+            }
         }
     }
 }

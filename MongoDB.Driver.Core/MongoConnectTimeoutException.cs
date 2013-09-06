@@ -33,17 +33,5 @@ namespace MongoDB.Driver.Core
             : base(message, inner)
         {
         }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MongoConnectTimeoutException" /> class.
-        /// </summary>
-        /// <param name="info">The info.</param>
-        /// <param name="context">The context.</param>
-        protected MongoConnectTimeoutException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context)
-        {
-        }
     }
 }

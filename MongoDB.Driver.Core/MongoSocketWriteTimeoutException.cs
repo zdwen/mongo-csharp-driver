@@ -33,17 +33,5 @@ namespace MongoDB.Driver.Core
             : base(message, inner)
         {
         }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MongoSocketWriteTimeoutException" /> class.
-        /// </summary>
-        /// <param name="info">The info.</param>
-        /// <param name="context">The context.</param>
-        protected MongoSocketWriteTimeoutException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context)
-        {
-        }
     }
 }

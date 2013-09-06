@@ -30,17 +30,5 @@ namespace MongoDB.Driver.Core
             : base("Cursor not found.")
         {
         }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MongoCursorNotFoundException" /> class.
-        /// </summary>
-        /// <param name="info">The info.</param>
-        /// <param name="context">The context.</param>
-        protected MongoCursorNotFoundException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) 
-        { 
-        }
     }
 }

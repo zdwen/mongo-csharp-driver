@@ -22,6 +22,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
     /// <summary>
     /// A handle to a gsasl context.
     /// </summary>
+    [SecurityCritical]
     internal class GsaslContext : SafeHandle
     {
         // constructors
@@ -39,7 +40,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
         /// </summary>
         /// <returns></returns>
         /// <exception cref="System.Exception">Unable to initialize context.</exception>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         public static GsaslContext Initialize()
         {
             GsaslContext context;
@@ -63,6 +64,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
         ///   </PermissionSet>
         public override bool IsInvalid
         {
+            [SecurityCritical]
             get { return base.IsClosed || handle == IntPtr.Zero; }
         }
 
@@ -73,7 +75,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
         /// <param name="mechanism">The mechanism.</param>
         /// <returns>A GsaslSession.</returns>
         /// <exception cref="System.Exception">Unable to being session.</exception>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         public GsaslSession BeginSession(string mechanism)
         {
             GsaslSession session;
@@ -98,7 +100,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
         /// <returns>
         /// true if the handle is released successfully; otherwise, in the event of a catastrophic failure, false. In this case, it generates a releaseHandleFailed MDA Managed Debugging Assistant.
         /// </returns>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         protected override bool ReleaseHandle()
         {
             NativeMethods.gsasl_done(handle);

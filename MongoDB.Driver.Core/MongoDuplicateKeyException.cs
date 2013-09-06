@@ -45,17 +45,5 @@ namespace MongoDB.Driver.Core
             : base(message, writeConcernResult, inner)
         {
         }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MongoDuplicateKeyException" /> class.
-        /// </summary>
-        /// <param name="info">The info.</param>
-        /// <param name="context">The context.</param>
-        protected MongoDuplicateKeyException(
-          SerializationInfo info,
-          StreamingContext context)
-            : base(info, context)
-        {
-        }
     }
 }

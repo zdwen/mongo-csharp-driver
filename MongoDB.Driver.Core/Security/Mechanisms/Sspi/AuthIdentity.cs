@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
     /// SEC_WINNT_AUTH_IDENTITY
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [SecurityCritical]
+    [SecuritySafeCritical]
     internal sealed class AuthIdentity : IDisposable
     {
         // public fields

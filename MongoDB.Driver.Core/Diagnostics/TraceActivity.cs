@@ -15,6 +15,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Security;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Diagnostics
@@ -27,6 +28,7 @@ namespace MongoDB.Driver.Core.Diagnostics
         private readonly TraceSource _traceSource;
         private bool _disposed;
 
+        [SecuritySafeCritical]
         public TraceActivity(TraceSource traceSource, string format, params object[] args)
         {
             Ensure.IsNotNull("traceSource", traceSource);
@@ -48,6 +50,7 @@ namespace MongoDB.Driver.Core.Diagnostics
             _traceSource.TraceEvent(TraceEventType.Start, 0, _format, _args);
         }
 
+        [SecuritySafeCritical]
         public void Dispose()
         {
             if (!_disposed)

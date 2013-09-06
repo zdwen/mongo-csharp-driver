@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -25,9 +26,9 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
     /// <remarks>
     /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa379814(v=vs.85).aspx
     /// </remarks>
+    [SuppressMessage("Microsoft.Design", "CA1049:TypesThatOwnNativeResourcesShouldBeDisposable", Justification="Implementing IDisposable on a struct leads to memory leaks.")] 
     [StructLayout(LayoutKind.Sequential)]
-    [SecurityCritical]
-    internal struct SecurityBuffer : IDisposable
+    internal struct SecurityBuffer
     {
         // public fields
         public int Count;
@@ -39,6 +40,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// Initializes a new instance of the <see cref="SecurityBuffer" /> struct.
         /// </summary>
         /// <param name="bufferSize">Size of the buffer.</param>
+        [SecuritySafeCritical]
         public SecurityBuffer(int bufferSize)
         {
             Count = bufferSize;
@@ -50,6 +52,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// Initializes a new instance of the <see cref="SecurityBuffer" /> struct.
         /// </summary>
         /// <param name="bytes">The bytes.</param>
+        [SecuritySafeCritical]
         public SecurityBuffer(byte[] bytes)
         {
             Count = bytes.Length;
@@ -63,6 +66,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// </summary>
         /// <param name="bytes">The bytes.</param>
         /// <param name="bufferType">Type of the buffer.</param>
+        [SecuritySafeCritical]
         public SecurityBuffer(byte[] bytes, SecurityBufferType bufferType)
         {
             BufferType = bufferType;
@@ -84,6 +88,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
+        [SecurityCritical]
         public void Dispose()
         {
             if (Token != IntPtr.Zero)

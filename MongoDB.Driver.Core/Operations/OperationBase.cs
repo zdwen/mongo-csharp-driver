@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <summary>
         /// The TraceSource.
         /// </summary>
-        protected static readonly TraceSource __trace = MongoTraceSources.Operations;
+        internal static readonly TraceSource __trace = MongoTraceSources.Operations;
 
         // private fields
         private CancellationToken _cancellationToken;

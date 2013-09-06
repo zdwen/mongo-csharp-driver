@@ -42,15 +42,5 @@ namespace MongoDB.Driver.Core
             : base(message, inner) 
         { 
         }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MongoProtocolException" /> class.
-        /// </summary>
-        /// <param name="info">The info.</param>
-        /// <param name="context">The context.</param>
-        protected MongoProtocolException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) { }
     }
 }

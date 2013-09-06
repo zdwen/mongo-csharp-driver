@@ -58,6 +58,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
         /// <param name="conversation">The conversation.</param>
         /// <param name="bytesReceivedFromServer">The bytes received from the server.</param>
         /// <returns>An ISaslStep.</returns>
+        [System.Security.SecuritySafeCritical]
         public ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer)
         {
             SecurityCredential securityCredential;
@@ -101,10 +102,12 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
         private class SspiInitializeStep : ISaslStep
         {
             private readonly string _authorizationId;
+            [System.Security.SecurityCritical]
             private readonly SecurityContext _context;
             private readonly byte[] _bytesReceivedFromServer;
             private readonly string _servicePrincipalName;
 
+            [System.Security.SecuritySafeCritical]
             public SspiInitializeStep(string servicePrincipalName, string authorizationId, SecurityContext context, byte[] bytesToSendToServer)
             {
                 _servicePrincipalName = servicePrincipalName;
@@ -118,6 +121,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
                 get { return _bytesReceivedFromServer; }
             }
 
+            [System.Security.SecuritySafeCritical]
             public ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer)
             {
                 byte[] bytesToSendToServer;
@@ -142,9 +146,11 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
         private class SspiNegotiateStep : ISaslStep
         {
             private readonly string _authorizationId;
+            [System.Security.SecurityCritical]
             private readonly SecurityContext _context;
             private readonly byte[] _bytesToSendToServer;
 
+            [System.Security.SecuritySafeCritical]
             public SspiNegotiateStep(string authorizationId, SecurityContext context, byte[] bytesToSendToServer)
             {
                 _authorizationId = authorizationId;
@@ -157,6 +163,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
                 get { return _bytesToSendToServer; }
             }
 
+            [System.Security.SecuritySafeCritical]
             public ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer)
             {
                 if (bytesReceivedFromServer == null || bytesReceivedFromServer.Length != 32) //RFC specifies this must be 4 octets

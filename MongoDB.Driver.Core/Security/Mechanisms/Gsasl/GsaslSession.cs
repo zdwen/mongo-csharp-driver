@@ -22,6 +22,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
     /// <summary>
     /// A handle to a gsasl session.
     /// </summary>
+    [SecurityCritical]
     internal class GsaslSession : SafeHandle
     {
         // private fields
@@ -57,6 +58,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
         ///   </PermissionSet>
         public override bool IsInvalid
         {
+            [SecurityCritical]
             get { return base.IsClosed || handle == IntPtr.Zero; }
         }
 
@@ -66,7 +68,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         public void SetProperty(string name, string value)
         {
             if(!name.StartsWith("GSASL_", StringComparison.InvariantCultureIgnoreCase))
@@ -93,7 +95,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
         /// <param name="input">The input.</param>
         /// <returns>The output bytes to be sent to the server.</returns>
         /// <exception cref="System.Exception"></exception>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         public byte[] Step(byte[] input)
         {
             IntPtr inputPtr = IntPtr.Zero;
@@ -137,7 +139,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Gsasl
         /// <returns>
         /// true if the handle is released successfully; otherwise, in the event of a catastrophic failure, false. In this case, it generates a releaseHandleFailed MDA Managed Debugging Assistant.
         /// </returns>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         protected override bool ReleaseHandle()
         {
             NativeMethods.gsasl_finish(handle);

@@ -23,3 +23,4 @@ using System.Security;
 [assembly: AssemblyFileVersion("0.0.0.0")]
 [assembly: AssemblyConfiguration("Debug")]
 [assembly: AllowPartiallyTrustedCallers()]
+[assembly: SecurityRules(SecurityRuleSet.Level2)]

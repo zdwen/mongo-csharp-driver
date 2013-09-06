@@ -21,8 +21,9 @@ using System.Security;
 namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
 {
     /// <summary>
-    /// A wrapper around the SspiHandle structure specificly used as a security context handle.
+    /// A wrapper around the SspiHandle structure specifically used as a security context handle.
     /// </summary>
+    [SecurityCritical]
     internal class SecurityContext : SafeHandle
     {
         // private fields
@@ -49,7 +50,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// <param name="input">The input.</param>
         /// <param name="output">The output.</param>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         public static SecurityContext Initialize(SecurityCredential credential, string servicePrincipalName, byte[] input, out byte[] output)
         {
             var context = new SecurityContext();
@@ -80,6 +81,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         ///   </PermissionSet>
         public override bool IsInvalid
         {
+            [SecurityCritical]
             get { return base.IsClosed || _sspiHandle.IsZero; }
         }
 
@@ -91,7 +93,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// <param name="encryptedBytes">The encrypted bytes.</param>
         /// <param name="decryptedBytes">The decrypted bytes.</param>
         /// <returns>A result code.</returns>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         public void DecryptMessage(int messageLength, byte[] encryptedBytes, out byte[] decryptedBytes)
         {
             decryptedBytes = null;
@@ -160,7 +162,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// <param name="inBytes">The in bytes.</param>
         /// <param name="outBytes">The out bytes.</param>
         /// <returns>A result code.</returns>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         public void EncryptMessage(byte[] inBytes, out byte[] outBytes)
         {
             outBytes = null;
@@ -259,7 +261,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// <param name="servicePrincipalName">Name of the service principal.</param>
         /// <param name="inBytes">The in bytes.</param>
         /// <param name="outBytes">The out bytes.</param>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         public void Initialize(string servicePrincipalName, byte[] inBytes, out byte[] outBytes)
         {
             outBytes = null;
@@ -368,7 +370,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms.Sspi
         /// <returns>
         /// true if the handle is released successfully; otherwise, in the event of a catastrophic failure, false. In this case, it generates a releaseHandleFailed MDA Managed Debugging Assistant.
         /// </returns>
-        [SecuritySafeCritical]
+        [SecurityCritical]
         protected override bool ReleaseHandle()
         {
             return NativeMethods.DeleteSecurityContext(ref _sspiHandle) == 0;

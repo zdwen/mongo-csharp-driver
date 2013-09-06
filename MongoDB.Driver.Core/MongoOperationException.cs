@@ -15,6 +15,7 @@
 
 using System;
 using System.Runtime.Serialization;
+using System.Security;
 using MongoDB.Bson;
 
 namespace MongoDB.Driver.Core
@@ -26,7 +27,8 @@ namespace MongoDB.Driver.Core
     public class MongoOperationException : MongoException
     {
         // private fields
-        private readonly BsonDocument _response;
+        [NonSerialized]
+        private OperationExceptionState _state;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoOperationException" /> class.
@@ -44,7 +46,9 @@ namespace MongoDB.Driver.Core
         public MongoOperationException(string message, BsonDocument response) 
             : base(message) 
         {
-            _response = response;
+            _state = new OperationExceptionState { Response = response };
+
+            SerializeObjectState += (sender, e) => e.AddSerializedState(_state);
         }
 
         /// <summary>
@@ -56,20 +60,9 @@ namespace MongoDB.Driver.Core
         public MongoOperationException(string message, BsonDocument response, Exception inner) 
             : base(message, inner) 
         {
-            _response = response;
-        }
+            _state = new OperationExceptionState { Response = response };
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MongoOperationException" /> class.
-        /// </summary>
-        /// <param name="info">The info.</param>
-        /// <param name="context">The context.</param>
-        protected MongoOperationException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) 
-        {
-            _response = (BsonDocument)info.GetValue("Response", typeof(BsonDocument));
+            SerializeObjectState += (sender, e) => e.AddSerializedState(_state);
         }
 
         // public properties
@@ -78,23 +71,26 @@ namespace MongoDB.Driver.Core
         /// </summary>
         public BsonDocument Response
         {
-            get { return _response; }
+            get { return _state.Response; }
         }
 
-        // public methods
-        /// <summary>
-        /// When overridden in a derived class, sets the <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with information about the exception.
-        /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
-        /// <PermissionSet>
-        ///   <IPermission class="System.Security.Permissions.FileIOPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Read="*AllFiles*" PathDiscovery="*AllFiles*" />
-        ///   <IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="SerializationFormatter" />
-        ///   </PermissionSet>
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        // nested structs
+        private struct OperationExceptionState : ISafeSerializationData
         {
-            base.GetObjectData(info, context);
-            info.AddValue("Response", _response);
+            private BsonDocument _response;
+
+            public BsonDocument Response
+            {
+                get { return _response; }
+                set { _response = value; }
+            }
+
+            public void CompleteDeserialization(object deserialized)
+            {
+                var ex = deserialized as MongoOperationException;
+                ex._state = this;
+            }
         }
+
     }
 }

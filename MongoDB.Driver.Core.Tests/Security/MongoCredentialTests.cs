@@ -28,7 +28,6 @@ namespace MongoDB.Driver.Core.Security
             Assert.IsInstanceOf<MongoInternalIdentity>(credential.Identity);
             Assert.AreEqual("MONGODB-CR", credential.Mechanism);
             Assert.AreEqual("username", credential.Username);
-            Assert.AreEqual(new PasswordEvidence("password"), credential.Evidence);
         }
 
         [Test]
@@ -38,7 +37,6 @@ namespace MongoDB.Driver.Core.Security
             Assert.IsInstanceOf<MongoExternalIdentity>(credential.Identity);
             Assert.AreEqual("GSSAPI", credential.Mechanism);
             Assert.AreEqual("username", credential.Username);
-            Assert.AreEqual(new PasswordEvidence("password"), credential.Evidence);
         }
 
         [Test]
@@ -49,38 +47,6 @@ namespace MongoDB.Driver.Core.Security
             Assert.AreEqual("GSSAPI", credential.Mechanism);
             Assert.AreEqual("username", credential.Username);
             Assert.IsInstanceOf<ExternalEvidence>(credential.Evidence);
-        }
-
-        [Test]
-        public void TestEquals()
-        {
-            var a = MongoCredential.CreateMongoCRCredential("db", "user1", "password");
-            var b = MongoCredential.CreateMongoCRCredential("db", "user1", "password");
-            var c = MongoCredential.CreateMongoCRCredential("db", "user2", "password");
-            var d = MongoCredential.CreateMongoCRCredential("db", "user2", "password1");
-            var n = (MongoCredential)null;
-
-            Assert.IsTrue(object.Equals(a, b));
-            Assert.IsFalse(object.Equals(a, c));
-            Assert.IsFalse(a.Equals(n));
-            Assert.IsFalse(a.Equals(null));
-            Assert.IsFalse(c.Equals(d));
-
-            Assert.IsTrue(a == b);
-            Assert.IsFalse(a == c);
-            Assert.IsFalse(a == null);
-            Assert.IsFalse(null == a);
-            Assert.IsTrue(n == null);
-            Assert.IsTrue(null == n);
-            Assert.IsFalse(c == d);
-
-            Assert.IsFalse(a != b);
-            Assert.IsTrue(a != c);
-            Assert.IsTrue(a != null);
-            Assert.IsTrue(null != a);
-            Assert.IsFalse(n != null);
-            Assert.IsFalse(null != n);
-            Assert.IsTrue(c != d);
         }
     }
 }
