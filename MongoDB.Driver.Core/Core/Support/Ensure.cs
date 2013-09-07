@@ -39,7 +39,7 @@ namespace MongoDB.Driver.Core.Support
 
         public static void IsInfiniteOrGreaterThanOrEqualToZero(string argumentName, TimeSpan timeSpan)
         {
-            if (timeSpan < TimeSpan.Zero && timeSpan != Timeout.InfiniteTimeSpan)
+            if (timeSpan < TimeSpan.Zero && timeSpan != TimeSpan.FromMilliseconds(Timeout.Infinite))
             {
                 throw new ArgumentException("Must be either infinite (-1 millisecond) or greater than or equal to 0.", argumentName);
             }

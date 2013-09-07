@@ -62,7 +62,7 @@ namespace MongoDB.Driver.Core.Operations.CursorSpecs
 
                 var args = new CreateServerChannelProviderArgs(selector, true);
                 using (var channelProvider = session.CreateServerChannelProvider(args))
-                using (var channel = channelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None))
+                using (var channel = channelProvider.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
                 {
                     var protocol = new KillCursorsProtocol(new[] { id });
                     protocol.Execute(channel);

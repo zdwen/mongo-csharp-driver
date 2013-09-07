@@ -13,14 +13,16 @@
 * limitations under the License.
 */
 
+using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security;
 
 [assembly: AssemblyCompany("10gen Inc.")]
-[assembly: AssemblyCopyright("Copyright © 2010-2013 10gen Inc.")]
+[assembly: AssemblyCopyright("Copyright Â© 2010-2013 10gen Inc.")]
 [assembly: AssemblyVersion("0.0.0.0")]
-[assembly: AssemblyInformationalVersion("unofficial")]
 [assembly: AssemblyFileVersion("0.0.0.0")]
-[assembly: AssemblyConfiguration("Debug")]
+[assembly: AssemblyConfiguration("Release")]
 [assembly: AllowPartiallyTrustedCallers()]
 [assembly: SecurityRules(SecurityRuleSet.Level2)]

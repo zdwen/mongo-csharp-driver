@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Core
         /// </returns>
         public IEnumerable<ServerDescription> SelectServers(IEnumerable<ServerDescription> servers)
         {
-            if (_allowedLatency == Timeout.InfiniteTimeSpan)
+            if (_allowedLatency == TimeSpan.FromMilliseconds(Timeout.Infinite))
             {
                 return servers;
             }

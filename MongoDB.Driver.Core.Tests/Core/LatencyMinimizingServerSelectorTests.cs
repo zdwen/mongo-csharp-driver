@@ -52,7 +52,7 @@ namespace MongoDB.Driver.Core
         [Test]
         public void SelectServers_should_return_all_servers_when_the_allowed_latency_is_infinite()
         {
-            var subject = new LatencyLimitingServerSelector(Timeout.InfiniteTimeSpan);
+            var subject = new LatencyLimitingServerSelector(TimeSpan.FromMilliseconds(Timeout.Infinite));
 
             var servers = subject.SelectServers(_servers);
 

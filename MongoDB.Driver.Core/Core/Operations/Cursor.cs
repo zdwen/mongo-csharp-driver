@@ -261,7 +261,7 @@ namespace MongoDB.Driver.Core.Operations
                 var protocol = new KillCursorsProtocol(new[] { _cursorId });
 
                 // Intentionally ignoring cancellation tokens and timeouts. 
-                using (var channel = _channelProvider.GetChannel(Timeout.InfiniteTimeSpan, CancellationToken.None))
+                using (var channel = _channelProvider.GetChannel(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None))
                 {
                     protocol.Execute(channel);
                 }
