@@ -1,24 +1,25 @@
 Properties {
-	$base_version = "2.0.0"
-	$version_status = "alpha"
-	$build_number = Get-BuildNumber
-	$git_commit = Get-GitCommit
+	$base_dir = Split-Path $psake.build_script_file	
 
-	$version = "$base_version.$build_number"
-	$sem_version = $base_version
+	$version_info = Get-VersionInfo "$base_dir\.version"
+	$build_number = Get-BuildNumber
+
+	$version = "$($version_info.Version).$build_number"
+	$sem_version = $version_info.Version
 	$short_version = Get-ShortenedVersion $sem_version
-	if(-not [string]::IsNullOrEmpty($version_status)) {
-		$sem_version = "$sem_version-$($version_status)-$build_number"
-		$short_version = "$short_version-$($version_status)-$build_number"
+	if(-not [string]::IsNullOrEmpty($version_info.PreRelease)) {
+		$sem_version = "$sem_version-$($version_info.PreRelease).$build_number"
+		$short_version = "$short_version-$($version_info.PreRelease).$build_number"
 	}
-	$release_notes_version = Get-ShortenedVersion $base_version
+	$release_notes_version = Get-ShortenedVersion $version_info.Version
 	$config = 'Release'
+
+	Write-Host "$config Version $sem_version($version)" -ForegroundColor Yellow
+
+	$git_commit = Get-GitCommit
 	$installer_product_id = New-Object System.Guid($git_commit.Hash.SubString(0,32))
 	$installer_upgrade_code = New-Object System.Guid($git_commit.Hash.SubString(1,32))
 
-	Write-Host "$config Version $sem_version($version)" -ForegroundColor Yellow
-	
-	$base_dir = Split-Path $psake.build_script_file	
 	$src_dir = "$base_dir"
 	$tools_dir = "$base_dir\tools"
 	$artifacts_dir = "$base_dir\artifacts"
@@ -81,6 +82,8 @@ Task Init -Depends Clean {
 }
 
 Task Build -Depends Init {	
+	try {
+		
 	mkdir -p $40_bin_dir | out-null
 	Write-Host "Building $sln_file for .NET 4.0" -ForegroundColor Green
 	Exec { msbuild "$sln_file" /t:Rebuild /p:Configuration=".NET 4.0 - $config" /p:TargetFrameworkVersion=v4.0 /v:quiet /p:OutDir=$40_bin_dir }
@@ -88,8 +91,10 @@ Task Build -Depends Init {
 	mkdir -p $45_bin_dir | out-null
 	Write-Host "Building $sln_file for .NET 4.5" -ForegroundColor Green
 	Exec { msbuild "$sln_file" /t:Rebuild /p:Configuration=".NET 4.5 - $config" /p:TargetFrameworkVersion=v4.5 /v:quiet /p:OutDir=$45_bin_dir }
-
-	Reset-AssemblyInfo
+	}
+	finally {
+		Reset-AssemblyInfo
+	}
 }
 
 Task Test -precondition { BuildHasBeenRun } {

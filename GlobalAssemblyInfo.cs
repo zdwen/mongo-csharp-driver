@@ -23,6 +23,7 @@ using System.Security;
 [assembly: AssemblyCopyright("Copyright Â© 2010-2013 10gen Inc.")]
 [assembly: AssemblyVersion("0.0.0.0")]
 [assembly: AssemblyFileVersion("0.0.0.0")]
+[assembly: AssemblyInformationalVersion("{version: '0.0.0.0', semver: '0.0.0-unofficial'}")]
 [assembly: AssemblyConfiguration("Release")]
 [assembly: AllowPartiallyTrustedCallers()]
 [assembly: SecurityRules(SecurityRuleSet.Level2)]

@@ -24,6 +24,16 @@ function Get-BuildNumber
   }
 }
 
+function Get-VersionInfo($filename)
+{
+  try {
+    return Get-Content $filename | ConvertFrom-StringData
+  }
+  catch {
+    return @{Version="0.0.0";PreRelease="alpha+missing"}
+  }
+}
+
 function Get-ShortenedVersion($version)
 {
   if($version.EndsWith(".0")) {
