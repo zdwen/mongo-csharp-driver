@@ -7,9 +7,14 @@ Properties {
 	$version = "$($version_info.Version).$build_number"
 	$sem_version = $version_info.Version
 	$short_version = Get-ShortenedVersion $sem_version
-	if(-not [string]::IsNullOrEmpty($version_info.PreRelease)) {
-		$sem_version = "$sem_version-$($version_info.PreRelease).$build_number"
-		$short_version = "$short_version-$($version_info.PreRelease).$build_number"
+	if(-not [string]::IsNullOrEmpty($version_info.Quality)) {
+		$sem_version = "$sem_version-$($version_info.Quality)"
+		$short_version = "$short_version-$($version_info.Quality)"
+	}
+	echo $version_info.PreRelease
+	if($version_info.PreRelease -eq "true") {
+		$sem_version = "$sem_version-$build_number"
+		$short_version = "$short_version-$build_number"
 	}
 	$release_notes_version = Get-ShortenedVersion $version_info.Version
 	$config = 'Release'
@@ -84,11 +89,11 @@ Task Init -Depends Clean {
 Task Build -Depends Init {	
 	try {
 		
-	mkdir -p $40_bin_dir | out-null
+	mkdir -path $40_bin_dir | out-null
 	Write-Host "Building $sln_file for .NET 4.0" -ForegroundColor Green
 	Exec { msbuild "$sln_file" /t:Rebuild /p:Configuration=".NET 4.0 - $config" /p:TargetFrameworkVersion=v4.0 /v:quiet /p:OutDir=$40_bin_dir }
 
-	mkdir -p $45_bin_dir | out-null
+	mkdir -path $45_bin_dir | out-null
 	Write-Host "Building $sln_file for .NET 4.5" -ForegroundColor Green
 	Exec { msbuild "$sln_file" /t:Rebuild /p:Configuration=".NET 4.5 - $config" /p:TargetFrameworkVersion=v4.5 /v:quiet /p:OutDir=$45_bin_dir }
 	}
@@ -99,7 +104,7 @@ Task Build -Depends Init {
 
 Task Test -precondition { BuildHasBeenRun } {
 	RemoveDirectory $test_results_dir
-	mkdir -p $test_results_dir | out-null
+	mkdir -path $test_results_dir | out-null
 
 	$test_assemblies = ls -rec $40_bin_dir\*Tests*.dll
 	Write-Host "Testing $test_assemblies for .NET 4.0" -ForegroundColor Green
@@ -112,7 +117,7 @@ Task Test -precondition { BuildHasBeenRun } {
 
 Task TestWithCoverage -precondition { BuildHasBeenRun } {
 	RemoveDirectory $test_results_dir
-	mkdir -p $test_results_dir | out-null
+	mkdir -path $test_results_dir | out-null
 
 	$test_assemblies = ls -rec $40_bin_dir\*Tests*.dll
 	Write-Host "Testing $test_assemblies for .NET 4.0 with Code Coverage" -ForegroundColor Green
@@ -130,7 +135,7 @@ Task TestWithCoverage -precondition { BuildHasBeenRun } {
 Task Docs -precondition { BuildHasBeenRun } {
 	RemoveDirectory $docs_dir
 
-	mkdir -p $docs_dir | out-null
+	mkdir -path $docs_dir | out-null
 	Exec { msbuild "$docs_file" /p:Configuration=$config /p:CleanIntermediate=True /p:HelpFileVersion=$version /p:OutputPath=$docs_dir } 
 
 	mv "$docs_dir\CSharpDriverDocs.chm" $chm_file
@@ -143,9 +148,9 @@ Task Zip -precondition { (BuildHasBeenRun) -and (DocsHasBeenRun) }{
 	$zip_dir = "$artifacts_dir\ziptemp"
 	
 	RemoveDirectory $zip_dir
-	mkdir -p $zip_dir | out-null
+	mkdir -path $zip_dir | out-null
 
-	mkdir -p "$zip_dir\net40" | out-null
+	mkdir -path "$zip_dir\net40" | out-null
 	$40_items = @("$40_bin_dir\MongoDB.Bson.dll", `
 		"$40_bin_dir\MongoDB.Bson.pdb", `
 		"$40_bin_dir\MongoDB.Bson.xml", `
@@ -157,7 +162,7 @@ Task Zip -precondition { (BuildHasBeenRun) -and (DocsHasBeenRun) }{
 		"$40_bin_dir\MongoDB.Driver.xml")
 	cp $40_items "$zip_dir\net40"
 
-	mkdir -p "$zip_dir\net45" | out-null
+	mkdir -path "$zip_dir\net45" | out-null
 	$45_items = @("$45_bin_dir\MongoDB.Bson.dll", `
 		"$45_bin_dir\MongoDB.Bson.pdb", `
 		"$45_bin_dir\MongoDB.Bson.xml", `

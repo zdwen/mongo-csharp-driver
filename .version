@@ -1,2 +1,3 @@
 Version=2.0.0
-PreRelease=alpha+unofficial
+Quality=alpha-unofficial
+PreRelease=true

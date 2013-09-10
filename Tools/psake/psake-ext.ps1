@@ -30,7 +30,7 @@ function Get-VersionInfo($filename)
     return Get-Content $filename | ConvertFrom-StringData
   }
   catch {
-    return @{Version="0.0.0";PreRelease="alpha+missing"}
+    return @{Version="0.0.0";Quality="alpha-missing";PreRelease="true"}
   }
 }
 
