@@ -19,7 +19,7 @@ namespace MongoDB.Driver.Core
             var config = new DbConfiguration();
             Configure(config);
 
-            return config.BuildSessionFactory().Cluster;
+            return config.BuildCluster();
         }
 
         protected virtual void Configure(DbConfiguration configuration)
@@ -27,7 +27,7 @@ namespace MongoDB.Driver.Core
             var settings = GetTestSettings();
             var connString = settings.GetValueOrDefault("ConnectionString", "mongodb://localhost");
 
-            configuration.UseConnectionString(connString);
+            configuration.ConfigureWithConnectionString(connString);
         }
 
         protected virtual ITestSettings GetTestSettings()

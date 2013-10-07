@@ -80,30 +80,8 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Configuration\DbConfigurationProperties.cs" />
-    <Compile Include="Configuration\DbConfigurationPropertyProvider.cs" />
-    <Compile Include="Configuration\DbConfigurationPropertiesPair.cs" />
-    <Compile Include="Configuration\DbConfigurationProperty.cs" />
-    <Compile Include="Configuration\DbConnectionStringConfigurationPropertiesAdapter.cs" />
-    <Compile Include="Configuration\Resolvers\CachingDbDependencyResolver.cs" />
-    <Compile Include="Configuration\Resolvers\CompositeDbDependencyResolver.cs" />
     <Compile Include="Configuration\DbConfiguration.cs" />
-    <Compile Include="Configuration\DbConfigurationExtensions.cs" />
-    <Compile Include="Configuration\IDbConfigurationContainer.cs" />
-    <Compile Include="Configuration\IDbConfigurationPropertyProvider.cs" />
-    <Compile Include="Configuration\Resolvers\ClusterSettingsResolver.cs" />
-    <Compile Include="Configuration\Resolvers\SslStreamSettingsResolver.cs" />
-    <Compile Include="Configuration\Resolvers\InstanceDbDependencyResolver.cs" />
     <Compile Include="Configuration\DbConnectionString.cs" />
-    <Compile Include="Configuration\Resolvers\ConnectionPoolSettingsResolver.cs" />
-    <Compile Include="Configuration\Resolvers\ClusterableServerSettingsResolver.cs" />
-    <Compile Include="Configuration\Resolvers\ReflectedDbDependencyResolver.cs" />
-    <Compile Include="Configuration\Resolvers\StreamConnectionSettingsResolver.cs" />
-    <Compile Include="Configuration\Resolvers\DnsCacheResolver.cs" />
-    <Compile Include="Configuration\Resolvers\NetworkStreamSettingsResolver.cs" />
-    <Compile Include="Configuration\Resolvers\TypedDbDependencyResolver.cs" />
-    <Compile Include="Configuration\Resolvers\TransientDbDependencyResolver.cs" />
-    <Compile Include="Configuration\Resolvers\TransientWrappingDbDependencyResolver.cs" />
     <Compile Include="Connections\Cluster.cs" />
     <Compile Include="Connections\ClusterableServerFactory.cs" />
     <Compile Include="Connections\ClusterFactory.cs" />
@@ -130,7 +108,6 @@
     <Compile Include="Connections\IStreamFactory.cs" />
     <Compile Include="Connections\NetworkStreamFactory.cs" />
     <Compile Include="Connections\IsMasterResult.cs" />
-    <Compile Include="Configuration\IDbDependencyResolver.cs" />
     <Compile Include="MongoConfigurationException.cs" />
     <Compile Include="Connections\StateHelper.cs" />
     <Compile Include="MongoDuplicateKeyException.cs" />
@@ -162,7 +139,6 @@
     <Compile Include="Protocol\QueryProtocol.cs" />
     <Compile Include="Protocol\UpdateProtocol.cs" />
     <Compile Include="Protocol\WriteProtocolBase.cs" />
-    <Compile Include="Sessions\ISessionFactory.cs" />
     <Compile Include="Support\DnsEndPointParser.cs" />
     <Compile Include="WritableServerSelector.cs" />
     <Compile Include="Sessions\IServerChannelProvider.cs" />

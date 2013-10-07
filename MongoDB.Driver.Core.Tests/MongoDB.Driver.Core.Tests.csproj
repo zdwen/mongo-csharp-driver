@@ -71,15 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\DbConfigurationPropertyTests.cs" />
     <Compile Include="Configuration\DbConnectionStringTests.cs" />
-    <Compile Include="Configuration\Resolvers\CompositeDbDependencyResolverTests.cs" />
-    <Compile Include="Configuration\Resolvers\CachingDbDependencyResolverTests.cs" />
-    <Compile Include="Configuration\Resolvers\TransientWrappingDbDependencyResolverTests.cs" />
-    <Compile Include="Configuration\Resolvers\TransientDbDependencyResolverTests.cs" />
-    <Compile Include="Configuration\DbConfigurationTests.cs" />
-    <Compile Include="Configuration\Resolvers\ReflectedDbDependencyResolverTests.cs" />
-    <Compile Include="Configuration\Resolvers\InstanceDbDependencyResolverTests.cs" />
     <Compile Include="Connections\ClusterFactoryTests.cs" />
     <Compile Include="Connections\ClusterSettingsTests.cs" />
     <Compile Include="Connections\ClusterTests.cs" />

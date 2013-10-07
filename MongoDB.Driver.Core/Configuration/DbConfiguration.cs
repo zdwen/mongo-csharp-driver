@@ -15,23 +15,31 @@
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
-using MongoDB.Driver.Core.Configuration.Resolvers;
 using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Events;
+using MongoDB.Driver.Core.Security;
 using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Configuration
 {
     /// <summary>
-    /// The root object to construct <see cref="ICluster"/>s and <see cref="ISession"/>s.
+    /// The root object to construct <see cref="ICluster"/>s.
     /// </summary>
     public class DbConfiguration
     {
         // private fields
-        private readonly List<IDbDependencyResolver> _resolvers;
+        private ClusterSettings.Builder _clusterSettings;
+        private StreamConnectionSettings.Builder _connectionSettings;
+        private ConnectionPoolSettings.Builder _connectionPoolSettings;
+        private IEventPublisher _eventPublisher;
+        private NetworkStreamSettings.Builder _networkStreamSettings;
+        private ClusterableServerSettings.Builder _serverSettings;
+        private Func<IStreamFactory, IStreamFactory> _streamFactoryWrapper;
 
         // constructors
         /// <summary>
@@ -39,163 +47,244 @@ namespace MongoDB.Driver.Core.Configuration
         /// </summary>
         public DbConfiguration()
         {
-            _resolvers = new List<IDbDependencyResolver> 
-            {
-                new InstanceDbDependencyResolver<IDbConfigurationPropertyProvider>(new DbConfigurationPropertyProvider()),
-                new InstanceDbDependencyResolver<IEventPublisher>(new NoOpEventPublisher()),
-                new DnsCacheResolver(),
-                new NetworkStreamSettingsResolver(),
-                new SslStreamSettingsResolver(),
-                new ReflectedDbDependencyResolver<IStreamFactory, NetworkStreamFactory>(),
-                new StreamConnectionSettingsResolver(),
-                new ReflectedDbDependencyResolver<IConnectionFactory, StreamConnectionFactory>(),
-                new ConnectionPoolSettingsResolver(),
-                new ReflectedDbDependencyResolver<IConnectionPoolFactory, ConnectionPoolFactory>(),
-                new ReflectedDbDependencyResolver<IChannelProviderFactory, ConnectionPoolChannelProviderFactory>(),
-                new ClusterableServerSettingsResolver(),
-                new ReflectedDbDependencyResolver<IClusterableServerFactory, ClusterableServerFactory>(),
-                new ClusterSettingsResolver(),
-                new ReflectedDbDependencyResolver<IClusterFactory, ClusterFactory>()
-            };
+            _clusterSettings = new ClusterSettings.Builder();
+            _connectionSettings = new StreamConnectionSettings.Builder();
+            _connectionPoolSettings = new ConnectionPoolSettings.Builder();
+            _eventPublisher = new NoOpEventPublisher();
+            _networkStreamSettings = new NetworkStreamSettings.Builder();
+            _serverSettings = new ClusterableServerSettings.Builder();
+            _streamFactoryWrapper = inner => inner; // no op...
         }
 
         // public methods
         /// <summary>
-        /// Adds the dependency resolver.
+        /// Builds the cluster.
         /// </summary>
-        /// <param name="resolver">The resolver.</param>
-        /// <returns>This instance.</returns>
-        public DbConfiguration AddDependencyResolver(IDbDependencyResolver resolver)
+        /// <returns>An <see cref="ICluster"/> implementation.</returns>
+        public ICluster BuildCluster()
         {
-            Ensure.IsNotNull("resolver", resolver);
+            var streamFactory = _streamFactoryWrapper(new NetworkStreamFactory(_networkStreamSettings.Build(), new DnsCache()));
+            var connectionFactory = new StreamConnectionFactory(_connectionSettings.Build(), streamFactory, _eventPublisher);
+            var connectionPoolFactory = new ConnectionPoolFactory(_connectionPoolSettings.Build(), connectionFactory, _eventPublisher);
+            var channelProviderFactory = new ConnectionPoolChannelProviderFactory(connectionPoolFactory, _eventPublisher);
+            var clusterableServerFactory = new ClusterableServerFactory(_serverSettings.Build(), channelProviderFactory, connectionFactory);
+            var clusterFactory = new ClusterFactory(_clusterSettings.Build(), clusterableServerFactory);
 
-            _resolvers.Add(resolver);
+            var cluster = clusterFactory.Create();
+            cluster.Initialize();
+            return cluster;
+        }
+
+        /// <summary>
+        /// Configures cluster settings.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration ConfigureCluster(Action<ClusterSettings.Builder> builder)
+        {
+            builder(_clusterSettings);
             return this;
         }
 
         /// <summary>
-        /// Registers the provided instance into the dependency tree.
+        /// Configures connection settings.
         /// </summary>
-        /// <typeparam name="T">The type of the dependency.</typeparam>
-        /// <param name="dependency">The dependency.</param>
-        /// <returns>This instance.</returns>
-        public DbConfiguration Register<T>(T dependency)
+        /// <param name="builder">The builder.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration ConfigureConnection(Action<StreamConnectionSettings.Builder> builder)
         {
-            return AddDependencyResolver(new InstanceDbDependencyResolver<T>(dependency));
+            builder(_connectionSettings);
+            return this;
         }
 
         /// <summary>
-        /// Registers the factory into the dependency tree.  When the dependency is requested, the
-        /// factory will get invoked.
+        /// Configures connection pool settings.
         /// </summary>
-        /// <typeparam name="T">The type of the dependency.</typeparam>
-        /// <param name="factory">The factory.</param>
-        /// <returns>This instance.</returns>
-        /// <returns></returns>
-        public DbConfiguration Register<T>(Func<IDbConfigurationContainer, T> factory)
+        /// <param name="builder">The builder.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration ConfigureConnectionPool(Action<ConnectionPoolSettings.Builder> builder)
         {
-            Ensure.IsNotNull("factory", factory);
-            return AddDependencyResolver(new TransientDbDependencyResolver<T>(factory));
+            builder(_connectionPoolSettings);
+            return this;
         }
 
         /// <summary>
-        /// Registers the factory. When the dependency is requested, the previously registered
-        /// <typeparamref name="T"/> will be resolved and the factory will get invoked.
+        /// Configures network stream settings.
         /// </summary>
-        /// <typeparam name="T">The type of the dependency.</typeparam>
-        /// <param name="factory">The factory.</param>
-        /// <returns>This instance.</returns>
-        public DbConfiguration Register<T>(Func<T, IDbConfigurationContainer, T> factory)
+        /// <param name="builder">The builder.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration ConfigureNetworkStream(Action<NetworkStreamSettings.Builder> builder)
         {
-            Ensure.IsNotNull("factory", factory);
-            return AddDependencyResolver(new TransientWrappingDbDependencyResolver<T>(factory));
+            builder(_networkStreamSettings);
+            return this;
         }
 
         /// <summary>
-        /// Builds the session factory.
+        /// Configures server settings.
         /// </summary>
-        /// <returns>A session factory.</returns>
-        public ISessionFactory BuildSessionFactory()
+        /// <param name="builder">The builder.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration ConfigureServer(Action<ClusterableServerSettings.Builder> builder)
         {
-            var resolver = new CompositeDbDependencyResolver(_resolvers.Reverse<IDbDependencyResolver>());
-            var cachingResolver = new CachingDbDependencyResolver(resolver);
-            var configuration = new ConfigurationContainer(cachingResolver);
-            var clusterFactory = configuration.Resolve<IClusterFactory>();
-
-            var cluster = clusterFactory.Create();
-            cluster.Initialize();
-
-            return new SessionFactory(configuration, cluster);
+            builder(_serverSettings);
+            return this;
         }
 
-        // nested classes
-        private class ConfigurationContainer : IDbConfigurationContainer
+        /// <summary>
+        /// Configures settings using the connection string.  This can either be a connectionString key, an appSettings key,
+        /// or an actual connection string.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration ConfigureWithConnectionString(string connectionString)
         {
-            private readonly IDbDependencyResolver _resolver;
+            Ensure.IsNotNull("connectionString", connectionString);
 
-            public ConfigurationContainer(IDbDependencyResolver resolver)
+            var connectionStringConfig = ConfigurationManager.ConnectionStrings[connectionString];
+            if (connectionStringConfig != null)
             {
-                _resolver = resolver;
+                return ConfigureWithConnectionString(new DbConnectionString(connectionStringConfig.ConnectionString));
             }
 
-            public object Resolve(Type type)
+            var appSettingsConfig = ConfigurationManager.AppSettings[connectionString];
+            if (appSettingsConfig != null)
             {
-                try
+                return ConfigureWithConnectionString(new DbConnectionString(appSettingsConfig));
+            }
+
+            return ConfigureWithConnectionString(new DbConnectionString(connectionString));
+        }
+
+        /// <summary>
+        /// Configures settings using the connection string.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration ConfigureWithConnectionString(DbConnectionString connectionString)
+        {
+            ApplyConnectionString(connectionString);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers the event listeners.
+        /// </summary>
+        /// <param name="listener">The listener.</param>
+        /// <param name="listeners">The listeners.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration RegisterEventListeners(object listener, params object[] listeners)
+        {
+            var publisher = new EventPublisher();
+            publisher.Subscribe(listener);
+
+            foreach (var otherListener in listeners)
+            {
+                publisher.Subscribe(otherListener);
+            }
+
+            _eventPublisher = new EventPublisherPair(_eventPublisher, publisher);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers the stream factory.  This func will recieve the inner <see cref="IStreamFactory"/> as 
+        /// an argument.  It can choose whether or not to wrap it or ignore it.
+        /// </summary>
+        /// <param name="wrapper">The wrapper.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration RegisterStreamFactory(Func<IStreamFactory, IStreamFactory> wrapper)
+        {
+            Ensure.IsNotNull("wrapper", wrapper);
+
+            _streamFactoryWrapper = inner => wrapper(_streamFactoryWrapper(inner));
+            return this;
+        }
+
+        /// <summary>
+        /// Configures the use of performance counters.
+        /// </summary>
+        /// <param name="applicationName">Name of the application.</param>
+        /// <param name="install">if set to <c>true</c>, the performance counters will be installed.  This requires Adminstrator permissions.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration UsePerformanceCounters(string applicationName, bool install = false)
+        {
+            if (install)
+            {
+                PerformanceCounterEventListeners.Install();
+            }
+            var perfCounters = new PerformanceCounterEventListeners(applicationName);
+            return RegisterEventListeners(perfCounters);
+        }
+
+        // private methods
+        private void ApplyConnectionString(DbConnectionString connectionString)
+        {
+            // Network
+            if (connectionString.ConnectTimeout != null)
+            {
+                _networkStreamSettings.SetConnectTimeout(connectionString.ConnectTimeout.Value);
+            }
+            if (connectionString.SocketTimeout != null)
+            {
+                _networkStreamSettings.SetReadTimeout(connectionString.SocketTimeout.Value);
+                _networkStreamSettings.SetWriteTimeout(connectionString.SocketTimeout.Value);
+            }
+            if (connectionString.Ssl != null)
+            {
+                var settings = SslStreamSettings.Create(b =>
                 {
-                    var result = _resolver.Resolve(type, this);
-                    if (result == null)
+                    if (connectionString.SslVerifyCertificate != null && !connectionString.SslVerifyCertificate.Value)
                     {
-                        var message = string.Format("Unable to resolve {0}.", type);
-                        throw new MongoConfigurationException(message);
+                        b.ValidateServerCertificateWith((obj, cert, chain, errors) => true);
                     }
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    var message = string.Format("Unable to resolve {0}.", type);
-                    throw new MongoConfigurationException(message, ex);
-                }
-            }
-        }
-
-        private sealed class SessionFactory : ISessionFactory
-        {
-            private readonly IDbConfigurationContainer _configuration;
-            private readonly ICluster _cluster;
-            private bool _disposed;
-
-            public SessionFactory(IDbConfigurationContainer configuration, ICluster cluster)
-            {
-                _configuration = configuration;
-                _cluster = cluster;
+                });
             }
 
-            public IDbConfigurationContainer Configuration
+            // Connection
+            if(connectionString.Username != null)
             {
-                get { return _configuration; }
+                var credential = MongoCredential.FromComponents(
+                    connectionString.AuthMechanism,
+                    connectionString.AuthSource,
+                    connectionString.Username,
+                    connectionString.Password);
+
+                _connectionSettings.AddCredential(credential);
             }
 
-            public ICluster Cluster
+            // ConnectionPool
+            if (connectionString.MaxPoolSize != null)
             {
-                get { return _cluster; }
+                _connectionPoolSettings.SetMaxSize(connectionString.MaxPoolSize.Value);
+            }
+            if (connectionString.MinPoolSize != null)
+            {
+                _connectionPoolSettings.SetMinSize(connectionString.MinPoolSize.Value);
+            }
+            if (connectionString.MaxIdleTime != null)
+            {
+                _connectionPoolSettings.SetConnectionMaxIdleTime(connectionString.MaxIdleTime.Value);
+            }
+            if (connectionString.MaxLifeTime != null)
+            {
+                _connectionPoolSettings.SetConnectionMaxLifeTime(connectionString.MaxLifeTime.Value);
+            }
+            if (connectionString.WaitQueueMultiple != null)
+            {
+                _connectionPoolSettings.SetWaitQueueMultiple(connectionString.WaitQueueMultiple.Value);
             }
 
-            public ISession BeginSession()
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(GetType().Name);
-                }
-                return new ClusterSession(_cluster);
-            }
+            // Server
+            // nothing to configure for server
 
-            public void Dispose()
+            // Cluster
+            if (connectionString.Hosts != null)
             {
-                if (!_disposed)
-                {
-                    _disposed = true;
-                    _cluster.Dispose();
-                }
+                _clusterSettings.AddHosts(connectionString.Hosts);
+            }
+            if (connectionString.ReplicaSet != null)
+            {
+                _clusterSettings.SetReplicaSetName(connectionString.ReplicaSet);
             }
         }
     }

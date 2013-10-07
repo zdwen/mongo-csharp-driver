@@ -158,7 +158,7 @@ namespace MongoDB.Driver.Core.Connections
             private int _maxSize;
             private int _minSize;
             private TimeSpan _sizeMaintenanceFrequency;
-            private int _waitQueueSize;
+            private int _waitQueueMultiple;
 
             internal Builder()
             {
@@ -167,7 +167,7 @@ namespace MongoDB.Driver.Core.Connections
                 _maxSize = 100;
                 _minSize = 0;
                 _sizeMaintenanceFrequency = TimeSpan.FromMinutes(1);
-                _waitQueueSize = 500; // maxSize * 5
+                _waitQueueMultiple = 5;
             }
 
             internal ConnectionPoolSettings Build()
@@ -178,7 +178,7 @@ namespace MongoDB.Driver.Core.Connections
                     _maxSize,
                     _minSize,
                     _sizeMaintenanceFrequency,
-                    _waitQueueSize);
+                    _waitQueueMultiple * _maxSize);
             }
 
             /// <summary>
@@ -209,15 +209,6 @@ namespace MongoDB.Driver.Core.Connections
             }
 
             /// <summary>
-            /// Sets the maximum size of the wait queue.
-            /// </summary>
-            /// <param name="size">The size.</param>
-            public void SetMaxWaitQueueSize(int size)
-            {
-                _waitQueueSize = size;
-            }
-
-            /// <summary>
             /// Sets the maximum size of the connection pool.
             /// </summary>
             /// <param name="size">The size.</param>
@@ -232,6 +223,15 @@ namespace MongoDB.Driver.Core.Connections
             public void SetSizeMaintenanceFrequency(TimeSpan frequency)
             {
                 _sizeMaintenanceFrequency = frequency;
+            }
+
+            /// <summary>
+            /// Sets the maximum size of the wait multiple.
+            /// </summary>
+            /// <param name="multiple">The multiple.</param>
+            public void SetWaitQueueMultiple(int multiple)
+            {
+                _waitQueueMultiple = multiple;
             }
         }
     }
