@@ -33,12 +33,12 @@ namespace MongoDB.Driver.Core.Configuration
     public class DbConfiguration
     {
         // private fields
-        private ClusterSettings.Builder _clusterSettings;
-        private StreamConnectionSettings.Builder _connectionSettings;
-        private ConnectionPoolSettings.Builder _connectionPoolSettings;
+        private ClusterSettings.Builder _clusterSettingsBuilder;
+        private StreamConnectionSettings.Builder _connectionSettingsBuilder;
+        private ConnectionPoolSettings.Builder _connectionPoolSettingsBuilder;
         private IEventPublisher _eventPublisher;
-        private NetworkStreamSettings.Builder _networkStreamSettings;
-        private ClusterableServerSettings.Builder _serverSettings;
+        private NetworkStreamSettings.Builder _networkStreamSettingsBuilder;
+        private ClusterableServerSettings.Builder _serverSettingsBuilder;
         private Func<IStreamFactory, IStreamFactory> _streamFactoryWrapper;
 
         // constructors
@@ -47,12 +47,12 @@ namespace MongoDB.Driver.Core.Configuration
         /// </summary>
         public DbConfiguration()
         {
-            _clusterSettings = new ClusterSettings.Builder();
-            _connectionSettings = new StreamConnectionSettings.Builder();
-            _connectionPoolSettings = new ConnectionPoolSettings.Builder();
+            _clusterSettingsBuilder = new ClusterSettings.Builder();
+            _connectionSettingsBuilder = new StreamConnectionSettings.Builder();
+            _connectionPoolSettingsBuilder = new ConnectionPoolSettings.Builder();
             _eventPublisher = new NoOpEventPublisher();
-            _networkStreamSettings = new NetworkStreamSettings.Builder();
-            _serverSettings = new ClusterableServerSettings.Builder();
+            _networkStreamSettingsBuilder = new NetworkStreamSettings.Builder();
+            _serverSettingsBuilder = new ClusterableServerSettings.Builder();
             _streamFactoryWrapper = inner => inner; // no op...
         }
 
@@ -63,12 +63,12 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>An <see cref="ICluster"/> implementation.</returns>
         public ICluster BuildCluster()
         {
-            var streamFactory = _streamFactoryWrapper(new NetworkStreamFactory(_networkStreamSettings.Build(), new DnsCache()));
-            var connectionFactory = new StreamConnectionFactory(_connectionSettings.Build(), streamFactory, _eventPublisher);
-            var connectionPoolFactory = new ConnectionPoolFactory(_connectionPoolSettings.Build(), connectionFactory, _eventPublisher);
+            var streamFactory = _streamFactoryWrapper(new NetworkStreamFactory(_networkStreamSettingsBuilder.Build(), new DnsCache()));
+            var connectionFactory = new StreamConnectionFactory(_connectionSettingsBuilder.Build(), streamFactory, _eventPublisher);
+            var connectionPoolFactory = new ConnectionPoolFactory(_connectionPoolSettingsBuilder.Build(), connectionFactory, _eventPublisher);
             var channelProviderFactory = new ConnectionPoolChannelProviderFactory(connectionPoolFactory, _eventPublisher);
-            var clusterableServerFactory = new ClusterableServerFactory(_serverSettings.Build(), channelProviderFactory, connectionFactory);
-            var clusterFactory = new ClusterFactory(_clusterSettings.Build(), clusterableServerFactory);
+            var clusterableServerFactory = new ClusterableServerFactory(_serverSettingsBuilder.Build(), channelProviderFactory, connectionFactory);
+            var clusterFactory = new ClusterFactory(_clusterSettingsBuilder.Build(), clusterableServerFactory);
 
             var cluster = clusterFactory.Create();
             cluster.Initialize();
@@ -78,65 +78,65 @@ namespace MongoDB.Driver.Core.Configuration
         /// <summary>
         /// Configures cluster settings.
         /// </summary>
-        /// <param name="builder">The builder.</param>
+        /// <param name="builderCallback">The builder callback.</param>
         /// <returns>The current configuration.</returns>
-        public DbConfiguration ConfigureCluster(Action<ClusterSettings.Builder> builder)
+        public DbConfiguration ConfigureCluster(Action<ClusterSettings.Builder> builderCallback)
         {
-            Ensure.IsNotNull("builder", builder);
+            Ensure.IsNotNull("builderCallback", builderCallback);
 
-            builder(_clusterSettings);
+            builderCallback(_clusterSettingsBuilder);
             return this;
         }
 
         /// <summary>
         /// Configures connection settings.
         /// </summary>
-        /// <param name="builder">The builder.</param>
+        /// <param name="builderCallback">The builder callback.</param>
         /// <returns>The current configuration.</returns>
-        public DbConfiguration ConfigureConnection(Action<StreamConnectionSettings.Builder> builder)
+        public DbConfiguration ConfigureConnection(Action<StreamConnectionSettings.Builder> builderCallback)
         {
-            Ensure.IsNotNull("builder", builder);
+            Ensure.IsNotNull("builderCallback", builderCallback);
 
-            builder(_connectionSettings);
+            builderCallback(_connectionSettingsBuilder);
             return this;
         }
 
         /// <summary>
         /// Configures connection pool settings.
         /// </summary>
-        /// <param name="builder">The builder.</param>
+        /// <param name="builderCallback">The builder callback.</param>
         /// <returns>The current configuration.</returns>
-        public DbConfiguration ConfigureConnectionPool(Action<ConnectionPoolSettings.Builder> builder)
+        public DbConfiguration ConfigureConnectionPool(Action<ConnectionPoolSettings.Builder> builderCallback)
         {
-            Ensure.IsNotNull("builder", builder);
+            Ensure.IsNotNull("builderCallback", builderCallback);
 
-            builder(_connectionPoolSettings);
+            builderCallback(_connectionPoolSettingsBuilder);
             return this;
         }
 
         /// <summary>
         /// Configures network stream settings.
         /// </summary>
-        /// <param name="builder">The builder.</param>
+        /// <param name="builderCallback">The builder callback.</param>
         /// <returns>The current configuration.</returns>
-        public DbConfiguration ConfigureNetworkStream(Action<NetworkStreamSettings.Builder> builder)
+        public DbConfiguration ConfigureNetworkStream(Action<NetworkStreamSettings.Builder> builderCallback)
         {
-            Ensure.IsNotNull("builder", builder);
+            Ensure.IsNotNull("builderCallback", builderCallback);
 
-            builder(_networkStreamSettings);
+            builderCallback(_networkStreamSettingsBuilder);
             return this;
         }
 
         /// <summary>
         /// Configures server settings.
         /// </summary>
-        /// <param name="builder">The builder.</param>
+        /// <param name="builderCallback">The builder callback.</param>
         /// <returns>The current configuration.</returns>
-        public DbConfiguration ConfigureServer(Action<ClusterableServerSettings.Builder> builder)
+        public DbConfiguration ConfigureServer(Action<ClusterableServerSettings.Builder> builderCallback)
         {
-            Ensure.IsNotNull("builder", builder);
+            Ensure.IsNotNull("builderCallback", builderCallback);
 
-            builder(_serverSettings);
+            builderCallback(_serverSettingsBuilder);
             return this;
         }
 
@@ -179,7 +179,7 @@ namespace MongoDB.Driver.Core.Configuration
         }
 
         /// <summary>
-        /// Registers the event listeners.
+        /// Registers the event listeners.  The listener objects must implement IEventListener{T}.
         /// </summary>
         /// <param name="listener">The listener.</param>
         /// <param name="listeners">The listeners.</param>
@@ -238,12 +238,12 @@ namespace MongoDB.Driver.Core.Configuration
             // Network
             if (connectionString.ConnectTimeout != null)
             {
-                _networkStreamSettings.SetConnectTimeout(connectionString.ConnectTimeout.Value);
+                _networkStreamSettingsBuilder.SetConnectTimeout(connectionString.ConnectTimeout.Value);
             }
             if (connectionString.SocketTimeout != null)
             {
-                _networkStreamSettings.SetReadTimeout(connectionString.SocketTimeout.Value);
-                _networkStreamSettings.SetWriteTimeout(connectionString.SocketTimeout.Value);
+                _networkStreamSettingsBuilder.SetReadTimeout(connectionString.SocketTimeout.Value);
+                _networkStreamSettingsBuilder.SetWriteTimeout(connectionString.SocketTimeout.Value);
             }
             if (connectionString.Ssl != null)
             {
@@ -265,29 +265,29 @@ namespace MongoDB.Driver.Core.Configuration
                     connectionString.Username,
                     connectionString.Password);
 
-                _connectionSettings.AddCredential(credential);
+                _connectionSettingsBuilder.AddCredential(credential);
             }
 
             // ConnectionPool
             if (connectionString.MaxPoolSize != null)
             {
-                _connectionPoolSettings.SetMaxSize(connectionString.MaxPoolSize.Value);
+                _connectionPoolSettingsBuilder.SetMaxSize(connectionString.MaxPoolSize.Value);
             }
             if (connectionString.MinPoolSize != null)
             {
-                _connectionPoolSettings.SetMinSize(connectionString.MinPoolSize.Value);
+                _connectionPoolSettingsBuilder.SetMinSize(connectionString.MinPoolSize.Value);
             }
             if (connectionString.MaxIdleTime != null)
             {
-                _connectionPoolSettings.SetConnectionMaxIdleTime(connectionString.MaxIdleTime.Value);
+                _connectionPoolSettingsBuilder.SetConnectionMaxIdleTime(connectionString.MaxIdleTime.Value);
             }
             if (connectionString.MaxLifeTime != null)
             {
-                _connectionPoolSettings.SetConnectionMaxLifeTime(connectionString.MaxLifeTime.Value);
+                _connectionPoolSettingsBuilder.SetConnectionMaxLifeTime(connectionString.MaxLifeTime.Value);
             }
             if (connectionString.WaitQueueMultiple != null)
             {
-                _connectionPoolSettings.SetWaitQueueMultiple(connectionString.WaitQueueMultiple.Value);
+                _connectionPoolSettingsBuilder.SetWaitQueueMultiple(connectionString.WaitQueueMultiple.Value);
             }
 
             // Server
@@ -296,11 +296,11 @@ namespace MongoDB.Driver.Core.Configuration
             // Cluster
             if (connectionString.Hosts != null)
             {
-                _clusterSettings.AddHosts(connectionString.Hosts);
+                _clusterSettingsBuilder.AddHosts(connectionString.Hosts);
             }
             if (connectionString.ReplicaSet != null)
             {
-                _clusterSettings.SetReplicaSetName(connectionString.ReplicaSet);
+                _clusterSettingsBuilder.SetReplicaSetName(connectionString.ReplicaSet);
             }
         }
     }

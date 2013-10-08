@@ -46,7 +46,7 @@ namespace MongoDB.Driver.Core.Configuration
         private bool? _fsync;
         private IEnumerable<DnsEndPoint> _hosts;
         private bool? _ipv6;
-        private bool? _j;
+        private bool? _journal;
         private TimeSpan? _maxIdleTime;
         private TimeSpan? _maxLifeTime;
         private int? _maxPoolSize;
@@ -155,11 +155,11 @@ namespace MongoDB.Driver.Core.Configuration
         }
 
         /// <summary>
-        /// Gets the J.
+        /// Gets the journal value.
         /// </summary>
-        public bool? J
+        public bool? Journal
         {
-            get { return _j; }
+            get { return _journal; }
         }
 
         /// <summary>
@@ -428,7 +428,7 @@ namespace MongoDB.Driver.Core.Configuration
                     break;
                 case "j":
                 case "journal":
-                    _j = GetBoolean(name, value);
+                    _journal = GetBoolean(name, value);
                     break;
                 case "maxidletime":
                 case "maxidletimems":
@@ -500,7 +500,7 @@ namespace MongoDB.Driver.Core.Configuration
         }
 
         // private static methods
-        private static bool? GetBoolean(string name, string value)
+        private static bool GetBoolean(string name, string value)
         {
             try
             {
@@ -512,12 +512,12 @@ namespace MongoDB.Driver.Core.Configuration
             }
         }
 
-        private static TEnum? GetEnum<TEnum>(string name, string value)
+        private static TEnum GetEnum<TEnum>(string name, string value)
             where TEnum : struct
         {
             try
             {
-                return (TEnum?)Enum.Parse(typeof(TEnum), value, true);
+                return (TEnum)Enum.Parse(typeof(TEnum), value, true);
             }
             catch (Exception ex)
             {
@@ -525,7 +525,7 @@ namespace MongoDB.Driver.Core.Configuration
             }
         }
 
-        private static int? GetInt32(string name, string value)
+        private static int GetInt32(string name, string value)
         {
             try
             {
@@ -553,7 +553,7 @@ namespace MongoDB.Driver.Core.Configuration
             return tagSet;
         }
 
-        private static TimeSpan? GetTimeSpan(string name, string value)
+        private static TimeSpan GetTimeSpan(string name, string value)
         {
             // all timespan keys can be suffixed with 'MS'
             var lowerName = name.ToLower();

@@ -91,7 +91,7 @@ namespace MongoDB.Driver.Core.Configuration
             Assert.IsNull(subject.DatabaseName);
             Assert.IsNull(subject.FSync);
             Assert.IsNull(subject.Ipv6);
-            Assert.IsNull(subject.J);
+            Assert.IsNull(subject.Journal);
             Assert.IsNull(subject.MaxIdleTime);
             Assert.IsNull(subject.MaxLifeTime);
             Assert.IsNull(subject.MaxPoolSize);
@@ -147,7 +147,7 @@ namespace MongoDB.Driver.Core.Configuration
             Assert.AreEqual("test", subject.DatabaseName);
             Assert.AreEqual(true, subject.FSync);
             Assert.AreEqual(false, subject.Ipv6);
-            Assert.AreEqual(true, subject.J);
+            Assert.AreEqual(true, subject.Journal);
             Assert.AreEqual(TimeSpan.FromMilliseconds(10), subject.MaxIdleTime);
             Assert.AreEqual(TimeSpan.FromMilliseconds(5), subject.MaxLifeTime);
             Assert.AreEqual(20, subject.MaxPoolSize);
@@ -239,7 +239,7 @@ namespace MongoDB.Driver.Core.Configuration
         {
             var subject = new DbConnectionString(connectionString);
 
-            Assert.AreEqual(j, subject.J);
+            Assert.AreEqual(j, subject.Journal);
         }
 
         [Test]
