@@ -15,7 +15,7 @@ using NUnit.Framework;
 
 namespace MongoDB.Driver.Core.Mocks
 {
-    public class MockConnection : ConnectionBase
+    internal class MockConnection : ConnectionBase
     {
         private readonly List<Tuple<Func<BsonDocument, bool>, Func<IEnumerable<BsonDocument>>>> _responses;
         private Queue<Func<IEnumerable<BsonDocument>>> _responseQueue;

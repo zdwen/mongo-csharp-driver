@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Creates a <see cref="ConnectionPool"/>.
     /// </summary>
-    public class ConnectionPoolFactory : IConnectionPoolFactory
+    internal class ConnectionPoolFactory : IConnectionPoolFactory
     {
         // private fields
         private readonly IConnectionFactory _connectionFactory;

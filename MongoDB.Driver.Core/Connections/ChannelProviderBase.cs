@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Able to supply channels to a caller.
     /// </summary>
-    public abstract class ChannelProviderBase : IChannelProvider
+    internal abstract class ChannelProviderBase : IChannelProvider
     {
         // public properties
         /// <summary>

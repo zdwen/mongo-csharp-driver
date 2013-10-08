@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A factory for a <see cref="ConnectionPoolChannelProvider"/>s.
     /// </summary>
-    public sealed class ConnectionPoolChannelProviderFactory : IChannelProviderFactory
+    internal sealed class ConnectionPoolChannelProviderFactory : IChannelProviderFactory
     {
         // private fields
         private readonly IConnectionPoolFactory _connectionPoolFactory;

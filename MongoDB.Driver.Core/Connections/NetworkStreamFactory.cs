@@ -25,7 +25,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Creates a <see cref="NetworkStream"/>.
     /// </summary>
-    public class NetworkStreamFactory : StreamFactoryBase
+    internal class NetworkStreamFactory : StreamFactoryBase
     {
         // private static fields
         private static readonly TraceSource __trace = MongoTraceSources.Connections;

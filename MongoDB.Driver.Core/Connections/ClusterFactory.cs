@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Creates <see cref="ICluster"/>s.
     /// </summary>
-    public class ClusterFactory : IClusterFactory
+    internal class ClusterFactory : IClusterFactory
     {
         // private fields
         private readonly IClusterableServerFactory _serverFactory;

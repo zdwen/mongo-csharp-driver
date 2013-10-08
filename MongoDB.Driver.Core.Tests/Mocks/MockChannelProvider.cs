@@ -10,7 +10,7 @@ using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Mocks
 {
-    public class MockChannelProvider : ChannelProviderBase
+    internal class MockChannelProvider : ChannelProviderBase
     {
         private readonly IConnectionFactory _connectionFactory;
         private readonly DnsEndPoint _dnsEndPoint;

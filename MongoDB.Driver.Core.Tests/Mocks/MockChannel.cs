@@ -12,7 +12,7 @@ using MongoDB.Driver.Core.Protocol.Messages;
 
 namespace MongoDB.Driver.Core.Mocks
 {
-    public class MockChannel : ChannelBase
+    internal class MockChannel : ChannelBase
     {
         private readonly IConnection _connection;
 

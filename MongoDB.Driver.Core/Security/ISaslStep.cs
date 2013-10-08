@@ -18,7 +18,7 @@ namespace MongoDB.Driver.Core.Security
     /// <summary>
     /// A step in a Sasl Conversation.
     /// </summary>
-    public interface ISaslStep
+    internal interface ISaslStep
     {
         /// <summary>
         /// The bytes that should be sent to ther server before calling Transition.

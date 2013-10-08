@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A channel.
     /// </summary>
-    public abstract class ChannelBase : IChannel
+    internal abstract class ChannelBase : IChannel
     {
         // public properties
         /// <summary>

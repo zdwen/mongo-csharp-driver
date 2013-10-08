@@ -9,7 +9,7 @@ using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Mocks
 {
-    public class MockClusterableServerFactory : IClusterableServerFactory
+    internal class MockClusterableServerFactory : IClusterableServerFactory
     {
         private readonly ConcurrentBag<MockServer> _servers;
 

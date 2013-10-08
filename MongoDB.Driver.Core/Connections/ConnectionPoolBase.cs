@@ -22,18 +22,13 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A connection pool.
     /// </summary>
-    public abstract class ConnectionPoolBase : IConnectionPool
+    internal abstract class ConnectionPoolBase : IConnectionPool
     {
         // public properties
         /// <summary>
         /// Gets the DNS end point.
         /// </summary>
         public abstract DnsEndPoint DnsEndPoint { get; }
-
-        /// <summary>
-        /// Gets the connection pool settings.
-        /// </summary>
-        public abstract ConnectionPoolSettings Settings { get; }
 
         // public methods
         /// <summary>

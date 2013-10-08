@@ -112,7 +112,7 @@ namespace MongoDB.Driver.Core.Connections
             });
 
             _subject.Initialize();
-            if (!SpinWait.SpinUntil(() => count >= _subject.Settings.MinSize, 4000))
+            if (!SpinWait.SpinUntil(() => count >= _connectionPoolSettings.MinSize, 4000))
             {
                 Assert.Fail("Min connection count was never reached.");
             }

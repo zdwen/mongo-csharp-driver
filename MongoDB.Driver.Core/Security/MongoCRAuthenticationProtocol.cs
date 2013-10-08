@@ -27,7 +27,7 @@ namespace MongoDB.Driver.Core.Security
     /// <summary>
     /// Authenticates a credential using the MONGODB-CR protocol.
     /// </summary>
-    public class MongoCRAuthenticationProtocol : IAuthenticationProtocol
+    internal class MongoCRAuthenticationProtocol : IAuthenticationProtocol
     {
         // public properties
         /// <summary>

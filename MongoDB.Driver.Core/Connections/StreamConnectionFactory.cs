@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A factory for <see cref="StreamConnection"/>s.
     /// </summary>
-    public sealed class StreamConnectionFactory : IConnectionFactory
+    internal sealed class StreamConnectionFactory : IConnectionFactory
     {
         // private fields
         private readonly IEventPublisher _events;

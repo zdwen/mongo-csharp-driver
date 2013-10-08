@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Security
     /// <summary>
     /// Authenticates a connection.
     /// </summary>
-    public interface IAuthenticationProtocol
+    internal interface IAuthenticationProtocol
     {
         /// <summary>
         /// Gets the name.

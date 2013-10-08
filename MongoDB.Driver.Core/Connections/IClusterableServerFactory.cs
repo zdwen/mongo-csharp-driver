@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Creates a <see cref="IClusterableServer"/>.
     /// </summary>
-    public interface IClusterableServerFactory
+    internal interface IClusterableServerFactory
     {
         /// <summary>
         /// Creates a server for the specified dns end point.

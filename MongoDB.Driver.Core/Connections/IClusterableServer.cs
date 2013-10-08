@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A logical connection to a server that can be part of an <see cref="ICluster"/>.
     /// </summary>
-    public interface IClusterableServer : IServer, IDisposable
+    internal interface IClusterableServer : IServer, IDisposable
     {
         /// <summary>
         /// Occurs when the description is changed.

@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Security
     /// <summary>
     /// Represents a sasl mechanism.
     /// </summary>
-    public interface ISaslMechanism
+    internal interface ISaslMechanism
     {
         /// <summary>
         /// Gets the name of the mechanism.

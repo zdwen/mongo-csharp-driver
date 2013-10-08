@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Security
     /// on this step will result in an exception indicating a communication failure between
     /// the client and server.
     /// </summary>
-    public class SaslCompletionStep : ISaslStep
+    internal class SaslCompletionStep : ISaslStep
     {
         // private fields
         private readonly byte[] _output;

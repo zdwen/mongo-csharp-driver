@@ -9,7 +9,7 @@ using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Mocks
 {
-    public class MockConnectionFactory : IConnectionFactory
+    internal class MockConnectionFactory : IConnectionFactory
     {
         private object _lock = new object();
 

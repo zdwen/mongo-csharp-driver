@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Connections
     /// Creates identifiers for the specified type.
     /// </summary>
     /// <typeparam name="T">The type.</typeparam>
-    public static class IdGenerator<T>
+    internal static class IdGenerator<T>
     {
         // private static fields
         private static int __lastId;

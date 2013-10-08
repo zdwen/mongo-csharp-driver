@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A logical connection to a remote server.
     /// </summary>
-    public abstract class ClusterableServerBase : IClusterableServer
+    internal abstract class ClusterableServerBase : IClusterableServer
     {
         /// <summary>
         /// Gets the description.

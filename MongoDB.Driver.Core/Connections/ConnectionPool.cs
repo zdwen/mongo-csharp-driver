@@ -87,14 +87,6 @@ namespace MongoDB.Driver.Core.Connections
             get { return _dnsEndPoint; }
         }
 
-        /// <summary>
-        /// Gets the connection pool settings.
-        /// </summary>
-        public override ConnectionPoolSettings Settings
-        {
-            get { return _settings; }
-        }
-
         // private properties
         private int CurrentSize
         {

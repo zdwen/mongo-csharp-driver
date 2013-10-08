@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Creates a <see cref="IChannelProvider"/>.
     /// </summary>
-    public interface IChannelProviderFactory
+    internal interface IChannelProviderFactory
     {
         /// <summary>
         /// Creates a channel provider for the specified address.

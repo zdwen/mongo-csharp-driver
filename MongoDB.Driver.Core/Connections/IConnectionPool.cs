@@ -22,17 +22,12 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A pool of connections.
     /// </summary>
-    public interface IConnectionPool : IDisposable
+    internal interface IConnectionPool : IDisposable
     {
         /// <summary>
         /// Gets the DNS end point.
         /// </summary>
         DnsEndPoint DnsEndPoint { get; }
-
-        /// <summary>
-        /// Gets the connection pool settings.
-        /// </summary>
-        ConnectionPoolSettings Settings { get; }
 
         /// <summary>
         /// Gets a connection.

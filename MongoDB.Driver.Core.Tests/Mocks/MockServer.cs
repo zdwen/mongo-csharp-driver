@@ -9,7 +9,7 @@ using NSubstitute;
 
 namespace MongoDB.Driver.Core.Mocks
 {
-    public class MockServer : ClusterableServerBase
+    internal class MockServer : ClusterableServerBase
     {
         private readonly ServerDescription _connectingDescription;
         private readonly DnsEndPoint _dnsEndPoint;

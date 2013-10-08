@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A factory for <see cref="ClusterableServer"/>s.
     /// </summary>
-    public sealed class ClusterableServerFactory : IClusterableServerFactory
+    internal sealed class ClusterableServerFactory : IClusterableServerFactory
     {
         // private fields
         private readonly ClusterableServerSettings _settings;

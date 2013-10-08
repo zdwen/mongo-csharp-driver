@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A connection.
     /// </summary>
-    public interface IConnection : IDisposable
+    internal interface IConnection : IDisposable
     {
         /// <summary>
         /// Gets the DNS end point.

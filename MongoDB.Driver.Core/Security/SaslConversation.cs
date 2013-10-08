@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Security
     /// <summary>
     /// A high-level sasl conversation object.
     /// </summary>
-    public class SaslConversation : IDisposable
+    internal class SaslConversation : IDisposable
     {
         // private fields
         private bool _isDisposed;

@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// A connection.
     /// </summary>
-    public abstract class ConnectionBase : IConnection
+    internal abstract class ConnectionBase : IConnection
     {
         // public properties
         /// <summary>

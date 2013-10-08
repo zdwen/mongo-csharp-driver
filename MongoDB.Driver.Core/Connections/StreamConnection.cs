@@ -26,6 +26,8 @@ using MongoDB.Driver.Core.Protocol.Messages;
 using MongoDB.Driver.Core.Support;
 using MongoDB.Driver.Core.Security;
 using MongoDB.Bson;
+using System.Collections.Generic;
+using MongoDB.Driver.Core.Security.Mechanisms;
 
 namespace MongoDB.Driver.Core.Connections
 {
@@ -33,6 +35,7 @@ namespace MongoDB.Driver.Core.Connections
     {
         // private static fields
         private static readonly TraceSource __trace = MongoTraceSources.Connections;
+        private static List<IAuthenticationProtocol> __authenticationProtocols;
 
         // private fields
         private readonly DnsEndPoint _dnsEndPoint;
@@ -47,6 +50,18 @@ namespace MongoDB.Driver.Core.Connections
         private bool _disposeOnException;
 
         // constructors
+        /// <summary>
+        /// Initializes the <see cref="StreamConnection"/> class.
+        /// </summary>
+        static StreamConnection()
+        {
+            __authenticationProtocols = new List<IAuthenticationProtocol>
+            {
+                new MongoCRAuthenticationProtocol(),
+                new SaslAuthenticationProtocol(new GssapiMechanism())
+            };
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamConnection" /> class.
         /// </summary>
@@ -266,7 +281,7 @@ namespace MongoDB.Driver.Core.Connections
         // private methods
         private void Authenticate(MongoCredential credential)
         {
-            foreach (var protocol in _settings.Protocols)
+            foreach (var protocol in __authenticationProtocols)
             {
                 if (protocol.CanUse(credential))
                 {

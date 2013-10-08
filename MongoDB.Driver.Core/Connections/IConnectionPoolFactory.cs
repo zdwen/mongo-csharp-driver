@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Creates a <see cref="IConnectionPool"/>.
     /// </summary>
-    public interface IConnectionPoolFactory
+    internal interface IConnectionPoolFactory
     {
         /// <summary>
         /// Creates a connection pool for the specified address.

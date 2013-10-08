@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Manages one or more instances of a <see cref="IServer" />.
     /// </summary>
-    public abstract class ClusterBase : ICluster
+    internal abstract class ClusterBase : ICluster
     {
         // public properties
         /// <summary>

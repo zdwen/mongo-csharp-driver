@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Security
     /// <summary>
     /// Authenticates a credential using the SASL protocol.
     /// </summary>
-    public class SaslAuthenticationProtocol : IAuthenticationProtocol
+    internal class SaslAuthenticationProtocol : IAuthenticationProtocol
     {
         // private fields
         private readonly ISaslMechanism _mechanism;

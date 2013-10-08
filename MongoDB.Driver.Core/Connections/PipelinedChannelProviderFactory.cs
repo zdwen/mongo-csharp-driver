@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Connections
     /// <summary>
     /// Provides channels used in a pipelined manner.
     /// </summary>
-    public class PipelinedChannelProviderFactory : IChannelProviderFactory
+    internal class PipelinedChannelProviderFactory : IChannelProviderFactory
     {
         // private fields
         private readonly IConnectionFactory _connectionFactory;
