@@ -25,14 +25,14 @@ namespace MongoDB.Driver.Core.Events
     /// </summary>
     public class EventPublisher : IEventPublisher
     {
-        private readonly Dictionary<Type, List<object>> _listeners;
+        private readonly Dictionary<Type, List<IEventListener>> _listeners;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventPublisher" /> class.
         /// </summary>
         public EventPublisher()
         {
-            _listeners = new Dictionary<Type, List<object>>();
+            _listeners = new Dictionary<Type, List<IEventListener>>();
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace MongoDB.Driver.Core.Events
         /// <param name="event">The event.</param>
         public void Publish<TEvent>(TEvent @event)
         {
-            List<object> list;
+            List<IEventListener> list;
             if (_listeners.TryGetValue(typeof(TEvent), out list))
             {
                 foreach (var listener in list.OfType<IEventListener<TEvent>>())
@@ -56,7 +56,7 @@ namespace MongoDB.Driver.Core.Events
         /// Subscribes the specified listener. The listener instance passed in must implement <see cref="IEventListener{T}"/>.
         /// </summary>
         /// <param name="listener">The listener.</param>
-        public void Subscribe(object listener)
+        public void Subscribe(IEventListener listener)
         {
             Ensure.IsNotNull("listener", listener);
 
@@ -70,10 +70,10 @@ namespace MongoDB.Driver.Core.Events
             foreach (var eventType in eventTypes)
             {
                 foundAny = true;
-                List<object> list;
+                List<IEventListener> list;
                 if (!_listeners.TryGetValue(eventType, out list))
                 {
-                    _listeners[eventType] = list = new List<object>();
+                    _listeners[eventType] = list = new List<IEventListener>();
                 }
 
                 list.Add(listener);

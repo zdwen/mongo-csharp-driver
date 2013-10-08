@@ -184,7 +184,7 @@ namespace MongoDB.Driver.Core.Configuration
         /// <param name="listener">The listener.</param>
         /// <param name="listeners">The listeners.</param>
         /// <returns>The current configuration.</returns>
-        public DbConfiguration RegisterEventListeners(object listener, params object[] listeners)
+        public DbConfiguration RegisterEventListeners(IEventListener listener, params IEventListener[] listeners)
         {
             Ensure.IsNotNull("listener", listener);
             var publisher = new EventPublisher();

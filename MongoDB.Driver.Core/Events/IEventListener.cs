@@ -17,10 +17,17 @@
 namespace MongoDB.Driver.Core.Events
 {
     /// <summary>
+    /// The base interface for all event listeners.
+    /// </summary>
+    public interface IEventListener
+    {
+    }
+
+    /// <summary>
     /// Listens for events and applies them.
     /// </summary>
     /// <typeparam name="TEvent">The type of the event.</typeparam>
-    public interface IEventListener<TEvent>
+    public interface IEventListener<TEvent> : IEventListener
     {
         /// <summary>
         /// Applies the specified event.
