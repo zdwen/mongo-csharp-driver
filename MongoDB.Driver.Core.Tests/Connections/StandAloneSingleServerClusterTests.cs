@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Mocks;
 using NSubstitute;
 using NUnit.Framework;
@@ -24,7 +25,7 @@ namespace MongoDB.Driver.Core.Connections
             var serverFactory = Substitute.For<IClusterableServerFactory>();
             serverFactory.Create(null).ReturnsForAnyArgs(_server);
 
-            _subject = new SingleServerCluster(new ClusterSettings(ClusterType.StandAlone, new [] { _server.DnsEndPoint }, null), serverFactory);
+            _subject = new SingleServerCluster(new ClusterSettings(ClusterType.StandAlone, new[] { _server.DnsEndPoint }, null), serverFactory, new NoOpEventPublisher());
             _subject.Initialize();
         }
 

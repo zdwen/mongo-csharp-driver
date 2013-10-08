@@ -98,8 +98,12 @@
     <Compile Include="Connections\ChannelReceiveArgs.cs" />
     <Compile Include="Connections\StreamFactoryBase.cs" />
     <Compile Include="Diagnostics\TraceActivity.cs" />
+    <Compile Include="Events\ClusterClosedEvent.cs" />
+    <Compile Include="Events\ClusterOpenedEvent.cs" />
+    <Compile Include="Events\ServerRemovedFromClusterEvent.cs" />
     <Compile Include="Events\EventPublisherPair.cs" />
     <Compile Include="Events\NoOpEventPublisher.cs" />
+    <Compile Include="Events\ServerAddedToClusterEvent.cs" />
     <Compile Include="MongoSocketWriteTimeoutException.cs" />
     <Compile Include="MongoSocketReadTimeoutException.cs" />
     <Compile Include="Connections\IClusterableServer.cs" />

@@ -30,6 +30,11 @@ namespace MongoDB.Driver.Core.Connections
         ClusterDescription Description { get; }
 
         /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        string Id { get; }
+
+        /// <summary>
         /// Initializes the cluster.
         /// </summary>
         void Initialize();

@@ -43,6 +43,7 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IConnectionFactory _connectionFactory;
         private readonly IChannelProvider _channelProvider;
         private readonly Timer _descriptionUpdateTimer;
+        private readonly string _id;
         private readonly PingTimeAggregator _pingTimeAggregator;
         private readonly ClusterableServerSettings _settings;
         private readonly StateHelper _state;
@@ -67,8 +68,9 @@ namespace MongoDB.Driver.Core.Connections
 
             _settings = settings;
             _dnsEndPoint = dnsEndPoint;
+            _id = IdGenerator<IServer>.GetNextId().ToString();
             _pingTimeAggregator = new PingTimeAggregator(5);
-            _toStringDescription = string.Format("server#{0}-{1}", IdGenerator<IServer>.GetNextId(), _dnsEndPoint);
+            _toStringDescription = string.Format("server#{0}-{1}", _id, _dnsEndPoint);
             _state = new StateHelper(State.Unitialized);
 
             _connectingDescription = new ServerDescription(
@@ -102,6 +104,14 @@ namespace MongoDB.Driver.Core.Connections
         public override ServerDescription Description
         {
             get { return Interlocked.CompareExchange(ref _currentDescription, null, null); }
+        }
+
+        /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        public override string Id
+        {
+            get { return _id; }
         }
 
         // public events

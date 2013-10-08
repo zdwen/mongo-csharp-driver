@@ -13,12 +13,14 @@ namespace MongoDB.Driver.Core.Mocks
     {
         private readonly ServerDescription _connectingDescription;
         private readonly DnsEndPoint _dnsEndPoint;
+        private readonly string _id;
 
         private ServerDescription _currentDescription;
 
         public MockServer(DnsEndPoint dnsEndPoint)
         {
             _dnsEndPoint = dnsEndPoint;
+            _id = IdGenerator<IServer>.GetNextId().ToString();
             _connectingDescription = ServerDescriptionBuilder.Build(x =>
             {
                 x.DnsEndPoint(dnsEndPoint);
@@ -40,6 +42,11 @@ namespace MongoDB.Driver.Core.Mocks
         public DnsEndPoint DnsEndPoint
         {
             get { return _dnsEndPoint; }
+        }
+
+        public override string Id
+        {
+            get { return _id; }
         }
 
         public override event EventHandler<ChangedEventArgs<ServerDescription>> DescriptionChanged;

@@ -29,6 +29,11 @@ namespace MongoDB.Driver.Core.Connections
         ServerDescription Description { get; }
 
         /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        string Id { get; }
+
+        /// <summary>
         /// Gets a channel.
         /// </summary>
         /// <param name="timeout">The timeout.</param>

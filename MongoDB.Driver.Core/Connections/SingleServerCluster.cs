@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using MongoDB.Driver.Core.Diagnostics;
+using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -32,6 +33,7 @@ namespace MongoDB.Driver.Core.Connections
 
         // private fields
         private readonly ClusterType _clusterType;
+        private readonly IEventPublisher _events;
         private readonly string _replicaSetName;
         private readonly IClusterableServer _server;
         private readonly StateHelper _state;
@@ -42,14 +44,17 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="serverFactory">The server factory.</param>
-        public SingleServerCluster(ClusterSettings settings, IClusterableServerFactory serverFactory)
+        /// <param name="events">The events.</param>
+        public SingleServerCluster(ClusterSettings settings, IClusterableServerFactory serverFactory, IEventPublisher events)
             : base(serverFactory)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsEqualTo("settings.Hosts.Count", settings.Hosts.Count(), 1);
             Ensure.IsNotNull("serverFactory", serverFactory);
+            Ensure.IsNotNull("events", events);
 
             _clusterType = settings.Type;
+            _events = events;
             _replicaSetName = settings.ReplicaSetName;
             _state = new StateHelper(State.Unitialized);
 
@@ -68,6 +73,8 @@ namespace MongoDB.Driver.Core.Connections
             ThrowIfDisposed();
             if (_state.TryChange(State.Unitialized, State.Initialized))
             {
+                _events.Publish(new ClusterOpenedEvent(Id));
+                _events.Publish(new ServerAddedToClusterEvent(Id, _server.Id));
                 __trace.TraceInformation("{0}: initialized.", this);
                 _server.DescriptionChanged += ServerDescriptionChanged;
                 _server.Initialize();
@@ -87,6 +94,8 @@ namespace MongoDB.Driver.Core.Connections
                 _server.DescriptionChanged -= ServerDescriptionChanged;
                 _server.Dispose();
                 __trace.TraceInformation("{0}: closed.", this);
+                _events.Publish(new ServerRemovedFromClusterEvent(Id, _server.Id));
+                _events.Publish(new ClusterClosedEvent(Id));
             }
             base.Dispose(disposing);
         }

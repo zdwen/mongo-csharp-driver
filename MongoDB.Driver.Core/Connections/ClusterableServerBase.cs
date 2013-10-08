@@ -29,6 +29,11 @@ namespace MongoDB.Driver.Core.Connections
         public abstract ServerDescription Description { get; }
 
         /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        public abstract string Id { get; }
+
+        /// <summary>
         /// Occurs when the description is changed.
         /// </summary>
         public abstract event EventHandler<ChangedEventArgs<ServerDescription>> DescriptionChanged;

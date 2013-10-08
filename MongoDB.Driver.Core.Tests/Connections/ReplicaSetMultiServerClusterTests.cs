@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
+using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Mocks;
 using NSubstitute;
 using NUnit.Framework;
@@ -277,7 +278,7 @@ namespace MongoDB.Driver.Core.Connections
         private MultiServerCluster CreateSubject(params DnsEndPoint[] dnsEndPoints)
         {
             var settings = new ClusterSettings(ClusterType.ReplicaSet, dnsEndPoints, _replicaSetName);
-            return new MultiServerCluster(settings, _serverFactory);
+            return new MultiServerCluster(settings, _serverFactory, new NoOpEventPublisher());
         }
     }
 }

@@ -32,6 +32,7 @@ namespace MongoDB.Driver.Core.Connections
         private static readonly TraceSource __trace = MongoTraceSources.Connections;
 
         // private fields
+        private readonly string _id;
         private readonly IClusterableServerFactory _serverFactory;
         private readonly StateHelper _state;
         private readonly string _toStringDescription;
@@ -47,10 +48,11 @@ namespace MongoDB.Driver.Core.Connections
         {
             Ensure.IsNotNull("serverFactory", serverFactory);
 
+            _id = IdGenerator<ICluster>.GetNextId().ToString();
             _serverFactory = serverFactory;
             _state = new StateHelper(State.Uninitialized);
             _selectServerEvent = new ManualResetEventSlim();
-            _toStringDescription = string.Format("cluster#{0}", IdGenerator<ICluster>.GetNextId());
+            _toStringDescription = string.Format("cluster#{0}", _id);
         }
 
         // public properties
@@ -60,6 +62,14 @@ namespace MongoDB.Driver.Core.Connections
         public override ClusterDescription Description
         {
             get { return _description; }
+        }
+
+        /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        public override string Id
+        {
+            get { return _id; }
         }
 
         // public methods

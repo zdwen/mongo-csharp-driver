@@ -29,6 +29,11 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         public abstract ClusterDescription Description { get; }
 
+        /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        public abstract string Id { get; }
+
         // public methods
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

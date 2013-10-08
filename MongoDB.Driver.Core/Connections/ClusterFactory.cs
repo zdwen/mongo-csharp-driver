@@ -14,6 +14,7 @@
 */
 
 using System;
+using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -24,6 +25,7 @@ namespace MongoDB.Driver.Core.Connections
     internal class ClusterFactory : IClusterFactory
     {
         // private fields
+        private readonly IEventPublisher _events;
         private readonly IClusterableServerFactory _serverFactory;
         private readonly ClusterSettings _settings;
 
@@ -33,13 +35,16 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="serverFactory">The server factory.</param>
-        public ClusterFactory(ClusterSettings settings, IClusterableServerFactory serverFactory)
+        /// <param name="events">The events.</param>
+        public ClusterFactory(ClusterSettings settings, IClusterableServerFactory serverFactory, IEventPublisher events)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("serverFactory", serverFactory);
+            Ensure.IsNotNull("events", events);
 
             _settings = settings;
             _serverFactory = serverFactory;
+            _events = events;
         }
 
         /// <summary>
@@ -51,9 +56,9 @@ namespace MongoDB.Driver.Core.Connections
             switch(_settings.ConnectionMode)
             {
                 case ClusterConnectionMode.Single:
-                    return new SingleServerCluster(_settings, _serverFactory);
+                    return new SingleServerCluster(_settings, _serverFactory, _events);
                 case ClusterConnectionMode.Multiple:
-                    return new MultiServerCluster(_settings, _serverFactory);
+                    return new MultiServerCluster(_settings, _serverFactory, _events);
             }
 
             throw new NotSupportedException(string.Format("An unsupported ClusterConnectionMode of {0} was provided.", _settings.ConnectionMode));

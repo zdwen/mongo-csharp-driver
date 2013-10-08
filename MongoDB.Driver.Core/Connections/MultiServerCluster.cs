@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using MongoDB.Driver.Core.Diagnostics;
+using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections
@@ -38,6 +39,7 @@ namespace MongoDB.Driver.Core.Connections
         // _servers which is done outside a lock should be in the constructor
         // or in TryGetServer.
         private readonly object _serversLock = new object();
+        private readonly IEventPublisher _events;
         private readonly ConcurrentDictionary<DnsEndPoint, ServerDescriptionPair> _servers;
         private readonly StateHelper _state;
         private ClusterType _clusterType;
@@ -50,11 +52,14 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="serverFactory">The server factory.</param>
-        public MultiServerCluster(ClusterSettings settings, IClusterableServerFactory serverFactory)
+        /// <param name="events">The events.</param>
+        public MultiServerCluster(ClusterSettings settings, IClusterableServerFactory serverFactory, IEventPublisher events)
             : base(serverFactory)
         {
             Ensure.IsNotNull("settings", settings);
+            Ensure.IsNotNull("events", events);
 
+            _events = events;
             _replicaSetName = settings.ReplicaSetName;
             _clusterType = settings.Type;
             _configVersion = int.MinValue;
@@ -84,6 +89,7 @@ namespace MongoDB.Driver.Core.Connections
             ThrowIfDisposed();
             if (_state.TryChange(State.Uninitialized, State.Initialized))
             {
+                _events.Publish(new ClusterOpenedEvent(Id));
                 __trace.TraceInformation("{0}: initialized.", this);
                 __trace.TraceInformation("{0}: type is {1}.", this, _clusterType);
                 if (!string.IsNullOrEmpty(_replicaSetName))
@@ -94,6 +100,7 @@ namespace MongoDB.Driver.Core.Connections
                 {
                     foreach (var entry in _servers)
                     {
+                        _events.Publish(new ServerAddedToClusterEvent(Id, entry.Value.Server.Id));
                         entry.Value.Server.DescriptionChanged += ServerDescriptionChanged;
                         entry.Value.Server.Initialize();
                     }
@@ -117,11 +124,13 @@ namespace MongoDB.Driver.Core.Connections
                     {
                         entry.Server.DescriptionChanged -= ServerDescriptionChanged;
                         entry.Server.Dispose();
+                        _events.Publish(new ServerRemovedFromClusterEvent(Id, entry.Server.Id));
                     }
 
                     _servers.Clear();
                 }
                 __trace.TraceInformation("{0}: closed.", this);
+                _events.Publish(new ClusterClosedEvent(Id));
             }
             base.Dispose(disposing);
         }
@@ -155,6 +164,7 @@ namespace MongoDB.Driver.Core.Connections
 
                 if (_servers.TryAdd(host, new ServerDescriptionPair(server)))
                 {
+                    _events.Publish(new ServerAddedToClusterEvent(Id, server.Id));
                     __trace.TraceInformation("{0}: added {1}.", this, server);
                     server.DescriptionChanged += ServerDescriptionChanged;
                     server.Initialize();
@@ -274,6 +284,7 @@ namespace MongoDB.Driver.Core.Connections
                 __trace.TraceInformation("{0}: removed {1}.", this, entry.Server);
                 entry.Server.DescriptionChanged -= ServerDescriptionChanged;
                 entry.Server.Dispose();
+                _events.Publish(new ServerRemovedFromClusterEvent(Id, entry.Server.Id));
             }
         }
 
