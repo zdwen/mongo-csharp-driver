@@ -82,6 +82,8 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>The current configuration.</returns>
         public DbConfiguration ConfigureCluster(Action<ClusterSettings.Builder> builder)
         {
+            Ensure.IsNotNull("builder", builder);
+
             builder(_clusterSettings);
             return this;
         }
@@ -93,6 +95,8 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>The current configuration.</returns>
         public DbConfiguration ConfigureConnection(Action<StreamConnectionSettings.Builder> builder)
         {
+            Ensure.IsNotNull("builder", builder);
+
             builder(_connectionSettings);
             return this;
         }
@@ -104,6 +108,8 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>The current configuration.</returns>
         public DbConfiguration ConfigureConnectionPool(Action<ConnectionPoolSettings.Builder> builder)
         {
+            Ensure.IsNotNull("builder", builder);
+
             builder(_connectionPoolSettings);
             return this;
         }
@@ -115,6 +121,8 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>The current configuration.</returns>
         public DbConfiguration ConfigureNetworkStream(Action<NetworkStreamSettings.Builder> builder)
         {
+            Ensure.IsNotNull("builder", builder);
+
             builder(_networkStreamSettings);
             return this;
         }
@@ -126,6 +134,8 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>The current configuration.</returns>
         public DbConfiguration ConfigureServer(Action<ClusterableServerSettings.Builder> builder)
         {
+            Ensure.IsNotNull("builder", builder);
+
             builder(_serverSettings);
             return this;
         }
@@ -162,6 +172,8 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>The current configuration.</returns>
         public DbConfiguration ConfigureWithConnectionString(DbConnectionString connectionString)
         {
+            Ensure.IsNotNull("connectionString", connectionString);
+
             ApplyConnectionString(connectionString);
             return this;
         }
@@ -174,12 +186,16 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>The current configuration.</returns>
         public DbConfiguration RegisterEventListeners(object listener, params object[] listeners)
         {
+            Ensure.IsNotNull("listener", listener);
             var publisher = new EventPublisher();
             publisher.Subscribe(listener);
 
-            foreach (var otherListener in listeners)
+            if (listeners != null)
             {
-                publisher.Subscribe(otherListener);
+                foreach (var otherListener in listeners)
+                {
+                    publisher.Subscribe(otherListener);
+                }
             }
 
             _eventPublisher = new EventPublisherPair(_eventPublisher, publisher);
