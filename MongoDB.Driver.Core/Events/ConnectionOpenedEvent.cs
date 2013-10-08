@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System.Net;
 using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Events
@@ -23,25 +24,36 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionOpenedEvent
     {
         // private fields
-        private readonly IConnection _connection;
+        private readonly DnsEndPoint _address;
+        private readonly string _connectionId;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionOpenedEvent" /> class.
         /// </summary>
-        /// <param name="connection">The connection.</param>
-        public ConnectionOpenedEvent(IConnection connection)
+        /// <param name="connectionId">The connection identifier.</param>
+        /// <param name="address">The address.</param>
+        public ConnectionOpenedEvent(string connectionId, DnsEndPoint address)
         {
-            _connection = connection;
+            _connectionId = connectionId;
+            _address = address;
         }
 
         // public properties
         /// <summary>
-        /// Gets the connection.
+        /// Gets the address.
         /// </summary>
-        public IConnection Connection
+        public DnsEndPoint Address
         {
-            get { return _connection; }
+            get { return _address; }
+        }
+
+        /// <summary>
+        /// Gets the connection identifier.
+        /// </summary>
+        public string ConnectionId
+        {
+            get { return _connectionId; }
         }
     }
 }

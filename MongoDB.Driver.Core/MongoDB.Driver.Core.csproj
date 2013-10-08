@@ -115,7 +115,6 @@
     <Compile Include="LatencyLimitingServerSelector.cs" />
     <Compile Include="MongoOperationException.cs" />
     <Compile Include="Diagnostics\MongoTraceSources.cs" />
-    <Compile Include="Events\ConnectionAuthenticatedEvent.cs" />
     <Compile Include="Events\ConnectionOpenedEvent.cs" />
     <Compile Include="MongoDriverException.cs" />
     <Compile Include="MongoSocketException.cs" />

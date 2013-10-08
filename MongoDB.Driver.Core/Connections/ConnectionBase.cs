@@ -31,6 +31,11 @@ namespace MongoDB.Driver.Core.Connections
         public abstract DnsEndPoint DnsEndPoint { get; }
 
         /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        public abstract string Id { get; }
+
+        /// <summary>
         /// Gets a value indicating whether this connection is open.
         /// </summary>
         public abstract bool IsOpen { get; }

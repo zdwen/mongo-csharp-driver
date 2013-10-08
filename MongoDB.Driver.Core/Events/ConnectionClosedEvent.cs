@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System.Net;
 using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Events
@@ -23,25 +24,25 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionClosedEvent
     {
         // private fields
-        private readonly IConnection _connection;
+        private readonly string _connectionId;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionClosedEvent" /> class.
         /// </summary>
-        /// <param name="connection">The connection.</param>
-        public ConnectionClosedEvent(IConnection connection)
+        /// <param name="connectionId">The connection identifier.</param>
+        public ConnectionClosedEvent(string connectionId)
         {
-            _connection = connection;
+            _connectionId = connectionId;
         }
 
         // public properties
         /// <summary>
-        /// Gets the connection.
+        /// Gets the connection identifier.
         /// </summary>
-        public IConnection Connection
+        public string ConnectionId
         {
-            get { return _connection; }
+            get { return _connectionId; }
         }
     }
 }

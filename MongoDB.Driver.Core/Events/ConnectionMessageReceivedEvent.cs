@@ -20,41 +20,52 @@ using MongoDB.Driver.Core.Protocol.Messages;
 namespace MongoDB.Driver.Core.Events
 {
     /// <summary>
-    /// Occurs when a message has been received and deserialized.
+    /// Occurs when a message has been received.
     /// </summary>
     public class ConnectionMessageReceivedEvent
     {
         // private fields
-        private readonly IConnection _connection;
-        private readonly ReplyMessage _message;
+        private readonly string _connectionId;
+        private readonly int _responseTo;
+        private readonly int _size;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionMessageReceivedEvent" /> class.
         /// </summary>
-        /// <param name="connection">The connection.</param>
-        /// <param name="message">The message.</param>
-        public ConnectionMessageReceivedEvent(IConnection connection, ReplyMessage message)
+        /// <param name="connectionId">The connection identifier.</param>
+        /// <param name="responseTo">The response to.</param>
+        /// <param name="size">The size.</param>
+        public ConnectionMessageReceivedEvent(string connectionId, int responseTo, int size)
         {
-            _connection = connection;
-            _message = message;
+            _connectionId = connectionId;
+            _responseTo = responseTo;
+            _size = size;
         }
 
         // public properties
         /// <summary>
-        /// Gets the connection.
+        /// Gets the connection identifier.
         /// </summary>
-        public IConnection Connection
+        public string ConnectionId
         {
-            get { return _connection; }
+            get { return _connectionId; }
         }
 
         /// <summary>
-        /// Gets the message.
+        /// Gets the id of the request to which this message is a response.
         /// </summary>
-        public ReplyMessage Message
+        public int ResponseTo
         {
-            get { return _message; }
+            get { return _responseTo; }
+        }
+
+        /// <summary>
+        /// Gets the size.
+        /// </summary>
+        public int Size
+        {
+            get { return _size; }
         }
     }
 }

@@ -30,6 +30,11 @@ namespace MongoDB.Driver.Core.Connections
         DnsEndPoint DnsEndPoint { get; }
 
         /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        string Id { get; }
+
+        /// <summary>
         /// Gets a value indicating whether this transport is open.
         /// </summary>
         bool IsOpen { get; }

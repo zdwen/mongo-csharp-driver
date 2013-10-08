@@ -43,8 +43,8 @@ namespace MongoDB.Driver.Core.Diagnostics
         private readonly string _applicationName;
         private readonly PerformanceCounterPackage _appPackage;
         private readonly ConcurrentDictionary<string, PerformanceCounterPackage> _packages;
-        private readonly ConditionalWeakTable<IConnection, ConnectionPerformanceRecorder> _connectionRecorders;
-        private readonly ConditionalWeakTable<IConnectionPool, ConnectionPoolPerformanceRecorder> _connectionPoolRecorders;
+        private readonly ConcurrentDictionary<string, ConnectionPerformanceRecorder> _connectionRecorders;
+        private readonly ConcurrentDictionary<string, ConnectionPoolPerformanceRecorder> _connectionPoolRecorders;
 
         // constructors
         /// <summary>
@@ -56,8 +56,8 @@ namespace MongoDB.Driver.Core.Diagnostics
             _applicationName = applicationName;
             _packages = new ConcurrentDictionary<string, PerformanceCounterPackage>();
             _appPackage = GetAppPackage();
-            _connectionRecorders = new ConditionalWeakTable<IConnection, ConnectionPerformanceRecorder>();
-            _connectionPoolRecorders = new ConditionalWeakTable<IConnectionPool, ConnectionPoolPerformanceRecorder>();
+            _connectionRecorders = new ConcurrentDictionary<string, ConnectionPerformanceRecorder>();
+            _connectionPoolRecorders = new ConcurrentDictionary<string, ConnectionPoolPerformanceRecorder>();
         }
 
         // public static methods
@@ -77,10 +77,9 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionClosedEvent @event)
         {
             ConnectionPerformanceRecorder recorder;
-            if (_connectionRecorders.TryGetValue(@event.Connection, out recorder))
+            if (_connectionRecorders.TryRemove(@event.ConnectionId, out recorder))
             {
                 recorder.Closed();
-                _connectionRecorders.Remove(@event.Connection);
             }
         }
 
@@ -90,10 +89,12 @@ namespace MongoDB.Driver.Core.Diagnostics
         /// <param name="event">The event.</param>
         public void Apply(ConnectionOpenedEvent @event)
         {
-            var serverPackage = GetServerPackage(@event.Connection.DnsEndPoint);
+            var serverPackage = GetServerPackage(@event.Address);
             ConnectionPerformanceRecorder recorder = new ConnectionPerformanceRecorder(_appPackage, serverPackage);
-            _connectionRecorders.Add(@event.Connection, recorder);
-            recorder.Opened();
+            if (_connectionRecorders.TryAdd(@event.ConnectionId, recorder))
+            {
+                recorder.Opened();
+            }
         }
 
         /// <summary>
@@ -103,9 +104,9 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionMessageReceivedEvent @event)
         {
             ConnectionPerformanceRecorder recorder;
-            if (_connectionRecorders.TryGetValue(@event.Connection, out recorder))
+            if (_connectionRecorders.TryGetValue(@event.ConnectionId, out recorder))
             {
-                recorder.MessageReceived(@event.Message.RequestId, @event.Message.Length);
+                recorder.MessageReceived(@event.ResponseTo, @event.Size);
             }
         }
 
@@ -116,9 +117,9 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionPacketSendingEvent @event)
         {
             ConnectionPerformanceRecorder recorder;
-            if (_connectionRecorders.TryGetValue(@event.Connection, out recorder))
+            if (_connectionRecorders.TryGetValue(@event.ConnectionId, out recorder))
             {
-                recorder.PacketSent(@event.Packet.LastRequestId, @event.Packet.Length);
+                recorder.PacketSent(@event.RequestId, @event.Size);
             }
         }
 
@@ -129,7 +130,7 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionAddedToPoolEvent @event)
         {
             ConnectionPoolPerformanceRecorder recorder;
-            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPool, out recorder))
+            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPoolId, out recorder))
             {
                 recorder.ConnectionAdded();
             }
@@ -142,7 +143,7 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionCheckedInToPoolEvent @event)
         {
             ConnectionPoolPerformanceRecorder recorder;
-            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPool, out recorder))
+            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPoolId, out recorder))
             {
                 recorder.ConnectionCheckedIn();
             }
@@ -155,7 +156,7 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionCheckedOutOfPoolEvent @event)
         {
             ConnectionPoolPerformanceRecorder recorder;
-            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPool, out recorder))
+            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPoolId, out recorder))
             {
                 recorder.ConnectionCheckedOut();
             }
@@ -168,10 +169,9 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionPoolClosedEvent @event)
         {
             ConnectionPoolPerformanceRecorder recorder;
-            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPool, out recorder))
+            if (_connectionPoolRecorders.TryRemove(@event.ConnectionPoolId, out recorder))
             {
                 recorder.ConnectionRemoved();
-                _connectionPoolRecorders.Remove(@event.ConnectionPool);
             }
         }
 
@@ -181,10 +181,12 @@ namespace MongoDB.Driver.Core.Diagnostics
         /// <param name="event">The event.</param>
         public void Apply(ConnectionPoolOpenedEvent @event)
         {
-            var serverPackage = GetServerPackage(@event.ConnectionPool.DnsEndPoint);
-            ConnectionPoolPerformanceRecorder recorder = new ConnectionPoolPerformanceRecorder(@event.ConnectionPool.Settings.MaxSize, _appPackage, serverPackage);
-            _connectionPoolRecorders.Add(@event.ConnectionPool, recorder);
-            recorder.Opened();
+            var serverPackage = GetServerPackage(@event.Address);
+            ConnectionPoolPerformanceRecorder recorder = new ConnectionPoolPerformanceRecorder(@event.Settings.MaxSize, _appPackage, serverPackage);
+            if (_connectionPoolRecorders.TryAdd(@event.ConnectionPoolId, recorder))
+            {
+                recorder.Opened();
+            }
         }
 
         /// <summary>
@@ -194,7 +196,7 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionRemovedFromPoolEvent @event)
         {
             ConnectionPoolPerformanceRecorder recorder;
-            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPool, out recorder))
+            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPoolId, out recorder))
             {
                 recorder.ConnectionRemoved();
             }
@@ -207,7 +209,7 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionPoolWaitQueueEnteredEvent @event)
         {
             ConnectionPoolPerformanceRecorder recorder;
-            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPool, out recorder))
+            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPoolId, out recorder))
             {
                 recorder.WaitQueueEntered();
             }
@@ -220,7 +222,7 @@ namespace MongoDB.Driver.Core.Diagnostics
         public void Apply(ConnectionPoolWaitQueueExitedEvent @event)
         {
             ConnectionPoolPerformanceRecorder recorder;
-            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPool, out recorder))
+            if (_connectionPoolRecorders.TryGetValue(@event.ConnectionPoolId, out recorder))
             {
                 recorder.WaitQueueExited();
             }

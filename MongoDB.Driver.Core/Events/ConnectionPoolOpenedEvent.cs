@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System.Net;
 using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Events
@@ -23,24 +24,46 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionPoolOpenedEvent
     {
         // private fields
-        private readonly IConnectionPool _connectionPool;
+        private readonly DnsEndPoint _address;
+        private readonly string _connectionPoolId;
+        private readonly ConnectionPoolSettings _settings;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionPoolOpenedEvent" /> class.
         /// </summary>
-        /// <param name="connectionPool">The connection pool.</param>
-        public ConnectionPoolOpenedEvent(IConnectionPool connectionPool)
+        /// <param name="connectionPoolId">The connection pool identifier.</param>
+        /// <param name="address">The address.</param>
+        /// <param name="settings">The settings.</param>
+        public ConnectionPoolOpenedEvent(string connectionPoolId, DnsEndPoint address, ConnectionPoolSettings settings)
         {
-            _connectionPool = connectionPool;
+            _connectionPoolId = connectionPoolId;
+            _address = address;
+            _settings = settings;
         }
 
         /// <summary>
-        /// Gets the connection pool.
+        /// Gets the address.
         /// </summary>
-        public IConnectionPool ConnectionPool
+        public DnsEndPoint Address
         {
-            get { return _connectionPool; }
+            get { return _address; }
+        }
+
+        /// <summary>
+        /// Gets the connection pool identifier.
+        /// </summary>
+        public string ConnectionPoolId
+        {
+            get { return _connectionPoolId; }
+        }
+
+        /// <summary>
+        /// Gets the settings.
+        /// </summary>
+        public ConnectionPoolSettings Settings
+        {
+            get { return _settings; }
         }
     }
 }

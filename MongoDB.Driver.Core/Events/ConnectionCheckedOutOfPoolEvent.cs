@@ -18,41 +18,41 @@ using MongoDB.Driver.Core.Connections;
 namespace MongoDB.Driver.Core.Events
 {
     /// <summary>
-    /// Occurs when a <see cref="MongoDB.Driver.Core.Connections.IConnection"/> 
-    /// is checked out of a connection pool.
+    /// Occurs when a connection is checked out of a connection pool.
     /// </summary>
     public class ConnectionCheckedOutOfPoolEvent
     {
         // private fields
-        private readonly IConnection _connection;
-        private readonly IConnectionPool _connectionPool;
+        private readonly string _connectionId;
+        private readonly string _connectionPoolId;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionCheckedOutOfPoolEvent" /> class.
         /// </summary>
-        /// <param name="connectionPool">The connection pool.</param>
-        /// <param name="connection">The connection.</param>
-        public ConnectionCheckedOutOfPoolEvent(IConnectionPool connectionPool, IConnection connection)
+        /// <param name="connectionPoolId">The connection pool identifier.</param>
+        /// <param name="connectionId">The connection identifier.</param>
+        public ConnectionCheckedOutOfPoolEvent(string connectionPoolId, string connectionId)
         {
-            _connectionPool = connectionPool;
-            _connection = connection;
+            _connectionPoolId = connectionPoolId;
+            _connectionId = connectionId;
+        }
+
+        // public properties
+        /// <summary>
+        /// Gets the connection identifier.
+        /// </summary>
+        public string ConnectionId
+        {
+            get { return _connectionId; }
         }
 
         /// <summary>
-        /// Gets the connection.
+        /// Gets the connection pool identifier.
         /// </summary>
-        public IConnection Connection
+        public string ConnectionPoolId
         {
-            get { return _connection; }
-        }
-
-        /// <summary>
-        /// Gets the connection pool.
-        /// </summary>
-        public IConnectionPool ConnectionPool
-        {
-            get { return _connectionPool; }
+            get { return _connectionPoolId; }
         }
     }
 }

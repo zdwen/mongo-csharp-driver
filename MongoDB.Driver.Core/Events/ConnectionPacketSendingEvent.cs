@@ -23,36 +23,47 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionPacketSendingEvent
     {
         // private fields
-        private readonly IConnection _connection;
-        private readonly IRequestPacket _packet;
+        private readonly string _connectionId;
+        private readonly int _requestId;
+        private readonly int _size;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionPacketSendingEvent" /> class.
         /// </summary>
-        /// <param name="connection">The connection.</param>
-        /// <param name="packet">The packet.</param>
-        public ConnectionPacketSendingEvent(IConnection connection, IRequestPacket packet)
+        /// <param name="connectionId">The connection identifier.</param>
+        /// <param name="requestId">The request identifier.</param>
+        /// <param name="size">The size.</param>
+        public ConnectionPacketSendingEvent(string connectionId, int requestId, int size)
         {
-            _connection = connection;
-            _packet = packet;
+            _connectionId = connectionId;
+            _requestId = requestId;
+            _size = size;
         }
 
         // public properties
         /// <summary>
-        /// Gets the connection.
+        /// Gets the connection identifier.
         /// </summary>
-        public IConnection Connection
+        public string ConnectionId
         {
-            get { return _connection; }
+            get { return _connectionId; }
         }
 
         /// <summary>
-        /// Gets the packet.
+        /// Gets the request identifier.
         /// </summary>
-        public IRequestPacket Packet
+        public int RequestId
         {
-            get { return _packet; }
+            get { return _requestId; }
+        }
+
+        /// <summary>
+        /// Gets the size.
+        /// </summary>
+        public int Size
+        {
+            get { return _size; }
         }
     }
 }

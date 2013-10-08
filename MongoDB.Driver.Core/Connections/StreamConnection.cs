@@ -40,6 +40,7 @@ namespace MongoDB.Driver.Core.Connections
         private readonly StreamConnectionSettings _settings;
         private readonly IStreamFactory _streamFactory;
         private bool _disposed;
+        private string _id;
         private State _state;
         private Stream _stream;
         private string _toStringDescription;
@@ -83,6 +84,14 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        public override string Id
+        {
+            get { return _id; }
+        }
+
+        /// <summary>
         /// Gets a value indicating whether this connection is open.
         /// </summary>
         public override bool IsOpen
@@ -104,7 +113,7 @@ namespace MongoDB.Driver.Core.Connections
                     _stream = _streamFactory.Create(_dnsEndPoint);
                     _state = State.Open;
                     _toStringDescription = GetStringDescription();
-                    _events.Publish(new ConnectionOpenedEvent(this));
+                    _events.Publish(new ConnectionOpenedEvent(_id, _dnsEndPoint));
                     _disposeOnException = true;
                 }
                 catch (SocketException ex)
@@ -145,7 +154,7 @@ namespace MongoDB.Driver.Core.Connections
             {
                 var reply = ReplyMessage.ReadFrom(_stream);
                 __trace.TraceVerbose("{0}: received message#{1} with {2} bytes.", _toStringDescription, reply.ResponseTo, reply.Length);
-                _events.Publish(new ConnectionMessageReceivedEvent(this, reply));
+                _events.Publish(new ConnectionMessageReceivedEvent(_id, reply.ResponseTo, reply.Length));
 
                 return reply;
             }
@@ -193,7 +202,7 @@ namespace MongoDB.Driver.Core.Connections
             {
                 packet.WriteTo(_stream);
                 __trace.TraceVerbose("{0}: sent message#{1} with {2} bytes.", _toStringDescription, packet.LastRequestId, packet.Length);
-                _events.Publish(new ConnectionPacketSendingEvent(this, packet));
+                _events.Publish(new ConnectionPacketSendingEvent(_id, packet.LastRequestId, packet.Length));
             }
             catch (SocketException ex)
             {
@@ -245,7 +254,7 @@ namespace MongoDB.Driver.Core.Connections
             if (!_disposed && disposing)
             {
                 __trace.TraceInformation("{0}: closed.", _toStringDescription);
-                _events.Publish(new ConnectionClosedEvent(this));
+                _events.Publish(new ConnectionClosedEvent(_id));
                 _state = State.Disposed;
                 try { _stream.Close(); }
                 catch { } // ignore exceptions
@@ -272,7 +281,6 @@ namespace MongoDB.Driver.Core.Connections
 
         private string GetStringDescription()
         {
-
             BsonValue connectionId = "*" + IdGenerator<IConnection>.GetNextId() + "*";
             try
             {
@@ -287,6 +295,8 @@ namespace MongoDB.Driver.Core.Connections
                 // if this fails, then so be it... we'll just use the 
                 // local id generator version
             }
+
+            _id = connectionId.ToString();
 
             return string.Format("conn#{0}-{1}", connectionId, _dnsEndPoint);
         }
