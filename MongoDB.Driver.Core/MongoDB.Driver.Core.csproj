@@ -96,8 +96,6 @@
     <Compile Include="Connections\IConnection.cs" />
     <Compile Include="Connections\IConnectionPoolFactory.cs" />
     <Compile Include="Connections\IdGenerator.cs" />
-    <Compile Include="Connections\PipelinedChannelProvider.cs" />
-    <Compile Include="Connections\PipelinedChannelProviderFactory.cs" />
     <Compile Include="Connections\ChannelReceiveArgs.cs" />
     <Compile Include="Connections\StreamFactoryBase.cs" />
     <Compile Include="Diagnostics\TraceActivity.cs" />

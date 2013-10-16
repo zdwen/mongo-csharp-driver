@@ -21,6 +21,11 @@ namespace MongoDB.Driver.Core.Mocks
             _connection = connection;
         }
 
+        public override ConnectionId ConnectionId
+        {
+            get { return _connection.Id; }
+        }
+
         public override DnsEndPoint DnsEndPoint
         {
             get { return _connection.DnsEndPoint; }

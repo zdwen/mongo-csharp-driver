@@ -410,6 +410,11 @@ namespace MongoDB.Driver.Core.Connections
                 _wrapped = wrapped;
             }
 
+            public override ConnectionId ConnectionId
+            {
+                get { return _wrapped.ConnectionId; }
+            }
+
             public override DnsEndPoint DnsEndPoint
             {
                 get

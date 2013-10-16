@@ -26,6 +26,11 @@ namespace MongoDB.Driver.Core.Connections
     {
         // public properties
         /// <summary>
+        /// Gets the connection identifier.
+        /// </summary>
+        public abstract ConnectionId ConnectionId { get; }
+
+        /// <summary>
         /// Gets the address.
         /// </summary>
         public abstract DnsEndPoint DnsEndPoint { get; }

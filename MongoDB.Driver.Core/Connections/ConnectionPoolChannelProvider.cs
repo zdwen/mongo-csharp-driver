@@ -162,6 +162,11 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
+            public override ConnectionId ConnectionId
+            {
+                get { return _connection.Id; }
+            }
+
             public override DnsEndPoint DnsEndPoint
             {
                 get

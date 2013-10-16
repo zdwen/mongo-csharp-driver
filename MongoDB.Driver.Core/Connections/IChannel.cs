@@ -25,6 +25,11 @@ namespace MongoDB.Driver.Core.Connections
     public interface IChannel : IDisposable
     {
         /// <summary>
+        /// Gets the connection identifier.
+        /// </summary>
+        ConnectionId ConnectionId { get; }
+
+        /// <summary>
         /// Gets the DNS end point.
         /// </summary>
         DnsEndPoint DnsEndPoint { get; }
