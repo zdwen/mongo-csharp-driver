@@ -25,7 +25,7 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionMessageReceivedEvent
     {
         // private fields
-        private readonly string _connectionId;
+        private readonly ConnectionId _connectionId;
         private readonly int _responseTo;
         private readonly int _size;
 
@@ -36,7 +36,7 @@ namespace MongoDB.Driver.Core.Events
         /// <param name="connectionId">The connection identifier.</param>
         /// <param name="responseTo">The response to.</param>
         /// <param name="size">The size.</param>
-        public ConnectionMessageReceivedEvent(string connectionId, int responseTo, int size)
+        public ConnectionMessageReceivedEvent(ConnectionId connectionId, int responseTo, int size)
         {
             _connectionId = connectionId;
             _responseTo = responseTo;
@@ -47,7 +47,7 @@ namespace MongoDB.Driver.Core.Events
         /// <summary>
         /// Gets the connection identifier.
         /// </summary>
-        public string ConnectionId
+        public ConnectionId ConnectionId
         {
             get { return _connectionId; }
         }

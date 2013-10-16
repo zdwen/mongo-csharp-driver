@@ -52,13 +52,14 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Creates a connection for the specified address.
         /// </summary>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A connection.</returns>
-        public IConnection Create(DnsEndPoint dnsEndPoint)
+        public IConnection Create(ServerId serverId, DnsEndPoint dnsEndPoint)
         {
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
-            return new StreamConnection(_settings, dnsEndPoint, _streamFactory, _events);
+            return new StreamConnection(serverId, _settings, dnsEndPoint, _streamFactory, _events);
         }
     }
 }

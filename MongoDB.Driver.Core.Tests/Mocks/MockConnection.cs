@@ -20,15 +20,15 @@ namespace MongoDB.Driver.Core.Mocks
         private readonly List<Tuple<Func<BsonDocument, bool>, Func<IEnumerable<BsonDocument>>>> _responses;
         private Queue<Func<IEnumerable<BsonDocument>>> _responseQueue;
         private readonly DnsEndPoint _dnsEndPoint;
-        private readonly string _id;
+        private readonly ConnectionId _id;
         private bool _isOpen;
         private bool _isServerDead;
         private Action _openCallback;
 
-        public MockConnection(DnsEndPoint dnsEndPoint, List<Tuple<Func<BsonDocument, bool>, Func<IEnumerable<BsonDocument>>>> responses)
+        public MockConnection(ServerId serverId, DnsEndPoint dnsEndPoint, List<Tuple<Func<BsonDocument, bool>, Func<IEnumerable<BsonDocument>>>> responses)
         {
             _dnsEndPoint = dnsEndPoint;
-            _id = IdGenerator<IConnection>.GetNextId().ToString();
+            _id = new ConnectionId(serverId);
             _responses = responses ?? new List<Tuple<Func<BsonDocument, bool>, Func<IEnumerable<BsonDocument>>>>();
             _responseQueue = new Queue<Func<IEnumerable<BsonDocument>>>();
         }
@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Mocks
             get { return _dnsEndPoint; }
         }
 
-        public override string Id
+        public override ConnectionId Id
         {
             get { return _id; }
         }

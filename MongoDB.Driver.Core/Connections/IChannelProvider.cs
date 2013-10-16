@@ -30,6 +30,11 @@ namespace MongoDB.Driver.Core.Connections
         DnsEndPoint DnsEndPoint { get; }
 
         /// <summary>
+        /// Gets the server identifier.
+        /// </summary>
+        ServerId ServerId { get; }
+
+        /// <summary>
         /// Initializes the channel provider.
         /// </summary>
         void Initialize();

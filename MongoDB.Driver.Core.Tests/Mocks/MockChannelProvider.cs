@@ -14,16 +14,23 @@ namespace MongoDB.Driver.Core.Mocks
     {
         private readonly IConnectionFactory _connectionFactory;
         private readonly DnsEndPoint _dnsEndPoint;
+        private readonly ServerId _serverId;
 
-        public MockChannelProvider(DnsEndPoint dnsEndPoint, IConnectionFactory connectionFactory)
+        public MockChannelProvider(ServerId serverId, DnsEndPoint dnsEndPoint, IConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
             _dnsEndPoint = dnsEndPoint;
+            _serverId = serverId;
         }
 
         public override DnsEndPoint DnsEndPoint
         {
             get { return _dnsEndPoint; }
+        }
+
+        public override ServerId ServerId
+        {
+            get { return _serverId; }
         }
 
         public override void Initialize()
@@ -33,7 +40,7 @@ namespace MongoDB.Driver.Core.Mocks
 
         public override IChannel GetChannel(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            return new MockChannel(_connectionFactory.Create(_dnsEndPoint));
+            return new MockChannel(_connectionFactory.Create(_serverId, _dnsEndPoint));
         }
     }
 }

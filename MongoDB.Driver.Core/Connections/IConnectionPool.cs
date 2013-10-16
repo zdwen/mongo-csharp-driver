@@ -30,6 +30,11 @@ namespace MongoDB.Driver.Core.Connections
         DnsEndPoint DnsEndPoint { get; }
 
         /// <summary>
+        /// Gets the server identifier.
+        /// </summary>
+        ServerId ServerId { get; }
+
+        /// <summary>
         /// Gets a connection.
         /// </summary>
         /// <param name="timeout">The timeout.</param>

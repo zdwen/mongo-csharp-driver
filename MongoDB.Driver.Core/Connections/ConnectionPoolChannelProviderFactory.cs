@@ -48,14 +48,15 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Creates a channel provider for the specified address.
         /// </summary>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A channel provider.</returns>
-        public IChannelProvider Create(DnsEndPoint dnsEndPoint)
+        public IChannelProvider Create(ServerId serverId, DnsEndPoint dnsEndPoint)
         {
-            Ensure.IsNotNull("address", dnsEndPoint);
+            Ensure.IsNotNull("serverId", serverId);
+            Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
-            var connectionPool = _connectionPoolFactory.Create(dnsEndPoint);
-            return new ConnectionPoolChannelProvider(dnsEndPoint, connectionPool, _events);
+            return new ConnectionPoolChannelProvider(serverId, dnsEndPoint, _connectionPoolFactory, _events);
         }
     }
 }

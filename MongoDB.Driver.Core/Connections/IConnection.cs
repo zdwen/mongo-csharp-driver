@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the identifier.
         /// </summary>
-        string Id { get; }
+        ConnectionId Id { get; }
 
         /// <summary>
         /// Gets a value indicating whether this transport is open.

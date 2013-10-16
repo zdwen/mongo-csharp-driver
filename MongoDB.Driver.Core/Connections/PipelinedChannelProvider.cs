@@ -27,12 +27,14 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IConnectionFactory _connectionFactory;
         private readonly DnsEndPoint _dnsEndPoint;
         private readonly Holder[] _holders;
+        private readonly ServerId _serverId;
 
         // constructors
-        public PipelinedChannelProvider(DnsEndPoint dnsEndPoint, IConnectionFactory connectionFactory, int numberOfConcurrentConnections)
+        public PipelinedChannelProvider(ServerId serverId, DnsEndPoint dnsEndPoint, IConnectionFactory connectionFactory, int numberOfConcurrentConnections)
         {
             _dnsEndPoint = dnsEndPoint;
             _connectionFactory = connectionFactory;
+            _serverId = serverId;
 
             _holders = new Holder[numberOfConcurrentConnections];
         }
@@ -41,6 +43,14 @@ namespace MongoDB.Driver.Core.Connections
         public override DnsEndPoint DnsEndPoint
         {
             get { return _dnsEndPoint; }
+        }
+
+        /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        public override ServerId ServerId
+        {
+            get { return _serverId; }
         }
 
         // public methods
@@ -86,7 +96,7 @@ namespace MongoDB.Driver.Core.Connections
             {
                 if (holder.Connection == null || !holder.Connection.IsOpen)
                 {
-                    holder.Connection = _connectionFactory.Create(_dnsEndPoint);
+                    holder.Connection = _connectionFactory.Create(_serverId, _dnsEndPoint);
                     holder.Connection.Open();
                 }
                 

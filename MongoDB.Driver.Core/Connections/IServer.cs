@@ -31,7 +31,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the identifier.
         /// </summary>
-        string Id { get; }
+        ServerId Id { get; }
 
         /// <summary>
         /// Gets a channel.

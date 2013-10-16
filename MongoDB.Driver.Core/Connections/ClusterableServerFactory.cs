@@ -26,9 +26,10 @@ namespace MongoDB.Driver.Core.Connections
     internal sealed class ClusterableServerFactory : IClusterableServerFactory
     {
         // private fields
-        private readonly ClusterableServerSettings _settings;
         private readonly IConnectionFactory _connectionFactory;
         private readonly IChannelProviderFactory _channelProviderFactory;
+        private readonly IEventPublisher _events;
+        private readonly ClusterableServerSettings _settings;
 
         // constructors
         /// <summary>
@@ -37,29 +38,33 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="settings">The settings.</param>
         /// <param name="channelProviderFactory">The channel provider factory.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        public ClusterableServerFactory(ClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory)
+        /// <param name="events">The events.</param>
+        public ClusterableServerFactory(ClusterableServerSettings settings, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IEventPublisher events)
         {
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("connectionPoolFactory", channelProviderFactory);
             Ensure.IsNotNull("connectionFactory", connectionFactory);
+            Ensure.IsNotNull("events", events);
 
             _settings = settings;
             _channelProviderFactory = channelProviderFactory;
             _connectionFactory = connectionFactory;
+            _events = events;
         }
 
         // public methods
         /// <summary>
         /// Creates a server for the specified DNS end point.
         /// </summary>
+        /// <param name="clusterId">The cluster identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A server.</returns>
-        public IClusterableServer Create(DnsEndPoint dnsEndPoint)
+        public IClusterableServer Create(ClusterId clusterId,DnsEndPoint dnsEndPoint)
         {
+            Ensure.IsNotNull("clusterId", clusterId);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
-            var channelProvider = _channelProviderFactory.Create(dnsEndPoint);
-            return new ClusterableServer(_settings, dnsEndPoint, channelProvider, _connectionFactory);
+            return new ClusterableServer(clusterId, _settings, dnsEndPoint, _channelProviderFactory, _connectionFactory, _events);
         }
     }
 }

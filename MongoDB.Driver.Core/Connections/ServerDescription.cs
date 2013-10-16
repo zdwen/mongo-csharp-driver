@@ -27,9 +27,10 @@ namespace MongoDB.Driver.Core.Connections
     public sealed class ServerDescription
     {
         // private fields
-        private readonly DnsEndPoint _dnsEndPoint;
         private readonly TimeSpan _averagePingTime;
         private readonly ServerBuildInfo _buildInfo;
+        private readonly DnsEndPoint _dnsEndPoint;
+        private readonly ServerId _id;
         private readonly int _maxDocumentSize;
         private readonly int _maxMessageSize;
         private readonly ReplicaSetInfo _replicaSetInfo;
@@ -40,15 +41,17 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes a new instance of the <see cref="ServerDescription" /> class.
         /// </summary>
-        /// <param name="dnsEndPoint">The DNS end point.</param>
+        /// <param name="id">The identifier.</param>
         /// <param name="averagePingTime">The average ping time.</param>
         /// <param name="buildInfo">The build info.</param>
+        /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="maxDocumentSize">The maximum document size.</param>
         /// <param name="maxMessageSize">The maximum message size.</param>
         /// <param name="replicaSetInfo">The replica set info.</param>
         /// <param name="status">The status.</param>
         /// <param name="type">The type.</param>
         public ServerDescription(
+            ServerId id, 
             TimeSpan averagePingTime,
             ServerBuildInfo buildInfo,
             DnsEndPoint dnsEndPoint,
@@ -58,8 +61,10 @@ namespace MongoDB.Driver.Core.Connections
             ServerStatus status,
             ServerType type)
         {
+            Ensure.IsNotNull("id", id);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
 
+            _id = id;
             _averagePingTime = averagePingTime;
             _buildInfo = buildInfo;
             _dnsEndPoint = dnsEndPoint;
@@ -93,6 +98,14 @@ namespace MongoDB.Driver.Core.Connections
         public DnsEndPoint DnsEndPoint
         {
             get { return _dnsEndPoint; }
+        }
+
+        /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        public ServerId Id
+        {
+            get { return _id; }
         }
 
         /// <summary>
@@ -145,7 +158,7 @@ namespace MongoDB.Driver.Core.Connections
         public override string ToString()
         {
             var builder = new StringBuilder();
-            builder.AppendFormat("{{ EndPoint: '{0}', Server: '{1}', Type: '{2}', Status: '{3}', PingTime: '{4}'", _dnsEndPoint, _buildInfo, _type, _status, _averagePingTime);
+            builder.AppendFormat("{{ ClusterId: '{0}', EndPoint: '{1}', Server: '{2}', Type: '{3}', Status: '{4}', PingTime: '{5}'", _id.ClusterId.Value, _dnsEndPoint, _buildInfo, _type, _status, _averagePingTime);
             if (_replicaSetInfo != null)
             {
                 builder.AppendFormat(", ReplicaSetInfo: {0}", _replicaSetInfo);

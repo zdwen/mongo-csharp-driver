@@ -13,14 +13,14 @@ namespace MongoDB.Driver.Core.Mocks
     {
         private readonly ServerDescription _connectingDescription;
         private readonly DnsEndPoint _dnsEndPoint;
-        private readonly string _id;
+        private readonly ServerId _id;
 
         private ServerDescription _currentDescription;
 
-        public MockServer(DnsEndPoint dnsEndPoint)
+        public MockServer(ClusterId clusterId, DnsEndPoint dnsEndPoint)
         {
             _dnsEndPoint = dnsEndPoint;
-            _id = IdGenerator<IServer>.GetNextId().ToString();
+            _id = new ServerId(clusterId, dnsEndPoint);
             _connectingDescription = ServerDescriptionBuilder.Build(x =>
             {
                 x.DnsEndPoint(dnsEndPoint);
@@ -44,7 +44,7 @@ namespace MongoDB.Driver.Core.Mocks
             get { return _dnsEndPoint; }
         }
 
-        public override string Id
+        public override ServerId Id
         {
             get { return _id; }
         }

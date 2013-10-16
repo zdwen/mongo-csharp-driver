@@ -42,11 +42,12 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Creates a channel provider for the specified address.
         /// </summary>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A channel provider.</returns>
-        public IChannelProvider Create(DnsEndPoint dnsEndPoint)
+        public IChannelProvider Create(ServerId serverId, DnsEndPoint dnsEndPoint)
         {
-            return new PipelinedChannelProvider(dnsEndPoint, _connectionFactory, _numberOfConcurrentConnections);
+            return new PipelinedChannelProvider(serverId, dnsEndPoint, _connectionFactory, _numberOfConcurrentConnections);
         }
     }
 }

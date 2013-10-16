@@ -11,6 +11,7 @@ namespace MongoDB.Driver.Core.Connections
         private TimeSpan _averagePingTime;
         private ServerBuildInfo _buildInfo;
         private DnsEndPoint _dnsEndPoint;
+        private ServerId _id;
         private int _maxDocumentSize;
         private int _maxMessageSize;
         private ReplicaSetInfo _replicaSetInfo;
@@ -46,6 +47,7 @@ namespace MongoDB.Driver.Core.Connections
         private ServerDescriptionBuilder()
         {
             _dnsEndPoint = new DnsEndPoint("localhost", 27017);
+            _id = new ServerId(new ClusterId(), _dnsEndPoint);
             _averagePingTime = TimeSpan.FromMilliseconds(10);
             _buildInfo = new ServerBuildInfo(64, "blah", "blah", "1.0.0");
             _maxDocumentSize = 1024 * 4;
@@ -58,6 +60,7 @@ namespace MongoDB.Driver.Core.Connections
         private ServerDescriptionBuilder(ServerDescription current)
         {
             _dnsEndPoint = current.DnsEndPoint;
+            _id = current.Id;
             _averagePingTime = current.AveragePingTime;
             _buildInfo = current.BuildInfo;
             _maxDocumentSize = current.MaxDocumentSize;
@@ -110,6 +113,7 @@ namespace MongoDB.Driver.Core.Connections
         private ServerDescription Build()
         {
             return new ServerDescription(
+                _id,
                 _averagePingTime,
                 _buildInfo,
                 _dnsEndPoint,

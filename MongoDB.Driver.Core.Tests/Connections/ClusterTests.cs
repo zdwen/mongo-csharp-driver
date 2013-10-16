@@ -22,7 +22,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             var server = Substitute.For<IClusterableServer>();
             var serverFactory = Substitute.For<IClusterableServerFactory>();
-            serverFactory.Create(null).ReturnsForAnyArgs(server);
+            serverFactory.Create(null, null).ReturnsForAnyArgs(server);
 
             _subject = new TestCluster(serverFactory);
         }
@@ -109,6 +109,7 @@ namespace MongoDB.Driver.Core.Connections
             public void SetDescription(ClusterType type, ServerDescription description)
             {
                 UpdateDescription(new ClusterDescription(
+                    Id, 
                     type,
                     new [] { description }));
             }

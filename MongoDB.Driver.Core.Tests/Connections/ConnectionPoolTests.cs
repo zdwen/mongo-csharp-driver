@@ -36,7 +36,8 @@ namespace MongoDB.Driver.Core.Connections
             _connectionFactory = Substitute.For<IConnectionFactory>();
 
             var dnsEndPoint = new DnsEndPoint("localhost", 27017);
-            _subject = new ConnectionPool(_connectionPoolSettings, dnsEndPoint, _connectionFactory, new EventPublisher());
+            var serverId = new ServerId(new ClusterId(), dnsEndPoint);
+            _subject = new ConnectionPool(serverId, _connectionPoolSettings, dnsEndPoint, _connectionFactory, new NoOpEventPublisher());
         }
 
         [Test]
@@ -81,7 +82,7 @@ namespace MongoDB.Driver.Core.Connections
             _subject.GetConnection(TimeSpan.FromMilliseconds(Timeout.Infinite), CancellationToken.None);
 
             // we should have gotten more calls to the connection factory...
-            _connectionFactory.ReceivedWithAnyArgs(_connectionPoolSettings.MinSize + 1).Create(null);
+            _connectionFactory.ReceivedWithAnyArgs(_connectionPoolSettings.MinSize + 1).Create(null, null);
         }
 
         [Test]
@@ -103,7 +104,7 @@ namespace MongoDB.Driver.Core.Connections
         private void InitializeAndWaitForMinPoolSize()
         {
             int count = 0;
-            _connectionFactory.Create(null).ReturnsForAnyArgs(c =>
+            _connectionFactory.Create(null, null).ReturnsForAnyArgs(c =>
             {
                 count++;
                 var conn = Substitute.For<IConnection>();

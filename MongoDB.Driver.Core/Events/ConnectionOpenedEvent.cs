@@ -24,34 +24,23 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionOpenedEvent
     {
         // private fields
-        private readonly DnsEndPoint _address;
-        private readonly string _connectionId;
+        private readonly ConnectionId _connectionId;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionOpenedEvent" /> class.
         /// </summary>
         /// <param name="connectionId">The connection identifier.</param>
-        /// <param name="address">The address.</param>
-        public ConnectionOpenedEvent(string connectionId, DnsEndPoint address)
+        public ConnectionOpenedEvent(ConnectionId connectionId)
         {
             _connectionId = connectionId;
-            _address = address;
         }
 
         // public properties
         /// <summary>
-        /// Gets the address.
-        /// </summary>
-        public DnsEndPoint Address
-        {
-            get { return _address; }
-        }
-
-        /// <summary>
         /// Gets the connection identifier.
         /// </summary>
-        public string ConnectionId
+        public ConnectionId ConnectionId
         {
             get { return _connectionId; }
         }

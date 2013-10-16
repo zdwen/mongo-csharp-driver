@@ -23,6 +23,7 @@ namespace MongoDB.Driver.Core.Connections
         private DnsEndPoint _dnsEndPoint;
         private MockConnectionFactory _connectionFactory;
         private MockChannelProvider _channelProvider;
+        private IChannelProviderFactory _channelProviderFactory;
         private ClusterableServerSettings _serverSettings;
 
         [SetUp]
@@ -35,9 +36,11 @@ namespace MongoDB.Driver.Core.Connections
                 maxMessageSizeDefault: 1024 * 8);
 
             _dnsEndPoint = new DnsEndPoint("localhost", 27017);
-
+            var serverId = new ServerId(new ClusterId(), _dnsEndPoint);
             _connectionFactory = new MockConnectionFactory();
-            _channelProvider = new MockChannelProvider(_dnsEndPoint, _connectionFactory);
+            _channelProvider = new MockChannelProvider(serverId, _dnsEndPoint, _connectionFactory);
+            _channelProviderFactory = Substitute.For<IChannelProviderFactory>();
+            _channelProviderFactory.Create(null, null).ReturnsForAnyArgs(_channelProvider);
         }
 
         [Test]
@@ -168,7 +171,7 @@ namespace MongoDB.Driver.Core.Connections
 
         private ClusterableServer CreateSubject()
         {
-            return new ClusterableServer(_serverSettings, _dnsEndPoint, _channelProvider, _connectionFactory);
+            return new ClusterableServer(new ClusterId(), _serverSettings, _dnsEndPoint, _channelProviderFactory, _connectionFactory, new NoOpEventPublisher());
         }
 
         private void SetupLookupDescriptionResults()

@@ -30,6 +30,11 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         public abstract DnsEndPoint DnsEndPoint { get; }
 
+        /// <summary>
+        /// Gets the identifier.
+        /// </summary>
+        public abstract ServerId ServerId { get; }
+
         //public methods
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

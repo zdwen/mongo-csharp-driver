@@ -100,7 +100,6 @@ namespace MongoDB.Driver.Core.Connections
                 {
                     foreach (var entry in _servers)
                     {
-                        _events.Publish(new ServerAddedToClusterEvent(Id, entry.Value.Server.Id));
                         entry.Value.Server.DescriptionChanged += ServerDescriptionChanged;
                         entry.Value.Server.Initialize();
                     }
@@ -124,7 +123,6 @@ namespace MongoDB.Driver.Core.Connections
                     {
                         entry.Server.DescriptionChanged -= ServerDescriptionChanged;
                         entry.Server.Dispose();
-                        _events.Publish(new ServerRemovedFromClusterEvent(Id, entry.Server.Id));
                     }
 
                     _servers.Clear();
@@ -164,7 +162,6 @@ namespace MongoDB.Driver.Core.Connections
 
                 if (_servers.TryAdd(host, new ServerDescriptionPair(server)))
                 {
-                    _events.Publish(new ServerAddedToClusterEvent(Id, server.Id));
                     __trace.TraceInformation("{0}: added {1}.", this, server);
                     server.DescriptionChanged += ServerDescriptionChanged;
                     server.Initialize();
@@ -272,7 +269,7 @@ namespace MongoDB.Driver.Core.Connections
                 .Select(x => x.Value.CachedDescription)
                 .ToList();
 
-            var newDescription = new ClusterDescription(_clusterType, serverDescriptions);
+            var newDescription = new ClusterDescription(Id, _clusterType, serverDescriptions);
             UpdateDescription(newDescription);
         }
 
@@ -284,7 +281,6 @@ namespace MongoDB.Driver.Core.Connections
                 __trace.TraceInformation("{0}: removed {1}.", this, entry.Server);
                 entry.Server.DescriptionChanged -= ServerDescriptionChanged;
                 entry.Server.Dispose();
-                _events.Publish(new ServerRemovedFromClusterEvent(Id, entry.Server.Id));
             }
         }
 
@@ -338,7 +334,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             if (_state.Current == State.Uninitialized)
             {
-                throw new InvalidOperationException(string.Format("{0} must be initialized.", GetType().Name));
+                throw new InvalidOperationException(string.Format("{0}: {1} must be initialized.", this, GetType().Name));
             }
         }
 

@@ -24,14 +24,14 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionClosedEvent
     {
         // private fields
-        private readonly string _connectionId;
+        private readonly ConnectionId _connectionId;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionClosedEvent" /> class.
         /// </summary>
         /// <param name="connectionId">The connection identifier.</param>
-        public ConnectionClosedEvent(string connectionId)
+        public ConnectionClosedEvent(ConnectionId connectionId)
         {
             _connectionId = connectionId;
         }
@@ -40,7 +40,7 @@ namespace MongoDB.Driver.Core.Events
         /// <summary>
         /// Gets the connection identifier.
         /// </summary>
-        public string ConnectionId
+        public ConnectionId ConnectionId
         {
             get { return _connectionId; }
         }

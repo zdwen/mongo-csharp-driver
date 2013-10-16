@@ -33,25 +33,30 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IConnectionPool _connectionPool;
         private readonly DnsEndPoint _dnsEndPoint;
         private readonly IEventPublisher _events;
+        private readonly ServerId _serverId;
         private readonly StateHelper _state;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionPoolChannelProvider" /> class.
         /// </summary>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
-        /// <param name="connectionPool">The connection factory.</param>
+        /// <param name="connectionPoolFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
-        public ConnectionPoolChannelProvider(DnsEndPoint dnsEndPoint, IConnectionPool connectionPool, IEventPublisher events)
+        public ConnectionPoolChannelProvider(ServerId serverId, DnsEndPoint dnsEndPoint, IConnectionPoolFactory connectionPoolFactory, IEventPublisher events)
         {
+            Ensure.IsNotNull("serverId", serverId);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
-            Ensure.IsNotNull("connectionFactory", connectionPool);
+            Ensure.IsNotNull("connectionPoolFactory", connectionPoolFactory);
             Ensure.IsNotNull("events", events);
 
-            _connectionPool = connectionPool;
             _dnsEndPoint = dnsEndPoint;
             _events = events;
+            _serverId = serverId;
             _state = new StateHelper(State.Unitialized);
+
+            _connectionPool = connectionPoolFactory.Create(_serverId, _dnsEndPoint);
         }
 
         // public properties
@@ -61,6 +66,14 @@ namespace MongoDB.Driver.Core.Connections
         public override DnsEndPoint DnsEndPoint
         {
             get { return _dnsEndPoint; }
+        }
+
+        /// <summary>
+        /// Gets the server identifier.
+        /// </summary>
+        public override ServerId ServerId
+        {
+            get { return _serverId; }
         }
 
         // public methods

@@ -38,9 +38,9 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IConnectionFactory _connectionFactory;
         private readonly DnsEndPoint _dnsEndPoint;
         private readonly IEventPublisher _events;
-        private readonly string _id;
         private readonly ConcurrentQueue<PooledConnection> _pool;
         private readonly SemaphoreSlim _poolQueue;
+        private readonly ServerId _serverId;
         private readonly ConnectionPoolSettings _settings;
         private readonly StateHelper _state;
         private readonly string _toStringDescription;
@@ -52,12 +52,14 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionPool" /> class.
         /// </summary>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="settings">The settings.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="events">The events.</param>
-        public ConnectionPool(ConnectionPoolSettings settings, DnsEndPoint dnsEndPoint, IConnectionFactory connectionFactory, IEventPublisher events)
+        public ConnectionPool(ServerId serverId, ConnectionPoolSettings settings, DnsEndPoint dnsEndPoint, IConnectionFactory connectionFactory, IEventPublisher events)
         {
+            Ensure.IsNotNull("serverIds", serverId);
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
             Ensure.IsNotNull("connectionFactory", connectionFactory);
@@ -66,9 +68,9 @@ namespace MongoDB.Driver.Core.Connections
             _connectionFactory = connectionFactory;
             _dnsEndPoint = dnsEndPoint;
             _events = events;
-            _id = IdGenerator<IConnectionPool>.GetNextId().ToString();
+            _serverId = serverId;
             _settings = settings;
-            _toStringDescription = string.Format("pool#{0}-{1}", _id, dnsEndPoint);
+            _toStringDescription = _serverId.ToString();
             _state = new StateHelper(State.Unitialized);
 
             _pool = new ConcurrentQueue<PooledConnection>();
@@ -85,6 +87,14 @@ namespace MongoDB.Driver.Core.Connections
         public override DnsEndPoint DnsEndPoint
         {
             get { return _dnsEndPoint; }
+        }
+
+        /// <summary>
+        /// Gets the server identifier.
+        /// </summary>
+        public override ServerId ServerId
+        {
+            get { return _serverId; }
         }
 
         // private properties
@@ -115,7 +125,7 @@ namespace MongoDB.Driver.Core.Connections
                     __trace.TraceWarning("{0}: wait queue size of {1} exceeded.", _toStringDescription, _settings.MaxWaitQueueSize);
                     throw new MongoDriverException("Too many threads are already waiting for a connection.");
                 }
-                _events.Publish(new ConnectionPoolWaitQueueEnteredEvent(_id));
+                _events.Publish(new ConnectionPoolWaitQueueEnteredEvent(_serverId));
 
                 enteredPool = _poolQueue.Wait(timeout, cancellationToken);
                 if (enteredPool)
@@ -127,12 +137,12 @@ namespace MongoDB.Driver.Core.Connections
                         if (IsConnectionExpired(connection, out expirationReason))
                         {
                             __trace.TraceInformation("{0}: removed {1} because {2}.", _toStringDescription, connection, expirationReason);
-                            _events.Publish(new ConnectionRemovedFromPoolEvent(_id, connection.Id));
+                            _events.Publish(new ConnectionRemovedFromPoolEvent(connection.Id));
                             connection.Dispose();
 
                             connection = OpenNewConnection();
                             __trace.TraceInformation("{0}: added {1}.", _toStringDescription, connection);
-                            _events.Publish(new ConnectionAddedToPoolEvent(_id, connection.Id));
+                            _events.Publish(new ConnectionAddedToPoolEvent(connection.Id));
                         }
                     }
                     else
@@ -140,10 +150,10 @@ namespace MongoDB.Driver.Core.Connections
                         connection = OpenNewConnection();
                         __trace.TraceInformation("{0}: added {1}.", _toStringDescription, connection);
                         __trace.TraceInformation("{0}: pool size is {1}", _toStringDescription, CurrentSize);
-                        _events.Publish(new ConnectionAddedToPoolEvent(_id, connection.Id));
+                        _events.Publish(new ConnectionAddedToPoolEvent(connection.Id));
                     }
 
-                    _events.Publish(new ConnectionCheckedOutOfPoolEvent(_id, connection.Id));
+                    _events.Publish(new ConnectionCheckedOutOfPoolEvent(connection.Id));
                     __trace.TraceVerbose("{0}: checking out {1}.", _toStringDescription, connection);
                     return new AcquiredConnection(connection, this);
                 }
@@ -169,7 +179,7 @@ namespace MongoDB.Driver.Core.Connections
             finally
             {
                 Interlocked.Decrement(ref _waitQueueSize);
-                _events.Publish(new ConnectionPoolWaitQueueExitedEvent(_id));
+                _events.Publish(new ConnectionPoolWaitQueueExitedEvent(_serverId));
             }
         }
 
@@ -180,7 +190,7 @@ namespace MongoDB.Driver.Core.Connections
             {
                 __trace.TraceInformation("{0}: initialized.", _toStringDescription);
                 _sizeMaintenanceTimer.Change(TimeSpan.Zero, _settings.SizeMaintenanceFrequency);
-                _events.Publish(new ConnectionPoolOpenedEvent(_id, _dnsEndPoint, _settings));
+                _events.Publish(new ConnectionPoolOpenedEvent(_serverId, _settings));
             }
         }
 
@@ -202,7 +212,7 @@ namespace MongoDB.Driver.Core.Connections
                 // TODO: go through and dispose of all connections in the pool
                 _sizeMaintenanceTimer.Dispose();
                 _poolQueue.Dispose();
-                _events.Publish(new ConnectionPoolClosedEvent(_id));
+                _events.Publish(new ConnectionPoolClosedEvent(_serverId));
                 __trace.TraceInformation("{0}: closed.", _toStringDescription);
             }
         }
@@ -234,7 +244,7 @@ namespace MongoDB.Driver.Core.Connections
                     var connection = OpenNewConnection();
                     __trace.TraceInformation("{0}: added {1}.", _toStringDescription, connection);
                     __trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
-                    _events.Publish(new ConnectionAddedToPoolEvent(_id, connection.Id));
+                    _events.Publish(new ConnectionAddedToPoolEvent(connection.Id));
                     _pool.Enqueue(connection);
                 }
                 finally
@@ -351,7 +361,7 @@ namespace MongoDB.Driver.Core.Connections
                 LastUsedAtUtc = DateTime.UtcNow,
                 OpenedAtUtc = DateTime.UtcNow
             };
-            var connection = _connectionFactory.Create(_dnsEndPoint);
+            var connection = _connectionFactory.Create(_serverId, _dnsEndPoint);
             connection.Open();
             return new PooledConnection(connection, this, info);
         }
@@ -381,7 +391,7 @@ namespace MongoDB.Driver.Core.Connections
                         connection.Dispose();
                         __trace.TraceInformation("{0}: removed {1} because {2}.", _toStringDescription, connection, expirationReason);
                         __trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
-                        _events.Publish(new ConnectionRemovedFromPoolEvent(_id, connection.Id));
+                        _events.Publish(new ConnectionRemovedFromPoolEvent(connection.Id));
                         break; // only going to kill off one connection per-round
                     }
                     else
@@ -420,7 +430,7 @@ namespace MongoDB.Driver.Core.Connections
                 return;
             }
 
-            _events.Publish(new ConnectionCheckedInToPoolEvent(_id, connection.Id));
+            _events.Publish(new ConnectionCheckedInToPoolEvent(connection.Id));
             string expirationReason;
             if (IsConnectionExpired(connection, out expirationReason))
             {
@@ -428,7 +438,7 @@ namespace MongoDB.Driver.Core.Connections
                 connection.Dispose();
                 __trace.TraceInformation("{0}: removed {1} because {2}.", _toStringDescription, connection, expirationReason);
                 __trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, _settings.MaxSize - _poolQueue.CurrentCount);
-                _events.Publish(new ConnectionRemovedFromPoolEvent(_id, connection.Id));
+                _events.Publish(new ConnectionRemovedFromPoolEvent(connection.Id));
             }
             else
             {
@@ -489,7 +499,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            public override string Id
+            public override ConnectionId Id
             {
                 get { return _wrapped.Id; }
             }
@@ -571,7 +581,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            public override string Id
+            public override ConnectionId Id
             {
                 get { return _wrapped.Id; }
             }

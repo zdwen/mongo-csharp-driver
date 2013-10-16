@@ -25,8 +25,9 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Creates a connection pool for the specified address.
         /// </summary>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A connection pool.</returns>
-        IConnectionPool Create(DnsEndPoint dnsEndPoint);
+        IConnectionPool Create(ServerId serverId, DnsEndPoint dnsEndPoint);
     }
 }

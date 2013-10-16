@@ -32,10 +32,9 @@ namespace MongoDB.Driver.Core.Connections
         private static readonly TraceSource __trace = MongoTraceSources.Connections;
 
         // private fields
-        private readonly string _id;
+        private readonly ClusterId _id;
         private readonly IClusterableServerFactory _serverFactory;
         private readonly StateHelper _state;
-        private readonly string _toStringDescription;
         private ManualResetEventSlim _selectServerEvent;
         private volatile ClusterDescription _description;
 
@@ -48,11 +47,10 @@ namespace MongoDB.Driver.Core.Connections
         {
             Ensure.IsNotNull("serverFactory", serverFactory);
 
-            _id = IdGenerator<ICluster>.GetNextId().ToString();
+            _id = new ClusterId();
             _serverFactory = serverFactory;
             _state = new StateHelper(State.Uninitialized);
             _selectServerEvent = new ManualResetEventSlim();
-            _toStringDescription = string.Format("cluster#{0}", _id);
         }
 
         // public properties
@@ -67,7 +65,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the identifier.
         /// </summary>
-        public override string Id
+        public override ClusterId Id
         {
             get { return _id; }
         }
@@ -145,7 +143,7 @@ namespace MongoDB.Driver.Core.Connections
         /// </returns>
         public sealed override string ToString()
         {
-            return _toStringDescription;
+            return _id.ToString();
         }
 
         // protected methods
@@ -156,7 +154,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A clusterable server.</returns>
         protected IClusterableServer CreateServer(DnsEndPoint dnsEndPoint)
         {
-            return _serverFactory.Create(dnsEndPoint);
+            return _serverFactory.Create(Id, dnsEndPoint);
         }
 
         /// <summary>
@@ -185,7 +183,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="description">The description.</param>
         protected void UpdateDescription(ClusterDescription description)
         {
-            __trace.TraceInformation("{0}: description updated: {1}", _toStringDescription, description);
+            __trace.TraceInformation("{0}: description updated: {1}", this, description);
             _description = description;
             var old = Interlocked.Exchange(ref _selectServerEvent, new ManualResetEventSlim());
             old.Set();
@@ -204,7 +202,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             if (_state.Current == State.Uninitialized)
             {
-                throw new InvalidOperationException(string.Format("{0} is unitialized.", GetType().Name));
+                throw new InvalidOperationException(string.Format("{0}: {1} is unitialized.", this, GetType().Name));
             }
         }
 

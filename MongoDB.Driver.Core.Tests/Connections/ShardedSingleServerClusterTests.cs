@@ -21,9 +21,9 @@ namespace MongoDB.Driver.Core.Connections
         [SetUp]
         public void Setup()
         {
-            _server = new MockServer(new DnsEndPoint("localhost", 27017));
+            _server = new MockServer(new ClusterId(), new DnsEndPoint("localhost", 27017));
             var serverFactory = Substitute.For<IClusterableServerFactory>();
-            serverFactory.Create(null).ReturnsForAnyArgs(_server);
+            serverFactory.Create(null, null).ReturnsForAnyArgs(_server);
 
             _subject = new SingleServerCluster(new ClusterSettings(ClusterType.Sharded, new[] { _server.DnsEndPoint }, null), serverFactory, new NoOpEventPublisher());
             _subject.Initialize();

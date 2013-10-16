@@ -23,18 +23,15 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionCheckedInToPoolEvent
     {
         // private fields
-        private readonly string _connectionId;
-        private readonly string _connectionPoolId;
+        private readonly ConnectionId _connectionId;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionCheckedInToPoolEvent" /> class.
         /// </summary>
-        /// <param name="connectionPoolId">The connection pool identifier.</param>
         /// <param name="connectionId">The connection identifier.</param>
-        public ConnectionCheckedInToPoolEvent(string connectionPoolId, string connectionId)
+        public ConnectionCheckedInToPoolEvent(ConnectionId connectionId)
         {
-            _connectionPoolId = connectionPoolId;
             _connectionId = connectionId;
         }
 
@@ -42,17 +39,9 @@ namespace MongoDB.Driver.Core.Events
         /// <summary>
         /// Gets the connection identifier.
         /// </summary>
-        public string ConnectionId
+        public ConnectionId ConnectionId
         {
             get { return _connectionId; }
-        }
-
-        /// <summary>
-        /// Gets the connection pool identifier.
-        /// </summary>
-        public string ConnectionPoolId
-        {
-            get { return _connectionPoolId; }
         }
     }
 }

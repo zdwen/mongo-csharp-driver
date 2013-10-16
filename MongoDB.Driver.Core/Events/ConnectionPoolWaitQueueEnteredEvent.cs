@@ -23,24 +23,24 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionPoolWaitQueueEnteredEvent
     {
         // private fields
-        private readonly string _connectionPoolId;
+        private readonly ServerId _serverId;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionPoolWaitQueueEnteredEvent" /> class.
         /// </summary>
-        /// <param name="connectionPoolId">The connection pool identifier.</param>
-        public ConnectionPoolWaitQueueEnteredEvent(string connectionPoolId)
+        /// <param name="serverId">The server identifier.</param>
+        public ConnectionPoolWaitQueueEnteredEvent(ServerId serverId)
         {
-            _connectionPoolId = connectionPoolId;
+            _serverId = serverId;
         }
 
         /// <summary>
-        /// Gets the connection pool identifier.
+        /// Gets the server identifier.
         /// </summary>
-        public string ConnectionPoolId
+        public ServerId ServerId
         {
-            get { return _connectionPoolId; }
+            get { return _serverId; }
         }
     }
 }

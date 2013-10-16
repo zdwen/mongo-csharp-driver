@@ -43,10 +43,9 @@ namespace MongoDB.Driver.Core.Connections
         private readonly StreamConnectionSettings _settings;
         private readonly IStreamFactory _streamFactory;
         private bool _disposed;
-        private string _id;
+        private ConnectionId _id;
         private State _state;
         private Stream _stream;
-        private string _toStringDescription;
         private bool _disposeOnException;
 
         // constructors
@@ -65,12 +64,14 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamConnection" /> class.
         /// </summary>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="settings">The settings.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <param name="streamFactory">The stream factory.</param>
         /// <param name="events">The events.</param>
-        public StreamConnection(StreamConnectionSettings settings, DnsEndPoint dnsEndPoint, IStreamFactory streamFactory, IEventPublisher events)
+        public StreamConnection(ServerId serverId, StreamConnectionSettings settings, DnsEndPoint dnsEndPoint, IStreamFactory streamFactory, IEventPublisher events)
         {
+            Ensure.IsNotNull("serverId", serverId);
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
             Ensure.IsNotNull("streamFactory", streamFactory);
@@ -82,7 +83,7 @@ namespace MongoDB.Driver.Core.Connections
             _settings = settings;
             _streamFactory = streamFactory;
             _state = State.Initial;
-            _toStringDescription = string.Format("conn#(not open)-{0}", dnsEndPoint);
+            _id = new ConnectionId(serverId);
         }
 
         // public properties
@@ -101,7 +102,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the identifier.
         /// </summary>
-        public override string Id
+        public override ConnectionId Id
         {
             get { return _id; }
         }
@@ -127,8 +128,8 @@ namespace MongoDB.Driver.Core.Connections
                 {
                     _stream = _streamFactory.Create(_dnsEndPoint);
                     _state = State.Open;
-                    _toStringDescription = GetStringDescription();
-                    _events.Publish(new ConnectionOpenedEvent(_id, _dnsEndPoint));
+                    DiscoverServerConnectionId();
+                    _events.Publish(new ConnectionOpenedEvent(_id));
                     _disposeOnException = true;
                 }
                 catch (SocketException ex)
@@ -168,7 +169,7 @@ namespace MongoDB.Driver.Core.Connections
             try
             {
                 var reply = ReplyMessage.ReadFrom(_stream);
-                __trace.TraceVerbose("{0}: received message#{1} with {2} bytes.", _toStringDescription, reply.ResponseTo, reply.Length);
+                __trace.TraceVerbose("{0}: received message#{1} with {2} bytes.", this, reply.ResponseTo, reply.Length);
                 _events.Publish(new ConnectionMessageReceivedEvent(_id, reply.ResponseTo, reply.Length));
 
                 return reply;
@@ -177,20 +178,20 @@ namespace MongoDB.Driver.Core.Connections
             {
                 if (ex.SocketErrorCode == SocketError.TimedOut)
                 {
-                    __trace.TraceWarning(ex, "{0}: timed out receiving message. Timeout = {1} milliseconds", _toStringDescription, _stream.ReadTimeout);
+                    __trace.TraceWarning(ex, "{0}: timed out receiving message. Timeout = {1} milliseconds", this, _stream.ReadTimeout);
                     HandleException(ex);
                     throw new MongoSocketReadTimeoutException(string.Format("Timed out receiving message. Timeout = {0} milliseconds", _stream.ReadTimeout), ex);
                 }
                 else
                 {
-                    __trace.TraceWarning(ex, "{0}: error receiving message.", _toStringDescription);
+                    __trace.TraceWarning(ex, "{0}: error receiving message.", this);
                     HandleException(ex);
                     throw new MongoSocketException("Error receiving message", ex);
                 }
             }
             catch (Exception ex)
             {
-                __trace.TraceWarning(ex, "{0}: error receiving message.", _toStringDescription);
+                __trace.TraceWarning(ex, "{0}: error receiving message.", this);
                 HandleException(ex);
                 if (ex is MongoDriverException)
                 {
@@ -216,27 +217,27 @@ namespace MongoDB.Driver.Core.Connections
             try
             {
                 packet.WriteTo(_stream);
-                __trace.TraceVerbose("{0}: sent message#{1} with {2} bytes.", _toStringDescription, packet.LastRequestId, packet.Length);
+                __trace.TraceVerbose("{0}: sent message#{1} with {2} bytes.", this, packet.LastRequestId, packet.Length);
                 _events.Publish(new ConnectionPacketSendingEvent(_id, packet.LastRequestId, packet.Length));
             }
             catch (SocketException ex)
             {
                 if (ex.SocketErrorCode == SocketError.TimedOut)
                 {
-                    __trace.TraceWarning(ex, "{0}: timed out sending message#{1}. Timeout = {2} milliseconds", _toStringDescription, packet.LastRequestId, _stream.ReadTimeout);
+                    __trace.TraceWarning(ex, "{0}: timed out sending message#{1}. Timeout = {2} milliseconds", this, packet.LastRequestId, _stream.ReadTimeout);
                     HandleException(ex);
                     throw new MongoSocketWriteTimeoutException(string.Format("Timed out sending message#{0}. Timeout = {1} milliseconds", packet.LastRequestId, _stream.ReadTimeout), ex);
                 }
                 else
                 {
-                    __trace.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, packet.LastRequestId);
+                    __trace.TraceWarning(ex, "{0}: error sending message#{1}.", this, packet.LastRequestId);
                     HandleException(ex);
                     throw new MongoSocketException(string.Format("Error sending message #{0}", packet.LastRequestId), ex);
                 }
             }
             catch (Exception ex)
             {
-                __trace.TraceWarning(ex, "{0}: error sending message#{1}.", _toStringDescription, packet.LastRequestId);
+                __trace.TraceWarning(ex, "{0}: error sending message#{1}.", this, packet.LastRequestId);
                 HandleException(ex);
 
                 if (ex is MongoDriverException)
@@ -256,7 +257,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
         public override string ToString()
         {
-            return _toStringDescription;
+            return _id.ToString();
         }
 
         // protected methods
@@ -268,7 +269,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             if (!_disposed && disposing)
             {
-                __trace.TraceInformation("{0}: closed.", _toStringDescription);
+                __trace.TraceInformation("{0}: closed.", this);
                 _events.Publish(new ConnectionClosedEvent(_id));
                 _state = State.Disposed;
                 try { _stream.Close(); }
@@ -294,26 +295,25 @@ namespace MongoDB.Driver.Core.Connections
             throw new MongoSecurityException(message);
         }
 
-        private string GetStringDescription()
+        private void DiscoverServerConnectionId()
         {
-            BsonValue connectionId = "*" + IdGenerator<IConnection>.GetNextId() + "*";
             try
             {
                 var result = CommandHelper.RunCommand<BsonDocument>(
                     new DatabaseNamespace("admin"),
                     new BsonDocument("getLastError", 1),
                     this);
-                connectionId = result.GetValue("connectionId", connectionId);
+                var connectionId = result.GetValue("connectionId", _id.Value);
+                var newId = new ConnectionId(_id.ServerId, connectionId.ToString());
+
+                __trace.TraceInformation("{0}: now {1}.", _id, newId);
+                _id = newId;
             }
             catch
             {
                 // if this fails, then so be it... we'll just use the 
                 // local id generator version
             }
-
-            _id = connectionId.ToString();
-
-            return string.Format("conn#{0}-{1}", connectionId, _dnsEndPoint);
         }
 
         private void HandleException(Exception ex)

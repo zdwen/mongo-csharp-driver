@@ -18,9 +18,9 @@ namespace MongoDB.Driver.Core.Mocks
             _servers = new ConcurrentBag<MockServer>();
         }
 
-        public IClusterableServer Create(DnsEndPoint dnsEndPoint)
+        public IClusterableServer Create(ClusterId clusterId, DnsEndPoint dnsEndPoint)
         {
-            var server = new MockServer(dnsEndPoint);
+            var server = new MockServer(clusterId, dnsEndPoint);
             _servers.Add(server);
             return server;
         }

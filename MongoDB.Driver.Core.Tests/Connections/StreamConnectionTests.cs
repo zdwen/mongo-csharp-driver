@@ -25,9 +25,12 @@ namespace MongoDB.Driver.Core.Connections
         {
             _streamFactory = Substitute.For<IStreamFactory>();
 
+            var serverId = new ServerId(new ClusterId(), new DnsEndPoint("localhost", 27017));
+
             _subject = new StreamConnection(
+                serverId,
                 StreamConnectionSettings.Defaults,
-                new DnsEndPoint("localhost", 27017),
+                serverId.Address,
                 _streamFactory,
                 Substitute.For<IEventPublisher>());
         }

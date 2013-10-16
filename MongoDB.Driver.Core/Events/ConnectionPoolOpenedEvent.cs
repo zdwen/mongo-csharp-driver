@@ -24,38 +24,28 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionPoolOpenedEvent
     {
         // private fields
-        private readonly DnsEndPoint _address;
-        private readonly string _connectionPoolId;
+        private readonly ServerId _serverId;
         private readonly ConnectionPoolSettings _settings;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionPoolOpenedEvent" /> class.
         /// </summary>
-        /// <param name="connectionPoolId">The connection pool identifier.</param>
-        /// <param name="address">The address.</param>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="settings">The settings.</param>
-        public ConnectionPoolOpenedEvent(string connectionPoolId, DnsEndPoint address, ConnectionPoolSettings settings)
+        public ConnectionPoolOpenedEvent(ServerId serverId, ConnectionPoolSettings settings)
         {
-            _connectionPoolId = connectionPoolId;
-            _address = address;
+            _serverId = serverId;
             _settings = settings;
         }
 
+        // public properties
         /// <summary>
-        /// Gets the address.
+        /// Gets the server identifier.
         /// </summary>
-        public DnsEndPoint Address
+        public ServerId ServerId
         {
-            get { return _address; }
-        }
-
-        /// <summary>
-        /// Gets the connection pool identifier.
-        /// </summary>
-        public string ConnectionPoolId
-        {
-            get { return _connectionPoolId; }
+            get { return _serverId; }
         }
 
         /// <summary>

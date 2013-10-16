@@ -85,10 +85,13 @@
     <Compile Include="Connections\Cluster.cs" />
     <Compile Include="Connections\ClusterableServerFactory.cs" />
     <Compile Include="Connections\ClusterFactory.cs" />
+    <Compile Include="Connections\ClusterId.cs" />
     <Compile Include="Connections\ConnectionBase.cs" />
     <Compile Include="Connections\ConnectionPool.cs" />
     <Compile Include="Connections\ConnectionPoolBase.cs" />
     <Compile Include="Connections\ConnectionPoolFactory.cs" />
+    <Compile Include="Connections\ConnectionId.cs" />
+    <Compile Include="Connections\ServerId.cs" />
     <Compile Include="Connections\IClusterFactory.cs" />
     <Compile Include="Connections\IConnection.cs" />
     <Compile Include="Connections\IConnectionPoolFactory.cs" />
@@ -100,10 +103,10 @@
     <Compile Include="Diagnostics\TraceActivity.cs" />
     <Compile Include="Events\ClusterClosedEvent.cs" />
     <Compile Include="Events\ClusterOpenedEvent.cs" />
-    <Compile Include="Events\ServerRemovedFromClusterEvent.cs" />
+    <Compile Include="Events\ServerClosedEvent.cs" />
+    <Compile Include="Events\ServerOpenedEvent.cs" />
     <Compile Include="Events\EventPublisherPair.cs" />
     <Compile Include="Events\NoOpEventPublisher.cs" />
-    <Compile Include="Events\ServerAddedToClusterEvent.cs" />
     <Compile Include="MongoSocketWriteTimeoutException.cs" />
     <Compile Include="MongoSocketReadTimeoutException.cs" />
     <Compile Include="Connections\IClusterableServer.cs" />
@@ -143,6 +146,7 @@
     <Compile Include="Protocol\UpdateProtocol.cs" />
     <Compile Include="Protocol\WriteProtocolBase.cs" />
     <Compile Include="Support\DnsEndPointParser.cs" />
+    <Compile Include="Support\Hasher.cs" />
     <Compile Include="WritableServerSelector.cs" />
     <Compile Include="Sessions\IServerChannelProvider.cs" />
     <Compile Include="Protocol\Messages\BufferedRequestPacket.cs" />

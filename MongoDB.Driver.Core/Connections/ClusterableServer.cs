@@ -43,11 +43,11 @@ namespace MongoDB.Driver.Core.Connections
         private readonly IConnectionFactory _connectionFactory;
         private readonly IChannelProvider _channelProvider;
         private readonly Timer _descriptionUpdateTimer;
-        private readonly string _id;
+        private readonly IEventPublisher _events;
+        private readonly ServerId _id;
         private readonly PingTimeAggregator _pingTimeAggregator;
         private readonly ClusterableServerSettings _settings;
         private readonly StateHelper _state;
-        private readonly string _toStringDescription;
         private IConnection _updateDescriptionConnection;
         private ServerDescription _currentDescription; // only read and written with Interlocked...
 
@@ -55,28 +55,33 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Initializes a new instance of the <see cref="ClusterableServer" /> class.
         /// </summary>
+        /// <param name="clusterId">The cluster identifier.</param>
         /// <param name="settings">The settings.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
-        /// <param name="channelProvider">The channel provider.</param>
+        /// <param name="channelProviderFactory">The channel provider factory.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        public ClusterableServer(ClusterableServerSettings settings, DnsEndPoint dnsEndPoint, IChannelProvider channelProvider, IConnectionFactory connectionFactory)
+        /// <param name="events">The events.</param>
+        public ClusterableServer(ClusterId clusterId, ClusterableServerSettings settings, DnsEndPoint dnsEndPoint, IChannelProviderFactory channelProviderFactory, IConnectionFactory connectionFactory, IEventPublisher events)
         {
+            Ensure.IsNotNull("clusterId", clusterId);
             Ensure.IsNotNull("settings", settings);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);
-            Ensure.IsNotNull("connectionProvider", channelProvider);
+            Ensure.IsNotNull("channelProviderFactory", channelProviderFactory);
             Ensure.IsNotNull("connectionFactory", connectionFactory);
+            Ensure.IsNotNull("events", events);
 
             _settings = settings;
             _dnsEndPoint = dnsEndPoint;
-            _id = IdGenerator<IServer>.GetNextId().ToString();
+            _events = events;
+            _id = new ServerId(clusterId, _dnsEndPoint);
             _pingTimeAggregator = new PingTimeAggregator(5);
-            _toStringDescription = string.Format("server#{0}-{1}", _id, _dnsEndPoint);
             _state = new StateHelper(State.Unitialized);
 
             _connectingDescription = new ServerDescription(
+                id: _id,
                 averagePingTime: TimeSpan.MaxValue,
                 buildInfo: null,
-                dnsEndPoint: dnsEndPoint,
+                dnsEndPoint: _dnsEndPoint,
                 maxDocumentSize: _settings.MaxDocumentSizeDefault,
                 maxMessageSize: _settings.MaxMessageSizeDefault,
                 replicaSetInfo: null,
@@ -84,20 +89,21 @@ namespace MongoDB.Driver.Core.Connections
                 type: ServerType.Unknown);
 
             _currentDescription = new ServerDescription(
+                id: _id,
                 averagePingTime: TimeSpan.MaxValue,
                 buildInfo: null,
-                dnsEndPoint: dnsEndPoint,
+                dnsEndPoint: _dnsEndPoint,
                 maxDocumentSize: _settings.MaxDocumentSizeDefault,
                 maxMessageSize: _settings.MaxMessageSizeDefault,
                 replicaSetInfo: null,
                 status: ServerStatus.Disconnected,
                 type: ServerType.Unknown);
 
-            _channelProvider = channelProvider;
+            _channelProvider = channelProviderFactory.Create(_id, _dnsEndPoint);
             _connectionFactory = connectionFactory;
             _descriptionUpdateTimer = new Timer(o => UpdateDescription());
 
-            __trace.TraceVerbose("{0}: {1}", _toStringDescription, _settings);
+            __trace.TraceVerbose("{0}: {1}", this, _settings);
         }
 
         // public properties
@@ -109,7 +115,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the identifier.
         /// </summary>
-        public override string Id
+        public override ServerId Id
         {
             get { return _id; }
         }
@@ -130,7 +136,8 @@ namespace MongoDB.Driver.Core.Connections
             ThrowIfDisposed();
             if (_state.TryChange(State.Unitialized, State.Initialized))
             {
-                __trace.TraceInformation("{0}: initialized.", _toStringDescription);
+                _events.Publish(new ServerOpenedEvent(_id));
+                __trace.TraceInformation("{0}: initialized.", this);
 
                 UpdateDescription(_connectingDescription);
                 _channelProvider.Initialize();
@@ -148,7 +155,7 @@ namespace MongoDB.Driver.Core.Connections
 
         public override string ToString()
         {
-            return _toStringDescription;
+            return _id.ToString();
         }
 
         // protected methods
@@ -163,6 +170,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
 
                 var description = new ServerDescription(
+                    id: _id,
                     averagePingTime: TimeSpan.MaxValue,
                     buildInfo: null,
                     dnsEndPoint: _dnsEndPoint,
@@ -172,8 +180,9 @@ namespace MongoDB.Driver.Core.Connections
                     status: ServerStatus.Disposed,
                     type: ServerType.Unknown);
 
-                __trace.TraceInformation("{0}: closed.", _toStringDescription);
+                __trace.TraceInformation("{0}: closed.", this);
                 UpdateDescription(description);
+                _events.Publish(new ServerClosedEvent(_id));
             }
         }
 
@@ -182,7 +191,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             // if we experienced some socket issue, let's referesh our state
             // immediately.
-            __trace.TraceInformation("{0}: refreshing state due to exception.", _toStringDescription);
+            __trace.TraceInformation("{0}: refreshing state due to exception.", this);
             ThreadPool.QueueUserWorkItem(o => UpdateDescription());
         }
 
@@ -195,7 +204,7 @@ namespace MongoDB.Driver.Core.Connections
                     // make sure we close this up correctly...
                     _updateDescriptionConnection.Dispose();
                 }
-                _updateDescriptionConnection = _connectionFactory.Create(_dnsEndPoint);
+                _updateDescriptionConnection = _connectionFactory.Create(_id, _dnsEndPoint);
                 _updateDescriptionConnection.Open();
             }
 
@@ -221,6 +230,7 @@ namespace MongoDB.Driver.Core.Connections
             var buildInfo = ServerBuildInfo.FromCommandResult(buildInfoResult);
 
             return new ServerDescription(
+                id: _id,
                 averagePingTime: _pingTimeAggregator.Average,
                 buildInfo: buildInfo,
                 dnsEndPoint: _dnsEndPoint,
@@ -261,7 +271,7 @@ namespace MongoDB.Driver.Core.Connections
                     return;
                 }
 
-                using (__trace.TraceActivity("{0}: Health Check", _toStringDescription))
+                using (__trace.TraceActivity("{0}: Health Check", this))
                 {
                     ServerDescription description = null;
                     lock (_disposingLock)
@@ -270,7 +280,7 @@ namespace MongoDB.Driver.Core.Connections
                         {
                             try
                             {
-                                __trace.TraceVerbose("{0}: checking health.", _toStringDescription);
+                                __trace.TraceVerbose("{0}: checking health.", this);
                                 description = LookupDescription();
 
                                 // we want to use the presumably longer frequency for normal status updates.
@@ -286,7 +296,7 @@ namespace MongoDB.Driver.Core.Connections
                                 {
                                     // if we used to be connected and we had an error, let's immediately try this
                                     // again in case it is just a one-time deal...
-                                    __trace.TraceWarning(ex, "{0}: unable to communicate with server. Trying again immediately.", _toStringDescription);
+                                    __trace.TraceWarning(ex, "{0}: unable to communicate with server. Trying again immediately.", this);
 
                                     try
                                     {
@@ -307,7 +317,7 @@ namespace MongoDB.Driver.Core.Connections
 
                                 if (takeDownServer)
                                 {
-                                    __trace.TraceWarning(ex, "{0}: unable to communicate with server.", _toStringDescription);
+                                    __trace.TraceWarning(ex, "{0}: unable to communicate with server.", this);
                                     description = _connectingDescription;
 
                                     // we want to use the presumably shorter frequency
@@ -326,7 +336,7 @@ namespace MongoDB.Driver.Core.Connections
                         }
                         catch (Exception ex)
                         {
-                            __trace.TraceError(ex, "{0}: error updating the description.", _toStringDescription);
+                            __trace.TraceError(ex, "{0}: error updating the description.", this);
                         }
                     }
                 }
@@ -347,7 +357,7 @@ namespace MongoDB.Driver.Core.Connections
             bool areEqual = AreDescriptionsEqual(oldDescription, description);
             if (!areEqual)
             {
-                __trace.TraceInformation("{0}: description updated: {1}.", _toStringDescription, description);
+                __trace.TraceInformation("{0}: description updated: {1}.", this, description);
                 var args = new ChangedEventArgs<ServerDescription>(oldDescription, description);
                 if (DescriptionChanged != null)
                 {

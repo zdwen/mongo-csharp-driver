@@ -67,7 +67,7 @@ namespace MongoDB.Driver.Core.Configuration
             var connectionFactory = new StreamConnectionFactory(_connectionSettingsBuilder.Build(), streamFactory, _eventPublisher);
             var connectionPoolFactory = new ConnectionPoolFactory(_connectionPoolSettingsBuilder.Build(), connectionFactory, _eventPublisher);
             var channelProviderFactory = new ConnectionPoolChannelProviderFactory(connectionPoolFactory, _eventPublisher);
-            var clusterableServerFactory = new ClusterableServerFactory(_serverSettingsBuilder.Build(), channelProviderFactory, connectionFactory);
+            var clusterableServerFactory = new ClusterableServerFactory(_serverSettingsBuilder.Build(), channelProviderFactory, connectionFactory, _eventPublisher);
             var clusterFactory = new ClusterFactory(_clusterSettingsBuilder.Build(), clusterableServerFactory, _eventPublisher);
 
             var cluster = clusterFactory.Create();

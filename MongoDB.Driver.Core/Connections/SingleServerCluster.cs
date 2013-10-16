@@ -74,7 +74,6 @@ namespace MongoDB.Driver.Core.Connections
             if (_state.TryChange(State.Unitialized, State.Initialized))
             {
                 _events.Publish(new ClusterOpenedEvent(Id));
-                _events.Publish(new ServerAddedToClusterEvent(Id, _server.Id));
                 __trace.TraceInformation("{0}: initialized.", this);
                 _server.DescriptionChanged += ServerDescriptionChanged;
                 _server.Initialize();
@@ -94,7 +93,6 @@ namespace MongoDB.Driver.Core.Connections
                 _server.DescriptionChanged -= ServerDescriptionChanged;
                 _server.Dispose();
                 __trace.TraceInformation("{0}: closed.", this);
-                _events.Publish(new ServerRemovedFromClusterEvent(Id, _server.Id));
                 _events.Publish(new ClusterClosedEvent(Id));
             }
             base.Dispose(disposing);
@@ -135,7 +133,7 @@ namespace MongoDB.Driver.Core.Connections
                 clusterType = ClusterDescription.DeduceClusterType(serverDescription.Type);
                 serverDescriptions = new[] { serverDescription };
             }
-            var description = new ClusterDescription(clusterType, serverDescriptions);
+            var description = new ClusterDescription(Id, clusterType, serverDescriptions);
             UpdateDescription(description);
         }
         

@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the identifier.
         /// </summary>
-        public abstract string Id { get; }
+        public abstract ClusterId Id { get; }
 
         // public methods
         /// <summary>

@@ -23,7 +23,7 @@ namespace MongoDB.Driver.Core.Events
     public class ConnectionPacketSendingEvent
     {
         // private fields
-        private readonly string _connectionId;
+        private readonly ConnectionId _connectionId;
         private readonly int _requestId;
         private readonly int _size;
 
@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Events
         /// <param name="connectionId">The connection identifier.</param>
         /// <param name="requestId">The request identifier.</param>
         /// <param name="size">The size.</param>
-        public ConnectionPacketSendingEvent(string connectionId, int requestId, int size)
+        public ConnectionPacketSendingEvent(ConnectionId connectionId, int requestId, int size)
         {
             _connectionId = connectionId;
             _requestId = requestId;
@@ -45,7 +45,7 @@ namespace MongoDB.Driver.Core.Events
         /// <summary>
         /// Gets the connection identifier.
         /// </summary>
-        public string ConnectionId
+        public ConnectionId ConnectionId
         {
             get { return _connectionId; }
         }

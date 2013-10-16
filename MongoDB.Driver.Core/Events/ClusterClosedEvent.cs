@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Events
 {
@@ -12,14 +13,14 @@ namespace MongoDB.Driver.Core.Events
     public class ClusterClosedEvent
     {
         // private fields
-        private readonly string _clusterId;
+        private readonly ClusterId _clusterId;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ClusterClosedEvent"/> class.
         /// </summary>
         /// <param name="clusterId">The cluster identifier.</param>
-        public ClusterClosedEvent(string clusterId)
+        public ClusterClosedEvent(ClusterId clusterId)
         {
             _clusterId = clusterId;
         }
@@ -28,7 +29,7 @@ namespace MongoDB.Driver.Core.Events
         /// <summary>
         /// Gets the cluster identifier.
         /// </summary>
-        public string ClusterId
+        public ClusterId ClusterId
         {
             get { return _clusterId; }
         }

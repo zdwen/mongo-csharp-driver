@@ -30,4 +30,5 @@ using System.Runtime.InteropServices;
 [assembly: CLSCompliant(true)]
 [assembly: ComVisible(false)]
 [assembly: InternalsVisibleTo("MongoDB.Driver.Core.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1016:MarkAssembliesWithAssemblyVersion", Justification="Assembly Version exists in GlobalAssemblyInfo.cs")]

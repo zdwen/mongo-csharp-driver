@@ -31,7 +31,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Gets the identifier.
         /// </summary>
-        public abstract string Id { get; }
+        public abstract ServerId Id { get; }
 
         /// <summary>
         /// Occurs when the description is changed.

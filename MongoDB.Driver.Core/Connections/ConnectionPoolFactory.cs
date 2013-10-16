@@ -52,13 +52,15 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Creates a connection pool for the specified address.
         /// </summary>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A connection pool.</returns>
-        public IConnectionPool Create(DnsEndPoint dnsEndPoint)
+        public IConnectionPool Create(ServerId serverId, DnsEndPoint dnsEndPoint)
         {
+            Ensure.IsNotNull("serverId", serverId);
             Ensure.IsNotNull("address", dnsEndPoint);
 
-            return new ConnectionPool(_settings, dnsEndPoint, _connectionFactory, _events);
+            return new ConnectionPool(serverId, _settings, dnsEndPoint, _connectionFactory, _events);
         }
     }
 }

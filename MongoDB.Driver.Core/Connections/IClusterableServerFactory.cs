@@ -25,8 +25,9 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Creates a server for the specified dns end point.
         /// </summary>
+        /// <param name="clusterId">The cluster identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A server.</returns>
-        IClusterableServer Create(DnsEndPoint dnsEndPoint);
+        IClusterableServer Create(ClusterId clusterId, DnsEndPoint dnsEndPoint);
     }
 }

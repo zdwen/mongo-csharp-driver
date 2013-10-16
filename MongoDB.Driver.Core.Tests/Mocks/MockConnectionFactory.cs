@@ -34,11 +34,11 @@ namespace MongoDB.Driver.Core.Mocks
             }
         }
 
-        public IConnection Create(DnsEndPoint dnsEndPoint)
+        public IConnection Create(ServerId serverId, DnsEndPoint dnsEndPoint)
         {
             lock (_lock)
             {
-                var created = new MockConnection(dnsEndPoint, _responses);
+                var created = new MockConnection(serverId, dnsEndPoint, _responses);
                 _createdConnections.Add(created);
                 if (_isServerDead)
                 {

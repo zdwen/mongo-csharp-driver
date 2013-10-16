@@ -25,8 +25,9 @@ namespace MongoDB.Driver.Core.Connections
         /// <summary>
         /// Creates a channel provider for the specified address.
         /// </summary>
+        /// <param name="serverId">The server identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A channel provider.</returns>
-        IChannelProvider Create(DnsEndPoint dnsEndPoint);
+        IChannelProvider Create(ServerId serverId, DnsEndPoint dnsEndPoint);
     }
 }
