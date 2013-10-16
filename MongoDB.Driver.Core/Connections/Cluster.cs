@@ -154,7 +154,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <returns>A clusterable server.</returns>
         protected IClusterableServer CreateServer(DnsEndPoint dnsEndPoint)
         {
-            return _serverFactory.Create(Id, dnsEndPoint);
+            return _serverFactory.Create(_id, dnsEndPoint);
         }
 
         /// <summary>

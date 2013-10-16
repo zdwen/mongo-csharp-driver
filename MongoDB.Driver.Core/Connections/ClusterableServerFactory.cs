@@ -59,7 +59,7 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="clusterId">The cluster identifier.</param>
         /// <param name="dnsEndPoint">The DNS end point.</param>
         /// <returns>A server.</returns>
-        public IClusterableServer Create(ClusterId clusterId,DnsEndPoint dnsEndPoint)
+        public IClusterableServer Create(ClusterId clusterId, DnsEndPoint dnsEndPoint)
         {
             Ensure.IsNotNull("clusterId", clusterId);
             Ensure.IsNotNull("dnsEndPoint", dnsEndPoint);

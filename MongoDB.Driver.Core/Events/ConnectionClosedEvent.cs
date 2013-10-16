@@ -13,7 +13,6 @@
 * limitations under the License.
 */
 
-using System.Net;
 using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Events

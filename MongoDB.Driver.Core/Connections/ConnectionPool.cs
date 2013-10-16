@@ -43,7 +43,6 @@ namespace MongoDB.Driver.Core.Connections
         private readonly ServerId _serverId;
         private readonly ConnectionPoolSettings _settings;
         private readonly StateHelper _state;
-        private readonly string _toStringDescription;
         private int _currentGenerationId;
         private Timer _sizeMaintenanceTimer;
         private int _waitQueueSize;
@@ -70,14 +69,13 @@ namespace MongoDB.Driver.Core.Connections
             _events = events;
             _serverId = serverId;
             _settings = settings;
-            _toStringDescription = _serverId.ToString();
             _state = new StateHelper(State.Unitialized);
 
             _pool = new ConcurrentQueue<PooledConnection>();
             _poolQueue = new SemaphoreSlim(_settings.MaxSize, _settings.MaxSize);
             _sizeMaintenanceTimer = new Timer(_ => MaintainSize());
 
-            __trace.TraceVerbose("{0}: {1}", _toStringDescription, _settings);
+            __trace.TraceVerbose("{0}: {1}", this, _settings);
         }
 
         // public properties
@@ -119,10 +117,10 @@ namespace MongoDB.Driver.Core.Connections
             try
             {
                 var currentWaitQueueSize = Interlocked.Increment(ref _waitQueueSize);
-                __trace.TraceVerbose("{0}: wait queue size is {1}.", _toStringDescription, currentWaitQueueSize);
+                __trace.TraceVerbose("{0}: wait queue size is {1}.", this, currentWaitQueueSize);
                 if (currentWaitQueueSize > _settings.MaxSize)
                 {
-                    __trace.TraceWarning("{0}: wait queue size of {1} exceeded.", _toStringDescription, _settings.MaxWaitQueueSize);
+                    __trace.TraceWarning("{0}: wait queue size of {1} exceeded.", this, _settings.MaxWaitQueueSize);
                     throw new MongoDriverException("Too many threads are already waiting for a connection.");
                 }
                 _events.Publish(new ConnectionPoolWaitQueueEnteredEvent(_serverId));
@@ -136,29 +134,29 @@ namespace MongoDB.Driver.Core.Connections
                         string expirationReason;
                         if (IsConnectionExpired(connection, out expirationReason))
                         {
-                            __trace.TraceInformation("{0}: removed {1} because {2}.", _toStringDescription, connection, expirationReason);
+                            __trace.TraceInformation("{0}: removed {1} because {2}.", this, connection, expirationReason);
                             _events.Publish(new ConnectionRemovedFromPoolEvent(connection.Id));
                             connection.Dispose();
 
                             connection = OpenNewConnection();
-                            __trace.TraceInformation("{0}: added {1}.", _toStringDescription, connection);
+                            __trace.TraceInformation("{0}: added {1}.", this, connection);
                             _events.Publish(new ConnectionAddedToPoolEvent(connection.Id));
                         }
                     }
                     else
                     {
                         connection = OpenNewConnection();
-                        __trace.TraceInformation("{0}: added {1}.", _toStringDescription, connection);
-                        __trace.TraceInformation("{0}: pool size is {1}", _toStringDescription, CurrentSize);
+                        __trace.TraceInformation("{0}: added {1}.", this, connection);
+                        __trace.TraceInformation("{0}: pool size is {1}", this, CurrentSize);
                         _events.Publish(new ConnectionAddedToPoolEvent(connection.Id));
                     }
 
                     _events.Publish(new ConnectionCheckedOutOfPoolEvent(connection.Id));
-                    __trace.TraceVerbose("{0}: checking out {1}.", _toStringDescription, connection);
+                    __trace.TraceVerbose("{0}: checking out {1}.", this, connection);
                     return new AcquiredConnection(connection, this);
                 }
 
-                __trace.TraceWarning("{0}: timeout waiting for a connection. Timeout was {1}.", _toStringDescription, timeout);
+                __trace.TraceWarning("{0}: timeout waiting for a connection. Timeout was {1}.", this, timeout);
                 throw new MongoDriverException("Timeout waiting for a connection.");
             }
             catch
@@ -171,7 +169,7 @@ namespace MongoDB.Driver.Core.Connections
                     }
                     catch (Exception ex)
                     {
-                        __trace.TraceError(ex, "{0}: error releasing pool queue.", _toStringDescription);
+                        __trace.TraceError(ex, "{0}: error releasing pool queue.", this);
                     }
                 }
                 throw;
@@ -188,7 +186,7 @@ namespace MongoDB.Driver.Core.Connections
             ThrowIfDisposed();
             if (_state.TryChange(State.Unitialized, State.Initialized))
             {
-                __trace.TraceInformation("{0}: initialized.", _toStringDescription);
+                __trace.TraceInformation("{0}: initialized.", this);
                 _sizeMaintenanceTimer.Change(TimeSpan.Zero, _settings.SizeMaintenanceFrequency);
                 _events.Publish(new ConnectionPoolOpenedEvent(_serverId, _settings));
             }
@@ -196,7 +194,7 @@ namespace MongoDB.Driver.Core.Connections
 
         public override string ToString()
         {
-            return _toStringDescription;
+            return _serverId.ToString();
         }
 
         // protected methods
@@ -213,7 +211,7 @@ namespace MongoDB.Driver.Core.Connections
                 _sizeMaintenanceTimer.Dispose();
                 _poolQueue.Dispose();
                 _events.Publish(new ConnectionPoolClosedEvent(_serverId));
-                __trace.TraceInformation("{0}: closed.", _toStringDescription);
+                __trace.TraceInformation("{0}: closed.", this);
             }
         }
 
@@ -225,7 +223,7 @@ namespace MongoDB.Driver.Core.Connections
             // create predictable behavior and never have more connections
             // open than spots exist in the pool.
             Interlocked.Increment(ref _currentGenerationId);
-            __trace.TraceInformation("{0}: cleared.", _toStringDescription);
+            __trace.TraceInformation("{0}: cleared.", this);
         }
 
         private void EnsureMinSize()
@@ -242,8 +240,8 @@ namespace MongoDB.Driver.Core.Connections
                     }
 
                     var connection = OpenNewConnection();
-                    __trace.TraceInformation("{0}: added {1}.", _toStringDescription, connection);
-                    __trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
+                    __trace.TraceInformation("{0}: added {1}.", this, connection);
+                    __trace.TraceInformation("{0}: pool size is {1}.", this, CurrentSize);
                     _events.Publish(new ConnectionAddedToPoolEvent(connection.Id));
                     _pool.Enqueue(connection);
                 }
@@ -257,7 +255,7 @@ namespace MongoDB.Driver.Core.Connections
                         }
                         catch (Exception ex)
                         {
-                            __trace.TraceError(ex, "{0}: error releasing poolQueue.", _toStringDescription);
+                            __trace.TraceError(ex, "{0}: error releasing poolQueue.", this);
                         }
                     }
                 }
@@ -328,7 +326,7 @@ namespace MongoDB.Driver.Core.Connections
                     return;
                 }
 
-                using (__trace.TraceActivity("{0}: Maintaining Size", _toStringDescription))
+                using (__trace.TraceActivity("{0}: Maintaining Size", this))
                 {
                     PrunePool();
                     EnsureMinSize();
@@ -389,8 +387,8 @@ namespace MongoDB.Driver.Core.Connections
                     if (IsConnectionExpired(connection, out expirationReason))
                     {
                         connection.Dispose();
-                        __trace.TraceInformation("{0}: removed {1} because {2}.", _toStringDescription, connection, expirationReason);
-                        __trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, CurrentSize);
+                        __trace.TraceInformation("{0}: removed {1} because {2}.", this, connection, expirationReason);
+                        __trace.TraceInformation("{0}: pool size is {1}.", this, CurrentSize);
                         _events.Publish(new ConnectionRemovedFromPoolEvent(connection.Id));
                         break; // only going to kill off one connection per-round
                     }
@@ -413,7 +411,7 @@ namespace MongoDB.Driver.Core.Connections
                     }
                     catch (Exception ex)
                     {
-                        __trace.TraceError(ex, "{0}: error releasing poolQueue.", _toStringDescription);
+                        __trace.TraceError(ex, "{0}: error releasing poolQueue.", this);
                     }
                 }
             }
@@ -436,13 +434,13 @@ namespace MongoDB.Driver.Core.Connections
             {
                 _poolQueue.Release();
                 connection.Dispose();
-                __trace.TraceInformation("{0}: removed {1} because {2}.", _toStringDescription, connection, expirationReason);
-                __trace.TraceInformation("{0}: pool size is {1}.", _toStringDescription, _settings.MaxSize - _poolQueue.CurrentCount);
+                __trace.TraceInformation("{0}: removed {1} because {2}.", this, connection, expirationReason);
+                __trace.TraceInformation("{0}: pool size is {1}.", this, _settings.MaxSize - _poolQueue.CurrentCount);
                 _events.Publish(new ConnectionRemovedFromPoolEvent(connection.Id));
             }
             else
             {
-                __trace.TraceVerbose("{0}: returning {1}.", _toStringDescription, connection, expirationReason);
+                __trace.TraceVerbose("{0}: returning {1}.", this, connection, expirationReason);
                 _pool.Enqueue(connection);
                 _poolQueue.Release();
             }
