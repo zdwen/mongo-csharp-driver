@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System;
 using MongoDB.Driver;
 using NUnit.Framework;
 
@@ -22,31 +23,31 @@ namespace MongoDB.Driver.Core.Security
     public class MongoCredentialTests
     {
         [Test]
-        public void CreateMongoCRCredential_should_generate_a_valid_credential()
+        [TestCase("MONGODB-CR", "source", "username", "password", typeof(MongoInternalIdentity), typeof(PasswordEvidence))]
+        [TestCase("mongodb-cr", "source", "username", "password", typeof(MongoInternalIdentity), typeof(PasswordEvidence))]
+        [TestCase("GSSAPI", null, "username", "password", typeof(MongoExternalIdentity), typeof(PasswordEvidence))]
+        [TestCase("gssapi", null, "username", "password", typeof(MongoExternalIdentity), typeof(PasswordEvidence))]
+        [TestCase("GSSAPI", null, "username", null, typeof(MongoExternalIdentity), typeof(ExternalEvidence))]
+        public void FromComponents_should_generate_a_valid_credential_when_the_input_is_valid(string mechanismName, string source, string username, string password, Type identityType, Type evidenceType)
         {
-            var credential = MongoCredential.CreateMongoCRCredential("db", "username", "password");
-            Assert.IsInstanceOf<MongoInternalIdentity>(credential.Identity);
-            Assert.AreEqual("MONGODB-CR", credential.Mechanism);
-            Assert.AreEqual("username", credential.Username);
-        }
-
-        [Test]
-        public void CreateGssapiCredential_with_a_password_should_generate_a_valid_credential()
-        {
-            var credential = MongoCredential.CreateGssapiCredential("username", "password");
-            Assert.IsInstanceOf<MongoExternalIdentity>(credential.Identity);
-            Assert.AreEqual("GSSAPI", credential.Mechanism);
-            Assert.AreEqual("username", credential.Username);
-        }
-
-        [Test]
-        public void CreateGssapiCredential_without_a_password_should_generate_a_valid_credential()
-        {
-            var credential = MongoCredential.CreateGssapiCredential("username");
-            Assert.IsInstanceOf<MongoExternalIdentity>(credential.Identity);
-            Assert.AreEqual("GSSAPI", credential.Mechanism);
-            Assert.AreEqual("username", credential.Username);
-            Assert.IsInstanceOf<ExternalEvidence>(credential.Evidence);
+            var credential = MongoCredential.FromComponents(mechanismName, source, username, password);
+            
+            Assert.IsInstanceOf(identityType, credential.Identity);
+            Assert.AreEqual(mechanismName, credential.Mechanism.Name);
+            Assert.AreEqual(username, credential.Identity.Username);
+            if (identityType == typeof(MongoInternalIdentity))
+            {
+                Assert.AreEqual(source, credential.Identity.Source);
+            }
+            else
+            {
+                Assert.AreEqual("$external", credential.Identity.Source);
+            }
+            Assert.IsInstanceOf(evidenceType, credential.Evidence);
+            if(evidenceType == typeof(PasswordEvidence))
+            {
+                Assert.AreEqual(password, ((PasswordEvidence)credential.Evidence).PlainTextPassword);
+            }
         }
     }
 }

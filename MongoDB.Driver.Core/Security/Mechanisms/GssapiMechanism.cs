@@ -46,7 +46,7 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
         /// <exception cref="System.NotImplementedException"></exception>
         public bool CanUse(MongoCredential credential)
         {
-            if (!credential.Mechanism.Equals("GSSAPI", StringComparison.InvariantCultureIgnoreCase) || !(credential.Identity is MongoExternalIdentity))
+            if (!credential.Mechanism.Name.Equals("GSSAPI", StringComparison.InvariantCultureIgnoreCase) || !(credential.Identity is MongoExternalIdentity))
             {
                 return false;
             }
@@ -71,13 +71,13 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
             {
                 return new GsaslGssapiImplementation(
                     connection.DnsEndPoint.Host,
-                    credential.Username,
+                    credential.Identity.Username,
                     credential.Evidence);
             }
 
             return new WindowsGssapiImplementation(
                 connection.DnsEndPoint.Host,
-                credential.Username,
+                credential.Identity.Username,
                 credential.Evidence);
         }
     }

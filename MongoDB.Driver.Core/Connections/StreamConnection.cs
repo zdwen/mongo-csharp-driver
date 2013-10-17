@@ -291,7 +291,7 @@ namespace MongoDB.Driver.Core.Connections
                 }
             }
 
-            var message = string.Format("Unable to find a security protocol to authenticate. The credential for source {0}, username {1} over mechanism {2} could not be authenticated.", credential.Source, credential.Username, credential.Mechanism);
+            var message = string.Format("Unable to find a security protocol to authenticate. The credential for source {0}, username {1} over mechanism {2} could not be authenticated.", credential.Identity.Source, credential.Identity.Username, credential.Mechanism);
             throw new MongoSecurityException(message);
         }
 

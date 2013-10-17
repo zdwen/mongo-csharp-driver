@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -28,8 +29,8 @@ namespace MongoDB.Driver.Core.Security
         // private fields
         private readonly MongoIdentityEvidence _evidence;
         private readonly MongoIdentity _identity;
-        private readonly string _mechanism;
-        
+        private readonly MechanismDefinition _mechanism;
+
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoCredential" /> class.
@@ -37,8 +38,12 @@ namespace MongoDB.Driver.Core.Security
         /// <param name="mechanism">Mechanism to authenticate with.</param>
         /// <param name="identity">The identity.</param>
         /// <param name="evidence">The evidence.</param>
-        public MongoCredential(string mechanism, MongoIdentity identity, MongoIdentityEvidence evidence)
+        public MongoCredential(MechanismDefinition mechanism, MongoIdentity identity, MongoIdentityEvidence evidence)
         {
+            if(mechanism == null)
+            {
+                throw new ArgumentNullException("mechanism");
+            }
             if (identity == null)
             {
                 throw new ArgumentNullException("identity");
@@ -71,100 +76,11 @@ namespace MongoDB.Driver.Core.Security
         }
 
         /// <summary>
-        /// Gets the mechanism to authenticate with.
+        /// Gets the mechanism.
         /// </summary>
-        public string Mechanism
+        public MechanismDefinition Mechanism
         {
             get { return _mechanism; }
-        }
-
-        /// <summary>
-        /// Gets the source.
-        /// </summary>
-        public string Source
-        {
-            get { return _identity.Source; }
-        }
-
-        /// <summary>
-        /// Gets the username.
-        /// </summary>
-        public string Username
-        {
-            get { return _identity.Username; }
-        }
-
-        // public static methods
-        /// <summary>
-        /// Creates a GSSAPI credential.
-        /// </summary>
-        /// <param name="username">The username.</param>
-        /// <returns>A credential for GSSAPI.</returns>
-        /// <remarks>This overload is used primarily on linux.</remarks>
-        public static MongoCredential CreateGssapiCredential(string username)
-        {
-            return FromComponents("GSSAPI",
-                "$external",
-                username,
-                new ExternalEvidence());
-        }
-
-        /// <summary>
-        /// Creates a GSSAPI credential.
-        /// </summary>
-        /// <param name="username">The username.</param>
-        /// <param name="password">The password.</param>
-        /// <returns>A credential for GSSAPI.</returns>
-        public static MongoCredential CreateGssapiCredential(string username, string password)
-        {
-            return FromComponents("GSSAPI",
-                "$external",
-                username,
-                new PasswordEvidence(password));
-        }
-
-        /// <summary>
-        /// Creates a GSSAPI credential.
-        /// </summary>
-        /// <param name="username">The username.</param>
-        /// <param name="password">The password.</param>
-        /// <returns>A credential for GSSAPI.</returns>
-        public static MongoCredential CreateGssapiCredential(string username, SecureString password)
-        {
-            return FromComponents("GSSAPI",
-                "$external",
-                username,
-                new PasswordEvidence(password));
-        }
-
-        /// <summary>
-        /// Creates a credential used with MONGODB-CR.
-        /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        /// <param name="password">The password.</param>
-        /// <returns></returns>
-        public static MongoCredential CreateMongoCRCredential(string databaseName, string username, string password)
-        {
-            return FromComponents("MONGODB-CR",
-                databaseName,
-                username,
-                new PasswordEvidence(password));
-        }
-
-        /// <summary>
-        /// Creates a credential used with MONGODB-CR.
-        /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        /// <param name="password">The password.</param>
-        /// <returns></returns>
-        public static MongoCredential CreateMongoCRCredential(string databaseName, string username, SecureString password)
-        {
-            return FromComponents("MONGODB-CR",
-                databaseName,
-                username,
-                new PasswordEvidence(password));
         }
 
         // internal static methods
@@ -172,19 +88,6 @@ namespace MongoDB.Driver.Core.Security
         {
             var evidence = password == null ? (MongoIdentityEvidence)new ExternalEvidence() : new PasswordEvidence(password);
             return FromComponents(mechanism ?? "MONGODB-CR", source ?? "admin", username, evidence);
-        }
-
-        // private methods
-        private void ValidatePassword(string password)
-        {
-            if (password == null)
-            {
-                throw new ArgumentNullException("password");
-            }
-            if (password.Any(c => (int)c >= 128))
-            {
-                throw new ArgumentException("Password must contain only ASCII characters.");
-            }
         }
 
         // private static methods
@@ -210,16 +113,15 @@ namespace MongoDB.Driver.Core.Security
                     }
 
                     return new MongoCredential(
-                        mechanism,
+                        new MechanismDefinition(mechanism, null),
                         new MongoInternalIdentity(source, username),
                         evidence);
                 case "GSSAPI":
                     // always $external for GSSAPI.  
-                    // this will likely need to change in 2.6.
                     source = "$external";
 
                     return new MongoCredential(
-                        "GSSAPI",
+                        new MechanismDefinition("GSSAPI", null),
                         new MongoExternalIdentity(source, username),
                         evidence);
                 default:
