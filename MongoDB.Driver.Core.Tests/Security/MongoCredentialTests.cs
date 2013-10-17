@@ -24,6 +24,7 @@ namespace MongoDB.Driver.Core.Security
     {
         [Test]
         [TestCase("MONGODB-CR", "source", "username", "password", typeof(MongoInternalIdentity), typeof(PasswordEvidence))]
+        [TestCase("MONGODB-X509", "$external", "username", null, typeof(MongoExternalIdentity), typeof(ExternalEvidence))]
         [TestCase("GSSAPI", null, "username", "password", typeof(MongoExternalIdentity), typeof(PasswordEvidence))]
         [TestCase("GSSAPI", null, "username", null, typeof(MongoExternalIdentity), typeof(ExternalEvidence))]
         [TestCase("PLAIN", "source", "username", "password", typeof(MongoInternalIdentity), typeof(PasswordEvidence))]

@@ -146,6 +146,7 @@
     <Compile Include="Protocol\WriteProtocolBase.cs" />
     <Compile Include="Security\MechanismDefinition.cs" />
     <Compile Include="Security\Mechanisms\PlainMechanism.cs" />
+    <Compile Include="Security\X509AuthenticationProtocol.cs" />
     <Compile Include="Support\DnsEndPointParser.cs" />
     <Compile Include="Support\Hasher.cs" />
     <Compile Include="WritableServerSelector.cs" />

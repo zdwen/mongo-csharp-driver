@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
+using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Security
 {
@@ -40,7 +41,7 @@ namespace MongoDB.Driver.Core.Security
         /// <param name="evidence">The evidence.</param>
         public MongoCredential(MechanismDefinition mechanism, MongoIdentity identity, MongoIdentityEvidence evidence)
         {
-            if(mechanism == null)
+            if (mechanism == null)
             {
                 throw new ArgumentNullException("mechanism");
             }
@@ -93,10 +94,6 @@ namespace MongoDB.Driver.Core.Security
         // private static methods
         private static MongoCredential FromComponents(string mechanism, string source, string username, MongoIdentityEvidence evidence)
         {
-            if (string.IsNullOrEmpty(mechanism))
-            {
-                throw new ArgumentException("Cannot be null or empty.", "mechanism");
-            }
             if (string.IsNullOrEmpty(username))
             {
                 return null;
@@ -106,7 +103,7 @@ namespace MongoDB.Driver.Core.Security
             {
                 case "MONGODB-CR":
                     source = source ?? "admin";
-                    if (evidence == null || !(evidence is PasswordEvidence))
+                    if (!(evidence is PasswordEvidence))
                     {
                         throw new ArgumentException("A MONGODB-CR credential must have a password.");
                     }
@@ -114,6 +111,19 @@ namespace MongoDB.Driver.Core.Security
                     return new MongoCredential(
                         new MechanismDefinition(mechanism, null),
                         new MongoInternalIdentity(source, username),
+                        evidence);
+                case "MONGODB-X509":
+                    // always $external for GSSAPI.  
+                    source = "$external";
+                    
+                    if (!(evidence is ExternalEvidence))
+                    {
+                        throw new ArgumentException("A MONGODB-X509 does not support a password.");
+                    }
+
+                    return new MongoCredential(
+                        new MechanismDefinition(mechanism, null),
+                        new MongoExternalIdentity(username),
                         evidence);
                 case "GSSAPI":
                     // always $external for GSSAPI.  
@@ -125,13 +135,13 @@ namespace MongoDB.Driver.Core.Security
                         evidence);
                 case "PLAIN":
                     source = source ?? "admin";
-                    if (evidence == null || !(evidence is PasswordEvidence))
+                    if (!(evidence is PasswordEvidence))
                     {
                         throw new ArgumentException("A PLAIN credential must have a password.");
                     }
 
                     MongoIdentity identity;
-                    if(source == "$external")
+                    if (source == "$external")
                     {
                         identity = new MongoExternalIdentity(source, username);
                     }

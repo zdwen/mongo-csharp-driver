@@ -67,7 +67,7 @@ namespace MongoDB.Driver.Core.Security
             var authenticateResult = CommandHelper.RunCommand<CommandResult>(new DatabaseNamespace(credential.Identity.Source), authenticateCommand, connection);
             if (!authenticateResult.Ok)
             {
-                var message = string.Format("Invalid credential for database '{0}'.", credential.Identity.Source);
+                var message = string.Format("Invalid credential for username '{0}' on database '{1}'.", credential.Identity.Username, credential.Identity.Source);
                 throw new MongoAuthenticationException(message, authenticateResult.Response);
             }
         }

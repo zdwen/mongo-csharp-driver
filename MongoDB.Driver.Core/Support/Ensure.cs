@@ -29,6 +29,14 @@ namespace MongoDB.Driver.Core.Support
             }
         }
 
+        public static void IsNotNullOrEmpty(string argumentName, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException("Cannot be null or empty.", argumentName);
+            }
+        }
+
         public static void IsInfiniteOrGreaterThanOrEqualToZero(string argumentName, TimeSpan timeSpan)
         {
             if (timeSpan < TimeSpan.Zero && timeSpan != Timeout.InfiniteTimeSpan)

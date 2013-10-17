@@ -174,6 +174,8 @@ namespace MongoDB.Driver.Core.Configuration
         [Test]
         [TestCase("mongodb://localhost?authMechanism=GSSAPI", "GSSAPI")]
         [TestCase("mongodb://localhost?authMechanism=MONGODB-CR", "MONGODB-CR")]
+        [TestCase("mongodb://localhost?authMechanism=PLAIN", "PLAIN")]
+        [TestCase("mongodb://localhost?authMechanism=MONGODB-X509", "MONGODB-X509")]
         public void When_authMechanism_is_specified(string connectionString, string authMechanism)
         {
             var subject = new DbConnectionString(connectionString);
