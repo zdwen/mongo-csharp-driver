@@ -90,6 +90,7 @@ namespace MongoDB.Driver.Core.Configuration
             Assert.IsNull(subject.ConnectTimeout);
             Assert.IsNull(subject.DatabaseName);
             Assert.IsNull(subject.FSync);
+            Assert.IsNull(subject.GssapiServiceName);
             Assert.IsNull(subject.Ipv6);
             Assert.IsNull(subject.Journal);
             Assert.IsNull(subject.MaxIdleTime);
@@ -120,6 +121,7 @@ namespace MongoDB.Driver.Core.Configuration
                 "authSource=admin;" +
                 "connectTimeout=15ms;" +
                 "fsync=true;" +
+                "gssapiServiceName=serviceName;" +
                 "ipv6=false;" +
                 "j=true;" +
                 "maxIdleTime=10ms;" +
@@ -146,6 +148,7 @@ namespace MongoDB.Driver.Core.Configuration
             Assert.AreEqual(TimeSpan.FromMilliseconds(15),subject.ConnectTimeout);
             Assert.AreEqual("test", subject.DatabaseName);
             Assert.AreEqual(true, subject.FSync);
+            Assert.AreEqual("serviceName", subject.GssapiServiceName);
             Assert.AreEqual(false, subject.Ipv6);
             Assert.AreEqual(true, subject.Journal);
             Assert.AreEqual(TimeSpan.FromMilliseconds(10), subject.MaxIdleTime);
@@ -220,6 +223,16 @@ namespace MongoDB.Driver.Core.Configuration
             var subject = new DbConnectionString(connectionString);
 
             Assert.AreEqual(fsync, subject.FSync);
+        }
+
+        [Test]
+        [TestCase("mongodb://localhost?gssapiServiceName=serviceName", "serviceName")]
+        [TestCase("mongodb://localhost?gssapiServiceName=mongodb", "mongodb")]
+        public void When_gssapiServiceName_is_specified(string connectionString, string gssapiServiceName)
+        {
+            var subject = new DbConnectionString(connectionString);
+
+            Assert.AreEqual(gssapiServiceName, subject.GssapiServiceName);
         }
 
         [Test]

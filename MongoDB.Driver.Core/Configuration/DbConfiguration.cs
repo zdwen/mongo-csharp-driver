@@ -22,6 +22,7 @@ using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Security;
+using MongoDB.Driver.Core.Security.Mechanisms;
 using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
 
@@ -264,6 +265,16 @@ namespace MongoDB.Driver.Core.Configuration
                     connectionString.AuthSource,
                     connectionString.Username,
                     connectionString.Password);
+
+                if(connectionString.GssapiServiceName != null)
+                {
+                    var properties = credential.Mechanism.Properties.ToDictionary(x => x.Key, x => x.Value);
+                    properties.Add(GssapiMechanism.ServiceNameMechanismProperty, connectionString.GssapiServiceName);
+                    credential = new MongoCredential(
+                        new MechanismDefinition(credential.Mechanism.Name, properties),
+                        credential.Identity,
+                        credential.Evidence);
+                }
 
                 _connectionSettingsBuilder.AddCredential(credential);
             }

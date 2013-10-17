@@ -14,6 +14,7 @@
 */
 
 using System;
+using System.Linq;
 using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.Security.Mechanisms
@@ -23,8 +24,11 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
     /// </summary>
     internal class GssapiMechanism : ISaslMechanism
     {
+        // public static fields
+        public static readonly string ServiceNameMechanismProperty = "SERVICE_NAME";
+
         // private static fields
-        private static bool __useGsasl = !Environment.OSVersion.Platform.ToString().Contains("Win");
+        private static readonly bool __useGsasl = !Environment.OSVersion.Platform.ToString().Contains("Win");
 
         // public properties
         /// <summary>
@@ -66,16 +70,24 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
         /// <returns>The initial step.</returns>
         public ISaslStep Initialize(IConnection connection, MongoCredential credential)
         {
-            // TODO: provide an override to force the use of gsasl?
+            var serviceNamePair = credential.Mechanism.Properties.SingleOrDefault(p => p.Key == ServiceNameMechanismProperty);
+            string serviceName = "mongodb";
+            if (serviceNamePair.Key == ServiceNameMechanismProperty)
+            {
+                serviceName = (string)serviceNamePair.Value;
+            }
+
             if (__useGsasl)
             {
                 return new GsaslGssapiImplementation(
+                    serviceName,
                     connection.DnsEndPoint.Host,
                     credential.Identity.Username,
                     credential.Evidence);
             }
 
             return new WindowsGssapiImplementation(
+                serviceName,
                 connection.DnsEndPoint.Host,
                 credential.Identity.Username,
                 credential.Evidence);

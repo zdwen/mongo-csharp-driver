@@ -44,6 +44,7 @@ namespace MongoDB.Driver.Core.Configuration
         private TimeSpan? _connectTimeout;
         private string _databaseName;
         private bool? _fsync;
+        private string _gssapiServiceName;
         private IEnumerable<DnsEndPoint> _hosts;
         private bool? _ipv6;
         private bool? _journal;
@@ -136,6 +137,14 @@ namespace MongoDB.Driver.Core.Configuration
         public bool? FSync
         {
             get { return _fsync; }
+        }
+
+        /// <summary>
+        /// Gets the name of the gssapi service.
+        /// </summary>
+        public string GssapiServiceName
+        {
+            get { return _gssapiServiceName; }
         }
 
         /// <summary>
@@ -422,6 +431,9 @@ namespace MongoDB.Driver.Core.Configuration
                     break;
                 case "fsync":
                     _fsync = GetBoolean(name, value);
+                    break;
+                case "gssapiservicename":
+                    _gssapiServiceName = value;
                     break;
                 case "ipv6":
                     _ipv6 = GetBoolean(name, value);
