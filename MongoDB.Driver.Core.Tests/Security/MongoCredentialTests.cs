@@ -24,10 +24,10 @@ namespace MongoDB.Driver.Core.Security
     {
         [Test]
         [TestCase("MONGODB-CR", "source", "username", "password", typeof(MongoInternalIdentity), typeof(PasswordEvidence))]
-        [TestCase("mongodb-cr", "source", "username", "password", typeof(MongoInternalIdentity), typeof(PasswordEvidence))]
         [TestCase("GSSAPI", null, "username", "password", typeof(MongoExternalIdentity), typeof(PasswordEvidence))]
-        [TestCase("gssapi", null, "username", "password", typeof(MongoExternalIdentity), typeof(PasswordEvidence))]
         [TestCase("GSSAPI", null, "username", null, typeof(MongoExternalIdentity), typeof(ExternalEvidence))]
+        [TestCase("PLAIN", "source", "username", "password", typeof(MongoInternalIdentity), typeof(PasswordEvidence))]
+        [TestCase("PLAIN", "$external", "username", "password", typeof(MongoExternalIdentity), typeof(PasswordEvidence))]
         public void FromComponents_should_generate_a_valid_credential_when_the_input_is_valid(string mechanismName, string source, string username, string password, Type identityType, Type evidenceType)
         {
             var credential = MongoCredential.FromComponents(mechanismName, source, username, password);

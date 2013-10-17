@@ -105,7 +105,6 @@ namespace MongoDB.Driver.Core.Security
             switch (mechanism.ToUpperInvariant())
             {
                 case "MONGODB-CR":
-                    // it is allowed for a password to be an empty string, but not a username
                     source = source ?? "admin";
                     if (evidence == null || !(evidence is PasswordEvidence))
                     {
@@ -123,6 +122,27 @@ namespace MongoDB.Driver.Core.Security
                     return new MongoCredential(
                         new MechanismDefinition("GSSAPI", null),
                         new MongoExternalIdentity(source, username),
+                        evidence);
+                case "PLAIN":
+                    source = source ?? "admin";
+                    if (evidence == null || !(evidence is PasswordEvidence))
+                    {
+                        throw new ArgumentException("A PLAIN credential must have a password.");
+                    }
+
+                    MongoIdentity identity;
+                    if(source == "$external")
+                    {
+                        identity = new MongoExternalIdentity(source, username);
+                    }
+                    else
+                    {
+                        identity = new MongoInternalIdentity(source, username);
+                    }
+
+                    return new MongoCredential(
+                        new MechanismDefinition(mechanism, null),
+                        identity,
                         evidence);
                 default:
                     throw new NotSupportedException(string.Format("Unsupported MongoAuthenticationMechanism {0}.", mechanism));

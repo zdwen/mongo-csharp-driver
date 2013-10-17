@@ -57,6 +57,7 @@ namespace MongoDB.Driver.Core.Connections
             __authenticationProtocols = new List<IAuthenticationProtocol>
             {
                 new MongoCRAuthenticationProtocol(),
+                new SaslAuthenticationProtocol(new PlainMechanism()),
                 new SaslAuthenticationProtocol(new GssapiMechanism())
             };
         }
