@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System;
 using System.Text;
 using MongoDB.Driver.Core.Security.Mechanisms.Sspi;
 
@@ -166,9 +167,17 @@ namespace MongoDB.Driver.Core.Security.Mechanisms
             [System.Security.SecuritySafeCritical]
             public ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer)
             {
-                if (bytesReceivedFromServer == null || bytesReceivedFromServer.Length != 32) //RFC specifies this must be 4 octets
+                // Even though RFC says that clients should specifically check this and raise an error
+                // if it isn't true, this breaks on Windows XP, so we are skipping the check for windows
+                // XP, identified as Win32NT 5.1: http://msdn.microsoft.com/en-us/library/windows/desktop/ms724832(v=vs.85).aspx
+                if (Environment.OSVersion.Platform != PlatformID.Win32NT ||
+                    Environment.OSVersion.Version.Major != 5 ||
+                    Environment.OSVersion.Version.Minor != 1)
                 {
-                    throw new MongoSecurityException("Invalid server response.");
+                    if (bytesReceivedFromServer == null || bytesReceivedFromServer.Length != 32) //RFC specifies this must be 4 octets
+                    {
+                        throw new MongoSecurityException("Invalid server response.");
+                    }
                 }
 
                 byte[] decryptedBytes;
