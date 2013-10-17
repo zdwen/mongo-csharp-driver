@@ -81,7 +81,7 @@ namespace MongoDB.Driver.Core.Security
         /// </returns>
         public bool CanUse(MongoCredential credential)
         {
-            return credential.Mechanism.Name.Equals("MONGODB-CR", StringComparison.InvariantCultureIgnoreCase) &&
+            return credential.Mechanism.Name.Equals(Name, StringComparison.InvariantCultureIgnoreCase) &&
                 credential.Evidence is PasswordEvidence;
         }
 

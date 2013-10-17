@@ -41,18 +41,9 @@ namespace MongoDB.Driver.Core.Security
         /// <param name="evidence">The evidence.</param>
         public MongoCredential(MechanismDefinition mechanism, MongoIdentity identity, MongoIdentityEvidence evidence)
         {
-            if (mechanism == null)
-            {
-                throw new ArgumentNullException("mechanism");
-            }
-            if (identity == null)
-            {
-                throw new ArgumentNullException("identity");
-            }
-            if (evidence == null)
-            {
-                throw new ArgumentNullException("evidence");
-            }
+            Ensure.IsNotNull("mechanism", mechanism);
+            Ensure.IsNotNull("identity", identity);
+            Ensure.IsNotNull("evidence", evidence);
 
             _mechanism = mechanism;
             _identity = identity;
