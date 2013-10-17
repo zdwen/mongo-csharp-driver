@@ -25,21 +25,21 @@ namespace MongoDB.Driver.Core.Security
     /// <summary>
     /// Credential to access a MongoDB database.
     /// </summary>
-    public class MongoCredential
+    public sealed class MongoCredential
     {
         // private fields
+        private readonly Mechanism _mechanism;
         private readonly MongoIdentityEvidence _evidence;
         private readonly MongoIdentity _identity;
-        private readonly MechanismDefinition _mechanism;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoCredential" /> class.
         /// </summary>
-        /// <param name="mechanism">Mechanism to authenticate with.</param>
+        /// <param name="mechanism">The mechanism to authenticate with.</param>
         /// <param name="identity">The identity.</param>
         /// <param name="evidence">The evidence.</param>
-        public MongoCredential(MechanismDefinition mechanism, MongoIdentity identity, MongoIdentityEvidence evidence)
+        public MongoCredential(Mechanism mechanism, MongoIdentity identity, MongoIdentityEvidence evidence)
         {
             Ensure.IsNotNull("mechanism", mechanism);
             Ensure.IsNotNull("identity", identity);
@@ -70,7 +70,7 @@ namespace MongoDB.Driver.Core.Security
         /// <summary>
         /// Gets the mechanism.
         /// </summary>
-        public MechanismDefinition Mechanism
+        public Mechanism Mechanism
         {
             get { return _mechanism; }
         }
@@ -100,7 +100,7 @@ namespace MongoDB.Driver.Core.Security
                     }
 
                     return new MongoCredential(
-                        new MechanismDefinition(mechanism, null),
+                        new Mechanism(mechanism, null),
                         new MongoInternalIdentity(source, username),
                         evidence);
                 case "MONGODB-X509":
@@ -113,7 +113,7 @@ namespace MongoDB.Driver.Core.Security
                     }
 
                     return new MongoCredential(
-                        new MechanismDefinition(mechanism, null),
+                        new Mechanism(mechanism, null),
                         new MongoExternalIdentity(username),
                         evidence);
                 case "GSSAPI":
@@ -121,7 +121,7 @@ namespace MongoDB.Driver.Core.Security
                     source = "$external";
 
                     return new MongoCredential(
-                        new MechanismDefinition("GSSAPI", null),
+                        new Mechanism("GSSAPI", null),
                         new MongoExternalIdentity(source, username),
                         evidence);
                 case "PLAIN":
@@ -142,7 +142,7 @@ namespace MongoDB.Driver.Core.Security
                     }
 
                     return new MongoCredential(
-                        new MechanismDefinition(mechanism, null),
+                        new Mechanism(mechanism, null),
                         identity,
                         evidence);
                 default:

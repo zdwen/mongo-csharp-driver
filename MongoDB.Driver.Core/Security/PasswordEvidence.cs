@@ -72,7 +72,7 @@ namespace MongoDB.Driver.Core.Security
             {
                 if (_usesSecureString)
                 {
-                    throw new MongoSecurityException("The password is stored as a secure string. Check UsesSecureString before calling this property.");
+                    throw new MongoDriverException("The password is stored as a secure string. Check UsesSecureString before calling this property.");
                 }
                 return _plainTextPassword;
             }

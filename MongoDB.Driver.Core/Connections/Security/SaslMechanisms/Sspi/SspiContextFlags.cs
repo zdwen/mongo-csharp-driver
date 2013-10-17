@@ -13,21 +13,32 @@
 * limitations under the License.
 */
 
+using System;
 
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms.Sspi
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// Flags for InitiateSecurityContext.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    /// <remarks>
+    /// See the fContextReq parameter at 
+    /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa375507(v=vs.85).aspx
+    /// </remarks>
+    [Flags]
+    internal enum SspiContextFlags
     {
+        None = 0,
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// ISC_REQ_MUTUAL_AUTH
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        MutualAuth = 0x2,
+        /// <summary>
+        /// ISC_REQ_CONFIDENTIALITY
+        /// </summary>
+        Confidentiality = 0x10,
+        /// <summary>
+        /// ISC_REQ_INTEGRITY
+        /// </summary>
+        InitIntegrity = 0x10000
     }
 }

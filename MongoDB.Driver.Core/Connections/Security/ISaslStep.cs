@@ -13,21 +13,24 @@
 * limitations under the License.
 */
 
-
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// A step in a Sasl Conversation.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    internal interface ISaslStep
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// The bytes that should be sent to ther server before calling Transition.
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        byte[] BytesToSendToServer { get; }
+
+        /// <summary>
+        /// Transitions to the next step in the conversation.
+        /// </summary>
+        /// <param name="conversation">The conversation.</param>
+        /// <param name="bytesReceivedFromServer">The bytes received from the server.</param>
+        /// <returns>An ISaslStep.</returns>
+        ISaslStep Transition(SaslConversation conversation, byte[] bytesReceivedFromServer);
     }
 }

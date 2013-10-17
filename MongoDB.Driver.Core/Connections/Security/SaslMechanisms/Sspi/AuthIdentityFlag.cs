@@ -13,21 +13,20 @@
 * limitations under the License.
 */
 
-
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms.Sspi
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// Flag for the AuthIdentity structure.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    internal enum AuthIdentityFlag
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// SEC_WINNT_AUTH_IDENTITY_ANSI
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        Ansi = 0x1,
+        /// <summary>
+        /// SEC_WINNT_AUTH_IDENTITY_UNICODE
+        /// </summary>
+        Unicode = 0x2
     }
 }

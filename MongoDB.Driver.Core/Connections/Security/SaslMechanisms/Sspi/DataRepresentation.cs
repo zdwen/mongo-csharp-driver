@@ -13,21 +13,24 @@
 * limitations under the License.
 */
 
-
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms.Sspi
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// Flags for InitiateSecurityContext.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    /// <remarks>
+    /// See the TargetDataRep parameter at 
+    /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa375507(v=vs.85).aspx
+    /// </remarks>
+    internal enum DataRepresentation
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// SECURITY_NETWORK_DREP
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        Network = 0,
+        /// <summary>
+        /// SECURITY_NATIVE_DREP
+        /// </summary>
+        Native = 16
     }
 }

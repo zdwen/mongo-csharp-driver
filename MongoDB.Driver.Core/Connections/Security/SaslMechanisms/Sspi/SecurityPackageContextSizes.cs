@@ -13,21 +13,22 @@
 * limitations under the License.
 */
 
+using System.Runtime.InteropServices;
 
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms.Sspi
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// A SecPkgContext_Sizes structure.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    /// <remarks>
+    /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa380097(v=vs.85).aspx
+    /// </remarks>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct SecurityPackageContextSizes
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
-        /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
-    }
+        public uint MaxToken;
+        public uint MaxSignature;
+        public uint BlockSize;
+        public uint SecurityTrailer;
+    };
 }

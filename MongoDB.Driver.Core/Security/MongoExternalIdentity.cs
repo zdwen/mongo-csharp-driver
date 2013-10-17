@@ -19,7 +19,7 @@ namespace MongoDB.Driver.Core.Security
     /// <summary>
     /// Represents an identity defined outside of mongodb.
     /// </summary>
-    public class MongoExternalIdentity : MongoIdentity
+    public sealed class MongoExternalIdentity : MongoIdentity
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoExternalIdentity" /> class.

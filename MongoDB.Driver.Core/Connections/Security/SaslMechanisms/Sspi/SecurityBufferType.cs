@@ -13,21 +13,36 @@
 * limitations under the License.
 */
 
-
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms.Sspi
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// Types for the SecurityBuffer structure.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    internal enum SecurityBufferType
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// SECBUFFER_VERSION
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        Version = 0,
+        /// <summary>
+        /// SECBUFFER_EMPTY
+        /// </summary>
+        Empty = 0,
+        /// <summary>
+        /// SECBUFFER_DATA
+        /// </summary>
+        Data = 1,
+        /// <summary>
+        /// SECBUFFER_TOKEN
+        /// </summary>
+        Token = 2,
+        /// <summary>
+        /// SECBUFFER_PADDING
+        /// </summary>
+        Padding = 9,
+        /// <summary>
+        /// SECBUFFER_STREAM
+        /// </summary>
+        Stream = 10
     }
 }

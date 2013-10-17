@@ -27,7 +27,8 @@ using MongoDB.Driver.Core.Support;
 using MongoDB.Driver.Core.Security;
 using MongoDB.Bson;
 using System.Collections.Generic;
-using MongoDB.Driver.Core.Security.Mechanisms;
+using MongoDB.Driver.Core.Connections.Security;
+using MongoDB.Driver.Core.Connections.Security.SaslMechanisms;
 
 namespace MongoDB.Driver.Core.Connections
 {

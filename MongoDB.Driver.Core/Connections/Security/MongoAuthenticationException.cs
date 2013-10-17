@@ -13,21 +13,26 @@
 * limitations under the License.
 */
 
+using System;
+using System.Runtime.Serialization;
+using MongoDB.Bson;
 
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// An exception thrown during login and privilege negotiation.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    [Serializable]
+    public class MongoAuthenticationException : MongoOperationException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// Initializes a new instance of the <see cref="MongoAuthenticationException" /> class.
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        /// <param name="message">The message.</param>
+        /// <param name="response">The response.</param>
+        public MongoAuthenticationException(string message, BsonDocument response) 
+            : base(message, response) 
+        { 
+        }
     }
 }

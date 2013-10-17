@@ -13,21 +13,19 @@
 * limitations under the License.
 */
 
-
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms.Sspi
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// Flags for AcquireCredentialsHandle.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    /// <remarks>
+    /// See the fCredentialUse at http://msdn.microsoft.com/en-us/library/windows/desktop/aa374712(v=vs.85).aspx.
+    /// </remarks>
+    internal enum SecurityCredentialUse
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// SECPKG_CRED_OUTBOUND
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        Outbound = 0x2
     }
 }

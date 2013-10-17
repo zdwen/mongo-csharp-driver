@@ -13,21 +13,16 @@
 * limitations under the License.
 */
 
-
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms.Sspi
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// This is represented as a string in AcquireCredentialsHandle. This value will have .ToString() called on it.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    internal enum SspiPackage
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// Kerberos
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        Kerberos
     }
 }

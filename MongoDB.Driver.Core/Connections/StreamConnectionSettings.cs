@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Driver.Core.Security;
-using MongoDB.Driver.Core.Security.Mechanisms;
 using MongoDB.Driver.Core.Support;
 
 namespace MongoDB.Driver.Core.Connections

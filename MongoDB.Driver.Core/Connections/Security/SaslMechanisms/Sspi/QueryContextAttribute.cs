@@ -13,21 +13,20 @@
 * limitations under the License.
 */
 
-
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms.Sspi
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// Flags for QueryContextAttributes.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    /// <remarks>
+    /// See the ulAttribute parameter at 
+    /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa379326(v=vs.85).aspx.
+    /// </remarks>
+    internal enum QueryContextAttributes
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// SECPKG_ATTR_SIZES
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        Sizes = 0x0 
     }
 }

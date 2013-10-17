@@ -13,21 +13,20 @@
 * limitations under the License.
 */
 
-
-namespace MongoDB.Driver.Core.Security
+namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms.Sspi
 {
     /// <summary>
-    /// Represents an identity defined inside mongodb.
+    /// Flags for EncryptMessage.
     /// </summary>
-    public sealed class MongoInternalIdentity : MongoIdentity
+    /// <remarks>
+    /// See the fQOP parameter at 
+    /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa375378(v=vs.85).aspx.
+    /// </remarks>
+    internal enum EncryptQualityOfProtection : uint
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInternalIdentity" /> class.
+        /// SECQOP_WRAP_NO_ENCRYPT
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
-        /// <param name="username">The username.</param>
-        public MongoInternalIdentity(string databaseName, string username)
-            : base(databaseName, username)
-        { }
+        WrapNoEncrypt = 0x80000001
     }
 }
