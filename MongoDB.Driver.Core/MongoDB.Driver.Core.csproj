@@ -87,6 +87,7 @@
     <Compile Include="Connections\ClusterFactory.cs" />
     <Compile Include="Connections\ClusterId.cs" />
     <Compile Include="Connections\ConnectionBase.cs" />
+    <Compile Include="Connections\ConnectionIdSource.cs" />
     <Compile Include="Connections\ConnectionPool.cs" />
     <Compile Include="Connections\ConnectionPoolBase.cs" />
     <Compile Include="Connections\ConnectionPoolFactory.cs" />

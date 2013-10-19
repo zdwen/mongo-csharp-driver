@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Core.Connections
     {
         // private static fields
         private static readonly TraceSource __trace = MongoTraceSources.Connections;
-        private static List<IAuthenticationProtocol> __authenticationProtocols;
+        private static readonly List<IAuthenticationProtocol> __authenticationProtocols;
 
         // private fields
         private readonly DnsEndPoint _dnsEndPoint;
@@ -304,7 +304,7 @@ namespace MongoDB.Driver.Core.Connections
                     new BsonDocument("getLastError", 1),
                     this);
                 var connectionId = result.GetValue("connectionId", _id.Value);
-                var newId = new ConnectionId(_id.ServerId, connectionId.ToString());
+                var newId = new ConnectionId(_id.ServerId, ConnectionIdSource.Server, connectionId.ToInt32());
 
                 __trace.TraceInformation("{0}: now {1}.", _id, newId);
                 _id = newId;

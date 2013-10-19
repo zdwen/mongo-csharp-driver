@@ -31,7 +31,7 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         public ClusterId()
         {
-            _id = IdGenerator<ICluster>.GetNextId();
+            _id = IdGenerator<ClusterId>.GetNextId();
         }
 
         /// <summary>

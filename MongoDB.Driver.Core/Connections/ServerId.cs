@@ -21,7 +21,7 @@ using MongoDB.Shared;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Represents the identify of a server.
+    /// Represents the identity of a server.
     /// </summary>
     public sealed class ServerId : IEquatable<ServerId>
     {
@@ -86,8 +86,8 @@ namespace MongoDB.Driver.Core.Connections
                 return false;
             }
 
-            return _clusterId.Equals(other._clusterId)
-                && _address.Equals(other._address);
+            return _clusterId.Equals(other._clusterId) && 
+                _address.Equals(other._address);
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace MongoDB.Driver.Core.Connections
         /// </returns>
         public override string ToString()
         {
-            return string.Format("{0}:{1}:{2}", _clusterId, _address.Host, _address.Port);
+            return string.Format("{0},{1}:{2}", _clusterId, _address.Host, _address.Port);
         }
     }
 }

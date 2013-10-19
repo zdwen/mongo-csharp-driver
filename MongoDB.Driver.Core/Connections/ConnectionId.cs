@@ -20,13 +20,14 @@ using MongoDB.Shared;
 namespace MongoDB.Driver.Core.Connections
 {
     /// <summary>
-    /// Represents the identify of a connection.
+    /// Represents the identity of a connection.
     /// </summary>
     public sealed class ConnectionId : IEquatable<ConnectionId>
     {
         // private fields
         private readonly ServerId _serverId;
-        private readonly string _value;
+        private readonly ConnectionIdSource _source;
+        private readonly int _value;
 
         // constructors
         /// <summary>
@@ -34,20 +35,21 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="serverId">The server identifier.</param>
         public ConnectionId(ServerId serverId)
-            : this(serverId, "*" + IdGenerator<IConnection>.GetNextId().ToString() + "*")
+            : this(serverId, ConnectionIdSource.Client, IdGenerator<ConnectionId>.GetNextId())
         { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServerId" /> class.
         /// </summary>
         /// <param name="serverId">The server identifier.</param>
+        /// <param name="source">The source.</param>
         /// <param name="value">The value.</param>
-        public ConnectionId(ServerId serverId, string value)
+        public ConnectionId(ServerId serverId, ConnectionIdSource source, int value)
         {
             Ensure.IsNotNull("serverId", serverId);
-            Ensure.IsNotNull("value", value);
 
             _serverId = serverId;
+            _source = source;
             _value = value;
         }
 
@@ -61,9 +63,17 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         /// <summary>
+        /// Gets the source.
+        /// </summary>
+        public ConnectionIdSource Source
+        {
+            get { return _source; }
+        }
+
+        /// <summary>
         /// Gets the value.
         /// </summary>
-        public string Value
+        public int Value
         {
             get { return _value; }
         }
@@ -95,8 +105,9 @@ namespace MongoDB.Driver.Core.Connections
                 return false;
             }
 
-            return _serverId.Equals(other._serverId)
-                && _value.Equals(other._value);
+            return _serverId.Equals(other._serverId) && 
+                _source == other._source &&
+                _value.Equals(other._value);
         }
 
         /// <summary>
@@ -109,6 +120,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             return new Hasher()
                 .Hash(_serverId)
+                .Hash(_source)
                 .Hash(_value)
                 .GetHashCode();
         }
@@ -121,7 +133,14 @@ namespace MongoDB.Driver.Core.Connections
         /// </returns>
         public override string ToString()
         {
-            return string.Format("{0}:{1}", _serverId, _value);
+            if (_source == ConnectionIdSource.Client)
+            {
+                return string.Format("{0},conn*{1}*", _serverId, _value);
+            }
+            else
+            {
+                return string.Format("{0},conn{1}", _serverId, _value);
+            }
         }
     }
 }
