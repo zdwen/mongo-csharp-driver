@@ -18,7 +18,7 @@ using System.Runtime.Serialization;
 using System.Security;
 using MongoDB.Bson;
 
-namespace MongoDB.Driver.Core
+namespace MongoDB.Driver
 {
     /// <summary>
     /// An exception representing a server error.

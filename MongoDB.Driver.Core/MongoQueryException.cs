@@ -17,7 +17,7 @@ using System;
 using System.Runtime.Serialization;
 using MongoDB.Bson;
 
-namespace MongoDB.Driver.Core
+namespace MongoDB.Driver
 {
     /// <summary>
     /// An exception representing a query error.

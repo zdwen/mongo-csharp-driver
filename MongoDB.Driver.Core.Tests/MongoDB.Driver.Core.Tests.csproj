@@ -7,7 +7,7 @@
     <ProjectGuid>{C60E1ED9-29FE-4F55-B928-23531BE2ED0E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MongoDB.Driver.Core</RootNamespace>
+    <RootNamespace>MongoDB.Driver</RootNamespace>
     <AssemblyName>MongoDB.Driver.Core.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -71,36 +71,36 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\DbConnectionStringTests.cs" />
-    <Compile Include="Connections\ClusterFactoryTests.cs" />
-    <Compile Include="Connections\ClusterSettingsTests.cs" />
-    <Compile Include="Connections\ClusterTests.cs" />
-    <Compile Include="Connections\ShardedMultiServerClusterTests.cs" />
-    <Compile Include="Connections\ShardedSingleServerClusterTests.cs" />
-    <Compile Include="Connections\ReplicaSetSingleServerClusterTests.cs" />
-    <Compile Include="Connections\IsMasterResultTests.cs" />
-    <Compile Include="Connections\StateHelperTests.cs" />
-    <Compile Include="Connections\StreamConnectionTests.cs" />
-    <Compile Include="LatencyMinimizingServerSelectorTests.cs" />
-    <Compile Include="Mocks\MockClusterableServerFactory.cs" />
-    <Compile Include="Operations\QueryOperationBaseTests.cs" />
-    <Compile Include="ProtocolMessageHelper.cs" />
-    <Compile Include="Connections\CommandHelperTests.cs" />
-    <Compile Include="Connections\ConnectionPoolTests.cs" />
-    <Compile Include="Mocks\MockChannel.cs" />
-    <Compile Include="Mocks\MockChannelProvider.cs" />
-    <Compile Include="Protocol\InsertProtocolTests.cs" />
-    <Compile Include="Mocks\MockConnection.cs" />
-    <Compile Include="Mocks\MockConnectionFactory.cs" />
-    <Compile Include="Connections\ReplicaSetMultiServerClusterTests.cs" />
-    <Compile Include="Connections\ServerDescriptionBuilder.cs" />
-    <Compile Include="Connections\ClusterableServerTests.cs" />
-    <Compile Include="Connections\StandAloneSingleServerClusterTests.cs" />
-    <Compile Include="Mocks\MockServer.cs" />
+    <Compile Include="Core\Configuration\DbConnectionStringTests.cs" />
+    <Compile Include="Core\Connections\ClusterFactoryTests.cs" />
+    <Compile Include="Core\Connections\ClusterSettingsTests.cs" />
+    <Compile Include="Core\Connections\ClusterTests.cs" />
+    <Compile Include="Core\Connections\ShardedMultiServerClusterTests.cs" />
+    <Compile Include="Core\Connections\ShardedSingleServerClusterTests.cs" />
+    <Compile Include="Core\Connections\ReplicaSetSingleServerClusterTests.cs" />
+    <Compile Include="Core\Connections\IsMasterResultTests.cs" />
+    <Compile Include="Core\Connections\StateHelperTests.cs" />
+    <Compile Include="Core\Connections\StreamConnectionTests.cs" />
+    <Compile Include="Core\LatencyMinimizingServerSelectorTests.cs" />
+    <Compile Include="Core\Mocks\MockClusterableServerFactory.cs" />
+    <Compile Include="Core\Operations\QueryOperationBaseTests.cs" />
+    <Compile Include="Core\ProtocolMessageHelper.cs" />
+    <Compile Include="Core\Connections\CommandHelperTests.cs" />
+    <Compile Include="Core\Connections\ConnectionPoolTests.cs" />
+    <Compile Include="Core\Mocks\MockChannel.cs" />
+    <Compile Include="Core\Mocks\MockChannelProvider.cs" />
+    <Compile Include="Core\Protocol\InsertProtocolTests.cs" />
+    <Compile Include="Core\Mocks\MockConnection.cs" />
+    <Compile Include="Core\Mocks\MockConnectionFactory.cs" />
+    <Compile Include="Core\Connections\ReplicaSetMultiServerClusterTests.cs" />
+    <Compile Include="Core\Connections\ServerDescriptionBuilder.cs" />
+    <Compile Include="Core\Connections\ClusterableServerTests.cs" />
+    <Compile Include="Core\Connections\StandAloneSingleServerClusterTests.cs" />
+    <Compile Include="Core\Mocks\MockServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Protocol\WriteProtocolBaseTests.cs" />
-    <Compile Include="ReadPreferenceServerSelectorTests.cs" />
-    <Compile Include="Security\MongoCredentialTests.cs" />
+    <Compile Include="Core\Protocol\WriteProtocolBaseTests.cs" />
+    <Compile Include="Core\ReadPreferenceServerSelectorTests.cs" />
+    <Compile Include="Core\Security\MongoCredentialTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MongoDB.Bson\MongoDB.Bson.csproj">

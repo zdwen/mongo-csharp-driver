@@ -16,8 +16,9 @@
 using System;
 using System.Runtime.Serialization;
 using MongoDB.Bson;
+using MongoDB.Driver.Core;
 
-namespace MongoDB.Driver.Core
+namespace MongoDB.Driver
 {
     /// <summary>
     /// An exception representing a duplicate key from an insert.

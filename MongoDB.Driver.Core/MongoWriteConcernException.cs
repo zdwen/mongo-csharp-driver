@@ -16,8 +16,9 @@
 using System;
 using System.Runtime.Serialization;
 using System.Security;
+using MongoDB.Driver.Core;
 
-namespace MongoDB.Driver.Core
+namespace MongoDB.Driver
 {
     /// <summary>
     /// Thrown when an error was returned due to a failed write concern.

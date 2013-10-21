@@ -15,7 +15,7 @@
 
 using System;
 
-namespace MongoDB.Driver.Core
+namespace MongoDB.Driver
 {
     /// <summary>
     /// An exception representing a client error.

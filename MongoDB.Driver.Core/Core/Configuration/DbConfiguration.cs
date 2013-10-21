@@ -14,18 +14,15 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Net;
 using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Connections.Security;
+using MongoDB.Driver.Core.Connections.Security.SaslMechanisms;
 using MongoDB.Driver.Core.Diagnostics;
 using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Core.Security;
-using MongoDB.Driver.Core.Connections.Security.SaslMechanisms;
-using MongoDB.Driver.Core.Sessions;
 using MongoDB.Driver.Core.Support;
-using MongoDB.Driver.Core.Connections.Security;
 
 namespace MongoDB.Driver.Core.Configuration
 {

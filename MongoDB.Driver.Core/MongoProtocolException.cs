@@ -15,7 +15,7 @@
 
 using System;
 
-namespace MongoDB.Driver.Core
+namespace MongoDB.Driver
 {
     /// <summary>
     /// Throw when the MongoDB Wire Protocol has been violated.

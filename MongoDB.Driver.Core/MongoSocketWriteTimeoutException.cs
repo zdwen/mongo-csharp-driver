@@ -16,7 +16,7 @@
 using System;
 using System.Net.Sockets;
 
-namespace MongoDB.Driver.Core
+namespace MongoDB.Driver
 {
     /// <summary>
     /// Wraps a socket exception.

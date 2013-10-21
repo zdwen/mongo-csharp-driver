@@ -15,7 +15,7 @@
 
 using System;
 
-namespace MongoDB.Driver.Core
+namespace MongoDB.Driver
 {
     /// <summary>
     /// Base exception class for all exceptions thrown by the driver.
