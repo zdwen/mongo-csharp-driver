@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using System;
 using System.Text;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Security;
@@ -43,7 +44,8 @@ namespace MongoDB.Driver.Core.Connections.Security.SaslMechanisms
         /// </returns>
         public bool CanUse(MongoCredential credential)
         {
-            return credential.Evidence is PasswordEvidence;
+            return credential.Mechanism.Name.Equals(Name, StringComparison.InvariantCultureIgnoreCase) &&
+                credential.Evidence is PasswordEvidence;
         }
 
         /// <summary>
