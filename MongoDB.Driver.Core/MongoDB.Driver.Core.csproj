@@ -92,6 +92,7 @@
     <Compile Include="Core\Connections\ConnectionPoolBase.cs" />
     <Compile Include="Core\Connections\ConnectionPoolFactory.cs" />
     <Compile Include="Core\Connections\ConnectionId.cs" />
+    <Compile Include="Core\Connections\Security\SaslMechanisms\Sspi\SecurityPackageInfo.cs" />
     <Compile Include="Core\Connections\ServerId.cs" />
     <Compile Include="Core\Connections\IClusterFactory.cs" />
     <Compile Include="Core\Connections\IConnection.cs" />
