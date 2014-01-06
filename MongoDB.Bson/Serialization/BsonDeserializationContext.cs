@@ -15,6 +15,7 @@
 
 using System;
 using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace MongoDB.Bson.Serialization
 {
@@ -25,6 +26,8 @@ namespace MongoDB.Bson.Serialization
     {
         // private fields
         private readonly bool _allowDuplicateElementNames;
+        private readonly IBsonSerializer _dynamicArraySerializer;
+        private readonly IBsonSerializer _dynamicDocumentSerializer;
         private readonly Type _nominalType;
         private readonly BsonDeserializationContext _parent;
         private readonly BsonReader _reader;
@@ -34,12 +37,16 @@ namespace MongoDB.Bson.Serialization
             BsonDeserializationContext parent,
             BsonReader reader,
             Type nominalType,
-            bool allowDuplicateElementNames)
+            bool allowDuplicateElementNames,
+            IBsonSerializer dynamicArraySerializer,
+            IBsonSerializer dynamicDocumentSerializer)
         {
             _parent = parent;
             _reader = reader;
             _nominalType = nominalType;
             _allowDuplicateElementNames = allowDuplicateElementNames;
+            _dynamicArraySerializer = dynamicArraySerializer;
+            _dynamicDocumentSerializer = dynamicDocumentSerializer;
         }
 
         // public properties
@@ -52,6 +59,28 @@ namespace MongoDB.Bson.Serialization
         public bool AllowDuplicateElementNames
         {
             get { return _allowDuplicateElementNames; }
+        }
+
+        /// <summary>
+        /// Gets the dynamic array serializer.
+        /// </summary>
+        /// <value>
+        /// The dynamic array serializer.
+        /// </value>
+        public IBsonSerializer DynamicArraySerializer
+        {
+            get { return _dynamicArraySerializer; }
+        }
+
+        /// <summary>
+        /// Gets the dynamic document serializer.
+        /// </summary>
+        /// <value>
+        /// The dynamic document serializer.
+        /// </value>
+        public IBsonSerializer DynamicDocumentSerializer
+        {
+            get { return _dynamicDocumentSerializer; }
         }
 
         /// <summary>
@@ -212,6 +241,8 @@ namespace MongoDB.Bson.Serialization
         {
             // private fields
             private bool _allowDuplicateElementNames;
+            private IBsonSerializer _dynamicArraySerializer;
+            private IBsonSerializer _dynamicDocumentSerializer;
             private Type _nominalType;
             private BsonDeserializationContext _parent;
             private BsonReader _reader;
@@ -234,6 +265,13 @@ namespace MongoDB.Bson.Serialization
                 if (parent != null)
                 {
                     _allowDuplicateElementNames = parent.AllowDuplicateElementNames;
+                    _dynamicArraySerializer = parent.DynamicArraySerializer;
+                    _dynamicDocumentSerializer = parent.DynamicDocumentSerializer;
+                }
+                else
+                {
+                    _dynamicArraySerializer = BsonDefaults.DynamicArraySerializer;
+                    _dynamicDocumentSerializer = BsonDefaults.DynamicDocumentSerializer;
                 }
             }
 
@@ -248,6 +286,30 @@ namespace MongoDB.Bson.Serialization
             {
                 get { return _allowDuplicateElementNames; }
                 set { _allowDuplicateElementNames = value; }
+            }
+
+            /// <summary>
+            /// Gets or sets the dynamic array serializer.
+            /// </summary>
+            /// <value>
+            /// The dynamic array serializer.
+            /// </value>
+            public IBsonSerializer DynamicArraySerializer
+            {
+                get { return _dynamicArraySerializer; }
+                set { _dynamicArraySerializer = value; }
+            }
+
+            /// <summary>
+            /// Gets or sets the dynamic document serializer.
+            /// </summary>
+            /// <value>
+            /// The dynamic document serializer.
+            /// </value>
+            public IBsonSerializer DynamicDocumentSerializer
+            {
+                get { return _dynamicDocumentSerializer; }
+                set { _dynamicDocumentSerializer = value; }
             }
 
             /// <summary>
@@ -290,7 +352,7 @@ namespace MongoDB.Bson.Serialization
             /// <returns>A BsonDeserializationContext.</returns>
             internal BsonDeserializationContext Build()
             {
-                return new BsonDeserializationContext(_parent, _reader, _nominalType, _allowDuplicateElementNames);
+                return new BsonDeserializationContext(_parent, _reader, _nominalType, _allowDuplicateElementNames, _dynamicArraySerializer, _dynamicDocumentSerializer);
             }
         }
     }

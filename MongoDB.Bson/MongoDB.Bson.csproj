@@ -284,8 +284,10 @@
     <Compile Include="Serialization\Serializers\DoubleSerializer.cs" />
     <Compile Include="Serialization\Serializers\DrawingSizeSerializer.cs" />
     <Compile Include="Serialization\Serializers\DictionaryInterfaceImplementerSerializer.cs" />
+    <Compile Include="Serialization\Serializers\DynamicDocumentBaseSerializer.cs" />
     <Compile Include="Serialization\Serializers\EnumerableInterfaceImplementerSerializer.cs" />
     <Compile Include="Serialization\Serializers\EnumerableSerializerBase.cs" />
+    <Compile Include="Serialization\Serializers\ExpandoObjectSerializer.cs" />
     <Compile Include="Serialization\Serializers\GuidSerializer.cs" />
     <Compile Include="Serialization\Serializers\EnumerableInterfaceImplementerSerializerBase.cs" />
     <Compile Include="Serialization\Serializers\ImpliedImplementationInterfaceSerializer.cs" />

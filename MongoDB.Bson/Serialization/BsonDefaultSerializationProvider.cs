@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Drawing;
+using System.Dynamic;
 using System.Globalization;
 using System.Net;
 using MongoDB.Bson.Serialization.Serializers;
@@ -70,6 +71,7 @@ namespace MongoDB.Bson.Serialization
                 { typeof(DateTimeOffset), typeof(DateTimeOffsetSerializer) },
                 { typeof(Decimal), typeof(DecimalSerializer) },
                 { typeof(Double), typeof(DoubleSerializer) },
+                { typeof(ExpandoObject), typeof(ExpandoObjectSerializer) },
                 { typeof(System.Drawing.Size), typeof(DrawingSizeSerializer) },
                 { typeof(Guid), typeof(GuidSerializer) },
                 { typeof(Int16), typeof(Int16Serializer) },

@@ -15,6 +15,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization.Conventions;
 
@@ -65,6 +66,12 @@ namespace MongoDB.Bson.Serialization.Serializers
             var bsonType = bsonReader.GetCurrentBsonType();
             switch (bsonType)
             {
+                case BsonType.Array:
+                    if (context.DynamicArraySerializer != null)
+                    {
+                        return context.DynamicArraySerializer.Deserialize(context);
+                    }
+                    goto default;
                 case BsonType.Binary:
                     var binaryData = bsonReader.ReadBinaryData();
                     var subType = binaryData.SubType;
@@ -201,6 +208,17 @@ namespace MongoDB.Bson.Serialization.Serializers
             var actualType = _discriminatorConvention.GetActualType(bsonReader, typeof(object));
             if (actualType == typeof(object))
             {
+                var type = bsonReader.GetCurrentBsonType();
+                switch(type)
+                {
+                    case BsonType.Document:
+                        if (context.DynamicDocumentSerializer != null)
+                        {
+                            return context.DynamicDocumentSerializer.Deserialize(context);
+                        }
+                        break;
+                }
+
                 bsonReader.ReadStartDocument();
                 bsonReader.ReadEndDocument();
                 return new object();
@@ -238,15 +256,22 @@ namespace MongoDB.Bson.Serialization.Serializers
             }
             else
             {
-                var bsonWriter = context.Writer;
-                var discriminator = _discriminatorConvention.GetDiscriminator(typeof(object), actualType);
+                if (context.IsDynamicType != null && context.IsDynamicType(value.GetType()))
+                {
+                    context.SerializeWithChildContext(serializer, value);
+                }
+                else
+                {
+                    var bsonWriter = context.Writer;
+                    var discriminator = _discriminatorConvention.GetDiscriminator(typeof(object), actualType);
 
-                bsonWriter.WriteStartDocument();
-                bsonWriter.WriteName("_t");
-                context.SerializeWithChildContext(BsonValueSerializer.Instance, discriminator);
-                bsonWriter.WriteName("_v");
-                context.SerializeWithChildContext(serializer, value);
-                bsonWriter.WriteEndDocument();
+                    bsonWriter.WriteStartDocument();
+                    bsonWriter.WriteName("_t");
+                    context.SerializeWithChildContext(BsonValueSerializer.Instance, discriminator);
+                    bsonWriter.WriteName("_v");
+                    context.SerializeWithChildContext(serializer, value);
+                    bsonWriter.WriteEndDocument();
+                }
             }
         }
     }

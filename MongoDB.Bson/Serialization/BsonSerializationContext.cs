@@ -14,6 +14,9 @@
 */
 
 using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using MongoDB.Bson.IO;
 
 namespace MongoDB.Bson.Serialization
@@ -24,6 +27,7 @@ namespace MongoDB.Bson.Serialization
     public class BsonSerializationContext
     {
         // private fields
+        private readonly Func<Type, bool> _isDynamicType;
         private readonly Type _nominalType;
         private readonly BsonSerializationContext _parent;
         private readonly bool _serializeAsNominalType;
@@ -36,16 +40,27 @@ namespace MongoDB.Bson.Serialization
             BsonWriter writer,
             Type nominalType,
             bool serializeAsNominalType,
-            bool serializeIdFirst)
+            bool serializeIdFirst,
+            Func<Type, bool> isDynamicType)
         {
             _parent = parent;
             _writer = writer;
             _nominalType = nominalType;
             _serializeAsNominalType = serializeAsNominalType;
             _serializeIdFirst = serializeIdFirst;
+            _isDynamicType = isDynamicType;
         }
 
         // public properties
+        /// <summary>
+        /// Gets a function that, when executed, will indicate whether the type 
+        /// is a dynamic type.
+        /// </summary>
+        public Func<Type, bool> IsDynamicType
+        {
+            get { return _isDynamicType; }
+        }
+
         /// <summary>
         /// Gets the nominal type.
         /// </summary>
@@ -223,6 +238,7 @@ namespace MongoDB.Bson.Serialization
         public class Builder
         {
             // private fields
+            private Func<Type, bool> _isDynamicType;
             private Type _nominalType;
             private BsonSerializationContext _parent;
             private bool _serializeAsNominalType;
@@ -244,9 +260,27 @@ namespace MongoDB.Bson.Serialization
                 _parent = parent;
                 _writer = writer;
                 _nominalType = nominalType;
+                if (parent != null)
+                {
+                    _isDynamicType = parent._isDynamicType;
+                }
+                else
+                {
+                    _isDynamicType = t => (BsonDefaults.DynamicArraySerializer != null && t == BsonDefaults.DynamicArraySerializer.ValueType) ||
+                            (BsonDefaults.DynamicDocumentSerializer != null && t == BsonDefaults.DynamicDocumentSerializer.ValueType);
+                }
             }
 
             // properties
+            /// <summary>
+            /// Gets or sets the function used to determine if a type is a dynamic type.
+            /// </summary>
+            public Func<Type, bool> IsDynamicType
+            {
+                get { return _isDynamicType; }
+                set { _isDynamicType = value; }
+            }
+
             /// <summary>
             /// Gets the nominal type.
             /// </summary>
@@ -311,7 +345,7 @@ namespace MongoDB.Bson.Serialization
             /// <returns>A BsonSerializationContext.</returns>
             internal BsonSerializationContext Build()
             {
-                return new BsonSerializationContext(_parent, _writer, _nominalType, _serializeAsNominalType, _serializeIdFirst);
+                return new BsonSerializationContext(_parent, _writer, _nominalType, _serializeAsNominalType, _serializeIdFirst, _isDynamicType);
             }
         }
     }
