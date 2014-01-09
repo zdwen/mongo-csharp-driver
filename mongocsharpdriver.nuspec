@@ -37,5 +37,6 @@
     <file src="MongoDB.Bson\**\*.cs" target="src\MongoDB.Bson" />
     <file src="MongoDB.Driver.Core\**\*.cs" target="src\MongoDB.Driver.Core" />
     <file src="MongoDB.Driver\**\*.cs" target="src\MongoDB.Driver" />
+    <file src="MongoDB.Shared\**\*.cs" target="src\MongoDB.Shared" />
   </files>
 </package>

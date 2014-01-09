@@ -11,7 +11,6 @@ Properties {
 		$sem_version = "$sem_version-$($version_info.Quality)"
 		$short_version = "$short_version-$($version_info.Quality)"
 	}
-	echo $version_info.PreRelease
 	if($version_info.PreRelease -eq "true") {
 		$sem_version = "$sem_version-$build_number"
 		$short_version = "$short_version-$build_number"
@@ -46,6 +45,7 @@ Properties {
 	$nuget_tool = "$tools_dir\nuget\nuget.exe"
 	$nunit_tool = "$tools_dir\nunit\nunit-console.exe"
 	$opencover_tool = "$tools_dir\OpenCover\OpenCover.Console.exe"
+	$coberturaconverter_tool = "$tools_dir\OpenCoverToCoberturaConverter\Palmmedia.OpenCoverToCoberturaConverter.exe"
 	$reportgenerator_tool = "$tools_dir\ReportGenerator\bin\ReportGenerator.exe"
 	$zip_tool = "$tools_dir\7Zip\7za.exe"
 }
@@ -128,6 +128,10 @@ Task TestWithCoverage -precondition { BuildHasBeenRun } {
 	Write-Host "Testing $test_assemblies for .NET 4.5 with Code Coverage" -ForegroundColor Green
 	$nunit_args = "$test_assemblies /timeout=10000 /xml=$test_results_dir\net45-test-results.xml /framework=net-4.0 /nologo /noshadow"
 	Exec { &$opencover_tool "-register:user" "-target:$nunit_tool" "-targetargs:$nunit_args" "-filter:+[MongoDB*]* -[MongoDB*Tests*]*" "-output:$test_results_dir\net45-test-coverage.xml" }
+
+	Exec { &$coberturaconverter_tool "-input:$test_results_dir\net40-test-coverage.xml" "-output:$test_results_dir\net40-cobertura-coverage.xml" "-sources:$src_dir" }
+
+	Exec { &$coberturaconverter_tool "-input:$test_results_dir\net45-test-coverage.xml" "-output:$test_results_dir\net45-covertura-coverage.xml" "-sources:$src_dir" }
 
 	Exec { &$reportgenerator_tool "-reports:$test_results_dir\*-test-coverage.xml" "-targetdir:$test_results_dir\report" "-reporttypes:Html;HtmlSummary" }
 }
