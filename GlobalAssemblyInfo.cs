@@ -24,6 +24,4 @@ using System.Security;
 [assembly: AssemblyVersion("0.0.0.0")]
 [assembly: AssemblyFileVersion("0.0.0.0")]
 [assembly: AssemblyInformationalVersion("{version: '0.0.0.0', semver: '0.0.0-unofficial'}")]
-[assembly: AssemblyConfiguration("Release")]
-[assembly: AllowPartiallyTrustedCallers()]
-[assembly: SecurityRules(SecurityRuleSet.Level2)]
+[assembly: AssemblyConfiguration("Debug")]

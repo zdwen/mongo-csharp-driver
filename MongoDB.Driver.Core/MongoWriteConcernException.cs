@@ -28,7 +28,7 @@ namespace MongoDB.Driver
     {
         // private fields
         [NonSerialized]
-        private WriteConcernExceptionState _state;
+        private WriteConcernResult _result;
 
         // constructors
         /// <summary>
@@ -39,9 +39,7 @@ namespace MongoDB.Driver
         public MongoWriteConcernException(string message, WriteConcernResult result) 
             : base(message, result.Response) 
         {
-            _state = new WriteConcernExceptionState { Result = result };
-
-            SerializeObjectState += (sender, e) => e.AddSerializedState(_state);
+            _result = result;
         }
 
         /// <summary>
@@ -53,9 +51,20 @@ namespace MongoDB.Driver
         public MongoWriteConcernException(string message, WriteConcernResult result, Exception inner)
             : base(message, result.Response, inner) 
         {
-            _state = new WriteConcernExceptionState { Result = result };
+            _result = result;
+        }
 
-            SerializeObjectState += (sender, e) => e.AddSerializedState(_state);
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MongoWriteConcernException" /> class.
+        /// </summary>
+        /// <param name="info">The info.</param>
+        /// <param name="context">The context.</param>
+        protected MongoWriteConcernException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+            _result = (WriteConcernResult)info.GetValue("_result", typeof(WriteConcernResult));
         }
 
         // public properties
@@ -64,25 +73,23 @@ namespace MongoDB.Driver
         /// </summary>
         public WriteConcernResult Result
         {
-            get { return _state.Result; }
+            get { return _result; }
         }
 
-        // nested structs
-        private struct WriteConcernExceptionState : ISafeSerializationData
+        // public methods
+        /// <summary>
+        /// When overridden in a derived class, sets the <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with information about the exception.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
+        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <PermissionSet>
+        ///   <IPermission class="System.Security.Permissions.FileIOPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Read="*AllFiles*" PathDiscovery="*AllFiles*" />
+        ///   <IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="SerializationFormatter" />
+        ///   </PermissionSet>
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            private WriteConcernResult _result;
-
-            public WriteConcernResult Result
-            {
-                get { return _result; }
-                set { _result = value; }
-            }
-
-            public void CompleteDeserialization(object deserialized)
-            {
-                var ex = deserialized as MongoWriteConcernException;
-                ex._state = this;
-            }
+            base.GetObjectData(info, context);
+            info.AddValue("_result", _result);
         }
     }
 }
