@@ -35,6 +35,7 @@ Properties {
 
 	$sln_file = "$base_dir\CSharpDriver.sln"
 	$asm_file = "$src_dir\GlobalAssemblyInfo.cs"
+	$out_version_file = "$artifacts_dir\version"
 	$docs_file = "$base_dir\Docs\Api\CSharpDriverDocs.shfbproj"
 	$installer_file = "$base_dir\Installer\CSharpDriverInstaller.wixproj"
 	$nuspec_file = "$base_dir\mongocsharpdriver.nuspec"
@@ -78,24 +79,21 @@ Task Clean {
 	Exec { msbuild "$sln_file" /t:Clean /p:Configuration=".NET 4.5 - $config" /v:quiet } 
 }
 
-Task Init -Depends Clean {
-	Generate-AssemblyInfo `
-		-file $asm_file `
-		-version $version `
-		-config $config `
-		-sem_version $sem_version `
-}
-
-Task Build -Depends Init {	
+Task Build -Depends Clean {
 	try {
-		
-	mkdir -path $40_bin_dir | out-null
-	Write-Host "Building $sln_file for .NET 4.0" -ForegroundColor Green
-	Exec { msbuild "$sln_file" /t:Rebuild /p:Configuration=".NET 4.0 - $config" /p:TargetFrameworkVersion=v4.0 /v:quiet /p:OutDir=$40_bin_dir }
+		Generate-AssemblyInfo `
+			-file $asm_file `
+			-version $version `
+			-config $config `
+			-sem_version $sem_version `
 
-	mkdir -path $45_bin_dir | out-null
-	Write-Host "Building $sln_file for .NET 4.5" -ForegroundColor Green
-	Exec { msbuild "$sln_file" /t:Rebuild /p:Configuration=".NET 4.5 - $config" /p:TargetFrameworkVersion=v4.5 /v:quiet /p:OutDir=$45_bin_dir }
+		mkdir -path $40_bin_dir | out-null
+		Write-Host "Building $sln_file for .NET 4.0" -ForegroundColor Green
+		Exec { msbuild "$sln_file" /t:Rebuild /p:Configuration=".NET 4.0 - $config" /p:TargetFrameworkVersion=v4.0 /v:quiet /p:OutDir=$40_bin_dir }
+
+		mkdir -path $45_bin_dir | out-null
+		Write-Host "Building $sln_file for .NET 4.5" -ForegroundColor Green
+		Exec { msbuild "$sln_file" /t:Rebuild /p:Configuration=".NET 4.5 - $config" /p:TargetFrameworkVersion=v4.5 /v:quiet /p:OutDir=$45_bin_dir }
 	}
 	finally {
 		Reset-AssemblyInfo

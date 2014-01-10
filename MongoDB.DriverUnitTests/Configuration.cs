@@ -47,6 +47,8 @@ namespace MongoDB.DriverUnitTests
             __testServer = __testClient.GetServer();
             __testDatabase = __testServer.GetDatabase("csharpdriverunittests");
             __testCollection = __testDatabase.GetCollection("testcollection");
+
+            __testServer.Connect();
         }
 
         // public static properties
