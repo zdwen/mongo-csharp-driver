@@ -24,15 +24,9 @@ namespace MongoDB.Driver.Core
 
         protected virtual void Configure(DbConfiguration configuration)
         {
-            var settings = GetTestSettings();
-            var connString = settings.GetValueOrDefault("ConnectionString", "mongodb://localhost");
+            var connString = Environment.GetEnvironmentVariable("MONGO_URI") ?? "mongodb://localhost";
 
             configuration.ConfigureWithConnectionString(connString);
-        }
-
-        protected virtual ITestSettings GetTestSettings()
-        {
-            return new EnvironmentVariableTestSettings();
         }
     }
 }

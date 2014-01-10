@@ -75,7 +75,6 @@
   <ItemGroup>
     <Compile Include="ClusterBuilder.cs" />
     <Compile Include="DatabaseTest.cs" />
-    <Compile Include="ITestSettings.cs" />
     <Compile Include="Core\Operations\AggregationOperationSpecs\When_executing_an_invalid_pipeline.cs" />
     <Compile Include="Core\Operations\AggregationOperationSpecs\When_executing_an_aggregation_pipeline.cs" />
     <Compile Include="Core\Operations\CursorSpecs\When_the_limit_is_hit_on_the_second_batch.cs" />
@@ -104,7 +103,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Specification.cs" />
     <Compile Include="SuiteSetup.cs" />
-    <Compile Include="EnvironmentVariableTestSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MongoDB.Bson\MongoDB.Bson.csproj">
