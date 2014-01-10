@@ -38,6 +38,7 @@ namespace MongoDB.Driver.Core.Configuration
         private IEventPublisher _eventPublisher;
         private NetworkStreamSettings.Builder _networkStreamSettingsBuilder;
         private ClusterableServerSettings.Builder _serverSettingsBuilder;
+        private SslStreamSettings.Builder _sslStreamSettingsBuilder;
         private Func<IStreamFactory, IStreamFactory> _streamFactoryWrapper;
 
         // constructors
@@ -62,7 +63,15 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>An <see cref="ICluster"/> implementation.</returns>
         public ICluster BuildCluster()
         {
-            var streamFactory = _streamFactoryWrapper(new NetworkStreamFactory(_networkStreamSettingsBuilder.Build(), new DnsCache()));
+            IStreamFactory streamFactory = new NetworkStreamFactory(_networkStreamSettingsBuilder.Build(), new DnsCache());
+            if (_sslStreamSettingsBuilder != null)
+            {
+                // Ssl always goes second...  If the user needs Ssl to an endpoint other
+                // than MongoDB, then they can add in a stream factory wrapper manually.
+                streamFactory = new SslStreamFactory(_sslStreamSettingsBuilder.Build(), streamFactory);
+            }
+            streamFactory = _streamFactoryWrapper(streamFactory);
+
             var connectionFactory = new StreamConnectionFactory(_connectionSettingsBuilder.Build(), streamFactory, _eventPublisher);
             var connectionPoolFactory = new ConnectionPoolFactory(_connectionPoolSettingsBuilder.Build(), connectionFactory, _eventPublisher);
             var channelProviderFactory = new ConnectionPoolChannelProviderFactory(connectionPoolFactory, _eventPublisher);
@@ -136,6 +145,24 @@ namespace MongoDB.Driver.Core.Configuration
             Ensure.IsNotNull("builderCallback", builderCallback);
 
             builderCallback(_serverSettingsBuilder);
+            return this;
+        }
+
+        /// <summary>
+        /// Configures the SSL settings for talking with MongoDB.
+        /// </summary>
+        /// <param name="builderCallback">The builder callback.</param>
+        /// <returns>The current configuration.</returns>
+        public DbConfiguration ConfigureSsl(Action<SslStreamSettings.Builder> builderCallback)
+        {
+            Ensure.IsNotNull("builderCallback", builderCallback);
+
+            if (_sslStreamSettingsBuilder == null)
+            {
+                _sslStreamSettingsBuilder = new SslStreamSettings.Builder();
+            }
+
+            builderCallback(_sslStreamSettingsBuilder);
             return this;
         }
 
@@ -246,12 +273,12 @@ namespace MongoDB.Driver.Core.Configuration
             }
             if (connectionString.Ssl != null)
             {
-                var settings = SslStreamSettings.Create(b =>
+                ConfigureSsl(ssl =>
                 {
                     if (connectionString.SslVerifyCertificate != null && !connectionString.SslVerifyCertificate.Value)
                     {
-                        b.ValidateServerCertificateWith((obj, cert, chain, errors) => true);
-                    }
+                        ssl.ValidateServerCertificateWith((obj, cert, chain, errors) => true);
+                    } 
                 });
             }
 
