@@ -37,6 +37,8 @@ namespace MongoDB.DriverUnitTests.Jira.CSharp269
             clientSettings.ReadPreference = ReadPreference.SecondaryPreferred;
             var client = new MongoClient(clientSettings); // ReadPreference=SecondaryPreferred
             _server = client.GetServer();
+            _server.Connect(); // need to call connect here such that the proxy type will
+                               // be set when we determine we can't send a drop command to a secondary
             _database = _server.GetDatabase(Configuration.TestDatabase.Name);
             _database.GridFS.Files.Drop();
             _database.GridFS.Chunks.Drop();
