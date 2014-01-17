@@ -1,29 +1,14 @@
 Properties {
-	$base_dir = Split-Path $psake.build_script_file	
-
-	$version_info = Get-VersionInfo "$base_dir\.version"
-	$build_number = Get-BuildNumber
-
-	$version = "$($version_info.Version).$build_number"
-	$sem_version = $version_info.Version
-	$short_version = Get-ShortenedVersion $sem_version
-	if(-not [string]::IsNullOrEmpty($version_info.Quality)) {
-		$sem_version = "$sem_version-$($version_info.Quality)"
-		$short_version = "$short_version-$($version_info.Quality)"
-	}
-	if($version_info.PreRelease -eq "true") {
-		$sem_version = "$sem_version-$build_number"
-		$short_version = "$short_version-$build_number"
-	}
-	$release_notes_version = Get-ShortenedVersion $version_info.Version
-	$config = 'Release'
-
-	Write-Host "$config Version $sem_version($version)" -ForegroundColor Yellow
+    $base_version = "3.0.0"
+    $pre_release = "local"
+    $build_number = Get-BuildNumber
+    $config = "Release"
 
 	$git_commit = Get-GitCommit
-	$installer_product_id = New-Object System.Guid($git_commit.Hash.SubString(0,32))
-	$installer_upgrade_code = New-Object System.Guid($git_commit.Hash.SubString(1,32))
+    $installer_product_id = New-Object System.Guid($git_commit.Hash.SubString(0,32))
+    $installer_upgrade_code = New-Object System.Guid($git_commit.Hash.SubString(1,32))
 
+    $base_dir = Split-Path $psake.build_script_file 
 	$src_dir = "$base_dir"
 	$tools_dir = "$base_dir\tools"
 	$artifacts_dir = "$base_dir\artifacts"
@@ -35,12 +20,11 @@ Properties {
 
 	$sln_file = "$base_dir\CSharpDriver.sln"
 	$asm_file = "$src_dir\GlobalAssemblyInfo.cs"
-	$out_version_file = "$artifacts_dir\version"
+	$version_file = "$artifacts_dir\version.txt"
 	$docs_file = "$base_dir\Docs\Api\CSharpDriverDocs.shfbproj"
 	$installer_file = "$base_dir\Installer\CSharpDriverInstaller.wixproj"
 	$nuspec_file = "$base_dir\mongocsharpdriver.nuspec"
-	$chm_file = "$artifacts_dir\CSharpDriverDocs-$short_version.chm"
-	$release_notes_file = "$base_dir\Release Notes\Release Notes v$release_notes_version.md"
+    $nuspec_build_file = "$base_dir\mongocsharpdriverbuild.nuspec"
 	$license_file = "$base_dir\License.txt"
 
 	$nuget_tool = "$tools_dir\nuget\nuget.exe"
@@ -49,6 +33,38 @@ Properties {
 	$coberturaconverter_tool = "$tools_dir\OpenCoverToCoberturaConverter\Palmmedia.OpenCoverToCoberturaConverter.exe"
 	$reportgenerator_tool = "$tools_dir\ReportGenerator\bin\ReportGenerator.exe"
 	$zip_tool = "$tools_dir\7Zip\7za.exe"
+}
+
+function IsReleaseBuild {
+    if($pre_release -eq "build" -or $pre_release -eq "local") {
+        return $false
+    }
+
+    return $true
+}
+
+TaskSetup {
+
+    $global:version = "$base_version.$build_number"
+    $global:sem_version = $base_version
+    if(-not [string]::IsNullOrEmpty($pre_release)) {
+        $global:sem_version = "$sem_version-$($pre_release)"
+
+        if(-not (IsReleaseBuild)) {
+            # These should be + instead of -, but nuget doesn't allow that right now
+            # Also padding the build number because nuget sorts lexigraphically
+            # meaning that 2 > 10.  So, we make it such that 0002 < 0010.
+            # Note: will we ever have > 9999 commits between releases?
+            # Note: 0 + $build_number is to coerce the build_number into an integer.
+            $bn = "{0:0000}" -f (0 + $build_number)
+            $global:sem_version = "$sem_version-$bn"
+        }
+    }
+
+    Write-Host "$config Version $sem_version($version)" -ForegroundColor Yellow
+
+    $global:chm_file = "$artifacts_dir\CSharpDriverDocs-$sem_version.chm"
+    $global:release_notes_file = "$base_dir\Release Notes\Release Notes v$base_version.md"
 }
 
 Framework('4.0')
@@ -67,9 +83,25 @@ function DocsHasBeenRun {
 	$true
 }
 
+function NotLocalPreRelease {
+    $is_not_local = $pre_release -ne "local"
+    Assert $is_not_local "Cannot run task on a local build. Specify a different (or none) pre-release version."
+    $true
+}
+
 Task Default -Depends Build
 
-Task Release -Depends Build, Docs, Zip, Installer, NugetPack
+Task OutputVersion {
+    if(-not (Test-Path $artifacts_dir)) {
+        mkdir -path $artifacts_dir | out-null
+    }
+
+    $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
+
+    Write-Host "Writing version file to $version_file" -ForegroundColor Green
+    $lines = @("BUILD_VERSION=$base_version";"BUILD_PRE_RELEASE=$pre_release";"BUILD_NUMBER=$build_number";"BUILD_SEM_VERSION=$sem_version")
+    [System.IO.File]::WriteAllLines($version_file, $lines, $Utf8NoBomEncoding)
+}
 
 Task Clean {
 	RemoveDirectory $artifacts_dir
@@ -79,7 +111,7 @@ Task Clean {
 	Exec { msbuild "$sln_file" /t:Clean /p:Configuration=".NET 4.5 - $config" /v:quiet } 
 }
 
-Task Build -Depends Clean {
+Task Build -Depends Clean, OutputVersion {
 	try {
 		Generate-AssemblyInfo `
 			-file $asm_file `
@@ -142,7 +174,7 @@ Task Docs -precondition { BuildHasBeenRun } {
 
 	mv "$docs_dir\CSharpDriverDocs.chm" $chm_file
 	mv "$docs_dir\Index.html" "$docs_dir\index.html"
-	Exec { &$zip_tool a "$artifacts_dir\CSharpDriverDocs-$short_version-html.zip" "$docs_dir\*" }
+	Exec { &$zip_tool a "$artifacts_dir\CSharpDriverDocs-$sem_version-html.zip" "$docs_dir\*" }
 	RemoveDirectory $docs_dir
 }
 
@@ -177,10 +209,10 @@ Task Zip -precondition { (BuildHasBeenRun) -and (DocsHasBeenRun) }{
 	cp $45_items "$zip_dir\net45"
 
 	cp $license_file $zip_dir
-	cp "Release Notes\Release Notes v$release_notes_version.md" "$zip_dir\Release Notes.txt"
+	cp "Release Notes\Release Notes v$base_version.md" "$zip_dir\Release Notes.txt"
 	cp $chm_file "$zip_dir\CSharpDriverDocs.chm"
 
-	Exec { &$zip_tool a "$artifacts_dir\CSharpDriver-$short_version.zip" "$zip_dir\*" }
+	Exec { &$zip_tool a "$artifacts_dir\CSharpDriver-$sem_version.zip" "$zip_dir\*" }
 
 	rd $zip_dir -rec -force | out-null
 }
@@ -189,11 +221,17 @@ Task Installer -precondition { (BuildHasBeenRun) -and (DocsHasBeenRun) } {
 	$release_notes_relative_path = Get-Item $release_notes_file | Resolve-Path -Relative
 	$doc_relative_path = Get-Item $chm_file | Resolve-Path -Relative
 
-	Exec { msbuild "$installer_file" /t:Rebuild /p:Configuration=$config /p:Version=$version /p:SemVersion=$short_version /p:ProductId=$installer_product_id /p:UpgradeCode=$installer_upgrade_code /p:ReleaseNotes=$release_notes_relative_path /p:License="License.rtf" /p:Documentation=$doc_relative_path /p:OutputPath=$artifacts_dir /p:BinDir=$bin_dir}
+	Exec { msbuild "$installer_file" /t:Rebuild /p:Configuration=$config /p:Version=$version /p:SemVersion=$sem_version /p:ProductId=$installer_product_id /p:UpgradeCode=$installer_upgrade_code /p:ReleaseNotes=$release_notes_relative_path /p:License="License.rtf" /p:Documentation=$doc_relative_path /p:OutputPath=$artifacts_dir /p:BinDir=$bin_dir}
 	
 	rm -force $artifacts_dir\*.wixpdb
 }
 
-Task NugetPack -precondition { (BuildHasBeenRun) -and (DocsHasBeenRun) }{
-	Exec { &$nuget_tool pack $nuspec_file -o $artifacts_dir -Version $sem_version -Symbols -BasePath $base_dir }
+Task NugetPack -precondition { (NotLocalPreRelease) -and (BuildHasBeenRun) -and (DocsHasBeenRun) } {
+
+    $nf = $nuspec_file
+    if($pre_release -eq "build") {
+        $nf = $nuspec_build_file
+    }
+
+	Exec { &$nuget_tool pack $nf -o $artifacts_dir -Version $sem_version -Symbols -BasePath $base_dir }
 }
