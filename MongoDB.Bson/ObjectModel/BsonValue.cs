@@ -655,7 +655,8 @@ namespace MongoDB.Bson
         /// <returns>A BsonValue.</returns>
         public static implicit operator BsonValue(Enum value)
         {
-            return BsonTypeMapper.MapToBsonValue(value);
+            ///【zdwen 2014-8-28-234249】To handle the enum value as string in place of int or byte, etc.
+            return BsonTypeMapper.MapToBsonValue(value.ToString());
         }
 
         /// <summary>
